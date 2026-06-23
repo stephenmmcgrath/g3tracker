@@ -514,7 +514,7 @@ let rides = [], vehicles = [], selectedVehicle = '';
 
 /* DRIVE SYNC STATE */
 const DRIVE_CLIENT_ID = '216845088387-o8o90klumcerbh02b3akk5tfr6jacq0p.apps.googleusercontent.com';
-const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 let driveToken = null;
 let driveFileId = null;
 
@@ -1338,7 +1338,7 @@ async function driveSync() {
     if (!fileId) {
       // Search for existing file
       const search = await fetch(
-        'https://www.googleapis.com/drive/v3/files?spaces=drive&q=name%3D%22G3RideTracker_rides.json%22+and+trashed%3Dfalse&fields=files(id)',
+        'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%22G3RideTracker_rides.json%22&fields=files(id)',
         { headers: { Authorization: 'Bearer ' + driveToken } }
       );
       const sData = await search.json();
@@ -1415,7 +1415,7 @@ async function driveCreate() {
     {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + driveToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'G3RideTracker_rides.json', parents: ['root'] })
+      body: JSON.stringify({ name: 'G3RideTracker_rides.json', parents: ['appDataFolder'] })
     }
   );
   const mData = await meta.json();
