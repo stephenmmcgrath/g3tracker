@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>G3 Ride Tracker</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{--bg:#0a0a14;--bg2:#12121f;--bg3:#1a1a2e;--bg4:#22223a;--accent:#00c8ff;--accent2:#0090cc;--danger:#e74c3c;--success:#2ecc71;--warn:#f39c12;--text:#eef0f4;--text2:#8890a0;--text3:#4a5060;--border:rgba(255,255,255,0.07);--r:12px;--r-lg:20px;--font:-apple-system,'SF Pro Display','Segoe UI',sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+button{font-family:inherit;border:none;cursor:pointer}
+input,textarea,select{font-family:inherit}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;position:relative}
+
+/* HEADER */
+header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;z-index:10}
+.logo{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo svg{width:24px;height:24px}
+header h1{font-size:17px;font-weight:600;letter-spacing:-0.3px}
+header .sub{font-size:11px;color:var(--text2);margin-top:1px}
+.rec-badge{margin-left:auto;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:var(--danger);font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;display:none;align-items:center;gap:4px}
+.rec-badge.visible{display:flex}
+.rec-dot{width:6px;height:6px;border-radius:50%;background:var(--danger);animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* NAV */
+nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+nav button{flex:1;padding:10px 2px 8px;background:transparent;color:var(--text3);font-size:10px;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:3px;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s}
+nav button svg{width:19px;height:19px}
+nav button.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PAGES */
+.page{display:none;flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.page.active{display:flex;flex-direction:column}
+
+/* MAP */
+#map-container{position:relative;height:240px;background:var(--bg3);flex-shrink:0}
+#map{width:100%;height:100%}
+#map-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text2);font-size:13px;position:absolute;inset:0}
+#map-placeholder svg{width:40px;height:40px;opacity:0.3}
+.record-wrap{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);z-index:20}
+.record-btn{width:64px;height:64px;border-radius:50%;background:var(--danger);color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 5px var(--bg),0 0 0 7px rgba(231,76,60,0.3);transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
+.record-btn:active{transform:scale(0.93)}
+.record-btn.recording{background:#c0392b;animation:pulse-btn 2s infinite}
+@keyframes pulse-btn{0%,100%{box-shadow:0 0 0 5px var(--bg),0 0 0 7px rgba(231,76,60,0.5),0 0 20px rgba(231,76,60,0.3)}50%{box-shadow:0 0 0 5px var(--bg),0 0 0 12px rgba(231,76,60,0.15),0 0 30px rgba(231,76,60,0.2)}}
+.record-btn svg{width:28px;height:28px}
+
+/* VEHICLE SELECTOR on ride page */
+.vehicle-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.vehicle-bar label{font-size:11px;color:var(--text2);white-space:nowrap}
+.vehicle-select{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;outline:none}
+
+/* VOICE STATUS */
+.voice-status{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px 8px;font-size:10px;color:var(--accent);display:none;align-items:center;gap:4px;z-index:15}
+.voice-status.visible{display:flex}
+.voice-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:blink 1s infinite}
+
+/* LIVE STATS */
+.live-stats{margin-top:44px;padding:0 14px 6px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat-card{background:var(--bg3);border-radius:var(--r);padding:12px 10px;text-align:center;border:1px solid var(--border)}
+.stat-val{font-size:22px;font-weight:600;color:var(--accent);letter-spacing:-0.5px;font-variant-numeric:tabular-nums}
+.stat-val.large{font-size:26px}
+.stat-unit{font-size:10px;color:var(--text3)}
+.stat-lbl{font-size:10px;color:var(--text2);margin-top:3px}
+.speed-row{display:flex;gap:8px;padding:0 14px 8px}
+.speed-card{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;display:flex;align-items:center;justify-content:space-between}
+.speed-num{font-size:28px;font-weight:700;color:var(--accent);letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.speed-info{text-align:right}
+.speed-info .lbl{font-size:10px;color:var(--text2)}
+.speed-info .unit{font-size:11px;color:var(--text3)}
+
+/* NOTES / MEDIA */
+.section{padding:0 14px 8px}
+.section-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;font-weight:600}
+textarea.notes-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;padding:12px;resize:none;min-height:70px;outline:none;transition:border-color 0.15s}
+textarea.notes-input:focus{border-color:var(--accent2)}
+textarea.notes-input::placeholder{color:var(--text3)}
+.media-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.media-strip::-webkit-scrollbar{display:none}
+.media-thumb-wrap{position:relative;flex-shrink:0}
+.media-thumb-wrap img,.media-thumb-wrap video{width:72px;height:72px;border-radius:10px;object-fit:cover}
+.media-thumb-wrap .del-btn{position:absolute;top:-5px;right:-5px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:white;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1}
+.add-media-btn{width:72px;height:72px;border-radius:10px;background:var(--bg3);border:1.5px dashed rgba(0,200,255,0.3);color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px;flex-shrink:0;cursor:pointer}
+.add-media-btn svg{width:22px;height:22px}
+#media-input,#edit-media-input{display:none}
+.idle-msg{padding:20px 14px;text-align:center;color:var(--text2);font-size:14px;line-height:1.5}
+.idle-msg strong{color:var(--text);display:block;margin-bottom:4px}
+
+/* HISTORY */
+.history-header{padding:16px 14px 8px;font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3);padding:40px;text-align:center}
+.empty-state svg{width:56px;height:56px;opacity:0.3}
+.empty-state p{font-size:14px;line-height:1.5}
+.ride-list{padding:0 14px 80px;display:flex;flex-direction:column;gap:10px}
+.ride-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;cursor:pointer;transition:background 0.15s;-webkit-tap-highlight-color:transparent}
+.ride-item:active{background:var(--bg4)}
+.ride-item-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.ride-title-row{display:flex;align-items:center;gap:8px}
+.ride-icon{width:34px;height:34px;background:rgba(0,200,255,0.1);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ride-icon svg{width:18px;height:18px;color:var(--accent)}
+.ride-name{font-size:15px;font-weight:600}
+.ride-date{font-size:11px;color:var(--text2);margin-top:2px}
+.ride-vehicle-tag{font-size:10px;color:var(--accent);background:rgba(0,200,255,0.08);border-radius:5px;padding:1px 6px;margin-top:3px;display:inline-block}
+.ride-dist-big{font-size:22px;font-weight:700;color:var(--accent);letter-spacing:-0.5px;text-align:right}
+.ride-dist-big span{font-size:12px;color:var(--text2);font-weight:400}
+.ride-pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{background:var(--bg4);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px}
+.has-media-badge{background:rgba(0,200,255,0.08);color:var(--accent);font-size:10px;border-radius:6px;padding:2px 6px;margin-top:4px;display:block;text-align:right}
+.weather-pill{background:rgba(243,156,18,0.1);color:var(--warn);border-radius:20px;padding:4px 10px;font-size:11px;display:inline-flex;align-items:center;gap:4px;margin-top:6px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:flex-end}
+.modal-overlay.open{display:flex}
+.modal{width:100%;max-width:480px;margin:0 auto;background:var(--bg2);border-radius:24px 24px 0 0;max-height:92dvh;overflow-y:auto;padding-bottom:40px;animation:slide-up 0.25s ease-out}
+@keyframes slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 16px}
+.modal-map{width:100%;height:200px;background:var(--bg3)}
+.modal-body{padding:0 16px}
+.modal-title-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:4px}
+.modal-title{font-size:20px;font-weight:700;letter-spacing:-0.5px;flex:1}
+.modal-date{font-size:12px;color:var(--text2);margin-top:3px}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--bg4);color:var(--text2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-close svg{width:16px;height:16px}
+.modal-vehicle-row{margin-bottom:14px}
+.modal-weather{font-size:12px;color:var(--warn);margin-bottom:12px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.stat-block{background:var(--bg3);border-radius:var(--r);padding:12px;border:1px solid var(--border)}
+.stat-block .val{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:-0.5px}
+.stat-block .lbl{font-size:11px;color:var(--text2);margin-top:2px}
+.modal-section-lbl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;font-weight:600;margin-bottom:8px}
+.modal-notes{background:var(--bg3);border-radius:var(--r);padding:12px;font-size:14px;color:var(--text);line-height:1.5;margin-bottom:8px;border:1px solid var(--border);min-height:56px;white-space:pre-wrap}
+.edit-notes-input{width:100%;background:var(--bg3);border:1px solid var(--accent2);border-radius:var(--r);color:var(--text);font-size:14px;padding:12px;resize:none;min-height:80px;outline:none;margin-bottom:8px;display:none}
+.modal-media{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding-top:48px;padding-left:80px}
+.modal-media img,.modal-media video{width:88px;height:88px;border-radius:10px;object-fit:cover;cursor:pointer}
+#media-viewer{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:500;display:none;align-items:center;justify-content:center}
+#media-viewer.open{display:flex}
+#media-viewer-inner{max-width:100%;max-height:100dvh;display:flex;align-items:center;justify-content:center;padding:16px}
+#media-viewer-inner img{max-width:100%;max-height:88dvh;object-fit:contain;border-radius:8px}
+#media-viewer-inner video{max-width:100%;max-height:88dvh;border-radius:8px;width:100%}
+#media-viewer-close{position:absolute;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);color:white;font-size:26px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;line-height:1;z-index:501}
+.action-btn{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:var(--r);padding:13px;font-size:14px;font-weight:500;margin-top:8px;text-align:left}
+.action-btn.accent{background:rgba(0,200,255,0.08);border-color:rgba(0,200,255,0.2);color:var(--accent)}
+.delete-ride-btn{width:100%;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:var(--danger);border-radius:var(--r);padding:13px;font-size:14px;font-weight:500;margin-top:8px}
+
+/* STATS PAGE */
+.stats-page-inner{padding:16px 14px 80px}
+.stats-page-title{font-size:20px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px}
+.stats-filter-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.stats-filter-row::-webkit-scrollbar{display:none}
+.filter-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--bg3);color:var(--text2);white-space:nowrap;cursor:pointer;flex-shrink:0}
+.filter-chip.active{background:rgba(0,200,255,0.12);border-color:var(--accent);color:var(--accent)}
+.lifetime-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.lifetime-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
+.lifetime-card .big{font-size:28px;font-weight:700;color:var(--accent);letter-spacing:-1px}
+.lifetime-card .lbl{font-size:12px;color:var(--text2);margin-top:4px}
+.lifetime-card.wide{grid-column:1/-1;display:flex;align-items:center;gap:16px}
+.lifetime-card.wide .big{font-size:36px}
+/* CHARTS */
+.chart-section{margin-bottom:16px}
+.chart-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px}
+.chart-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;overflow:hidden}
+canvas.ride-chart{width:100%!important;max-height:160px}
+
+/* SETTINGS PAGE */
+.settings-inner{padding:16px 14px 80px}
+.settings-title{font-size:20px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px}
+.settings-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5}
+.settings-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:14px}
+.settings-card h3{font-size:14px;font-weight:600;margin-bottom:6px}
+.settings-card p{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:12px}
+.settings-input{width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;padding:11px 12px;outline:none;transition:border-color 0.15s;font-family:monospace}
+.settings-input:focus{border-color:var(--accent2)}
+.settings-btn{margin-top:10px;padding:11px 20px;background:var(--accent);color:#000;border-radius:var(--r);font-size:14px;font-weight:600}
+.settings-btn.danger{background:rgba(231,76,60,0.15);color:var(--danger);border:1px solid rgba(231,76,60,0.3)}
+.key-status{margin-top:8px;font-size:12px;padding:8px 12px;border-radius:8px;display:none}
+.key-status.ok{background:rgba(46,204,113,0.1);color:var(--success);display:block}
+.key-status.none{background:var(--bg4);color:var(--text2);display:block}
+/* VEHICLE MANAGEMENT */
+.vehicle-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.vehicle-row{display:flex;align-items:center;gap:8px;background:var(--bg4);border-radius:10px;padding:10px 12px}
+.vehicle-row-name{flex:1;font-size:14px}
+.vehicle-row-default{font-size:10px;color:var(--accent);margin-right:4px}
+.vehicle-row-del{width:28px;height:28px;border-radius:50%;background:rgba(231,76,60,0.15);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:16px}
+.vehicle-add-row{display:flex;gap:8px}
+.vehicle-add-input{flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;padding:9px 12px;outline:none}
+.vehicle-add-btn{padding:9px 16px;background:var(--accent);color:#000;border-radius:var(--r);font-size:13px;font-weight:600}
+
+
+/* DRIVE SYNC */
+.drive-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-top:8px;padding:8px 10px;background:var(--bg4);border-radius:8px}
+.drive-status .dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.drive-status.connected .dot{background:var(--success)}
+.drive-status.syncing .dot{background:var(--warn);animation:blink 1s infinite}
+.drive-status.error .dot{background:var(--danger)}
+.sync-badge{position:absolute;top:8px;right:8px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:var(--success);font-size:10px;padding:2px 7px;border-radius:10px;display:none}
+.sync-badge.visible{display:block}
+
+/* DB BANNER */
+#db-banner{background:rgba(231,76,60,0.1);border-bottom:1px solid rgba(231,76,60,0.2);padding:8px 16px;font-size:12px;color:var(--danger);display:none;text-align:center}
+
+/* VOICE TOAST */
+.voice-cmd-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,200,255,0.15);border:1px solid rgba(0,200,255,0.3);color:var(--accent);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;display:none}
+.voice-cmd-toast.show{display:block}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="db-banner">Ride data saving to temporary storage only — history may not persist.</div>
+
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="5.5" cy="17.5" r="2.5" stroke="#0a0a14" stroke-width="1.5"/>
+        <circle cx="18.5" cy="17.5" r="2.5" stroke="#0a0a14" stroke-width="1.5"/>
+        <path d="M8 17.5H16" stroke="#0a0a14" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M13 17.5L11 10H8.5" stroke="#0a0a14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11 10L15.5 8V6" stroke="#0a0a14" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M13.5 6H17.5" stroke="#0a0a14" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Ride Tracker</h1>
+      <div class="sub" id="header-sub">Segway Max G3</div>
+    </div>
+    <div class="rec-badge" id="rec-badge"><div class="rec-dot"></div><span id="rec-timer">0:00</span></div>
+  </header>
+
+  <nav>
+    <button class="active" onclick="showPage('ride',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Ride
+    </button>
+    <button onclick="showPage('history',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History
+    </button>
+    <button onclick="showPage('stats',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Stats
+    </button>
+    <button onclick="showPage('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings
+    </button>
+  </nav>
+
+  <!-- RIDE PAGE -->
+  <div class="page active" id="page-ride">
+    <div class="vehicle-bar">
+      <label>Vehicle:</label>
+      <select class="vehicle-select" id="vehicle-select" onchange="onVehicleChange()"></select>
+    </div>
+    <div id="map-container">
+      <div id="map"></div>
+      <div id="map-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Map appears when riding starts</span>
+      </div>
+      <div class="voice-status" id="voice-status"><div class="voice-dot"></div><span id="voice-text">Listening…</span></div>
+      <div class="record-wrap">
+        <button class="record-btn" id="record-btn" onclick="toggleRecording()">
+          <svg id="btn-icon-play" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <svg id="btn-icon-stop" viewBox="0 0 24 24" fill="white" style="display:none"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="live-stats-section" style="display:none">
+      <div class="live-stats">
+        <div class="stat-card"><div class="stat-val large" id="stat-dist">0.00</div><div class="stat-unit">km</div><div class="stat-lbl">Distance</div></div>
+        <div class="stat-card"><div class="stat-val large" id="stat-dur">0:00</div><div class="stat-unit">&nbsp;</div><div class="stat-lbl">Duration</div></div>
+        <div class="stat-card"><div class="stat-val large" id="stat-avg">0.0</div><div class="stat-unit">km/h</div><div class="stat-lbl">Avg speed</div></div>
+      </div>
+      <div class="speed-row">
+        <div class="speed-card" style="flex:1.4">
+          <div class="speed-num" id="stat-speed">0.0</div>
+          <div class="speed-info"><div class="lbl">Current</div><div class="unit">km/h</div></div>
+        </div>
+        <div class="speed-card" style="flex:0.8">
+          <div style="font-size:20px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums" id="stat-max">0.0</div>
+          <div class="speed-info"><div class="lbl">Max</div><div class="unit">km/h</div></div>
+        </div>
+        <div class="speed-card" style="flex:0.8">
+          <div style="font-size:20px;font-weight:700;color:#9b59b6;font-variant-numeric:tabular-nums" id="stat-gforce">0.00</div>
+          <div class="speed-info"><div class="lbl">Max G</div><div class="unit">g</div></div>
+        </div>
+      </div>
+      <div class="speed-row" style="padding-top:0">
+        <div class="speed-card" style="flex:1">
+          <div style="font-size:16px;font-weight:600;color:#2ecc71;font-variant-numeric:tabular-nums" id="stat-elev-max">—</div>
+          <div class="speed-info"><div class="lbl">Max elev</div><div class="unit">m</div></div>
+        </div>
+        <div class="speed-card" style="flex:1">
+          <div style="font-size:16px;font-weight:600;color:#e67e22;font-variant-numeric:tabular-nums" id="stat-elev-min">—</div>
+          <div class="speed-info"><div class="lbl">Min elev</div><div class="unit">m</div></div>
+        </div>
+        <div class="speed-card" style="flex:1">
+          <div style="font-size:16px;font-weight:600;color:var(--warn);font-variant-numeric:tabular-nums" id="stat-weather-live">—</div>
+          <div class="speed-info"><div class="lbl">Weather</div><div class="unit">&nbsp;</div></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">Ride notes</div>
+        <textarea class="notes-input" id="ride-notes" placeholder="Add notes about this ride…" rows="3"></textarea>
+      </div>
+      <div class="section">
+        <div class="section-label">Photos &amp; videos</div>
+        <div class="media-strip" id="media-strip">
+          <button class="add-media-btn" onclick="document.getElementById('media-input').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add
+          </button>
+        </div>
+        <input type="file" id="media-input" accept="image/*,video/*" multiple onchange="handleMedia(this)">
+        <input type="file" id="edit-media-input" accept="image/*,video/*" multiple onchange="handleEditMedia(this)">
+      </div>
+    </div>
+
+    <div class="idle-msg" id="idle-msg">
+      <strong>Ready to roll</strong>
+      Tap the button to start — or say "Start recording". GPS, speed, distance and route tracked automatically.
+    </div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div class="page" id="page-history">
+    <div class="history-header">Ride History</div>
+    <div class="empty-state" id="empty-history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <p>No rides yet. Head out and record your first ride!</p>
+    </div>
+    <div class="ride-list" id="ride-list" style="display:none"></div>
+  </div>
+
+  <!-- STATS PAGE -->
+  <div class="page" id="page-stats">
+    <div class="stats-page-inner">
+      <div class="stats-page-title">Stats</div>
+      <div class="stats-filter-row" id="stats-filter-row"></div>
+      <div class="lifetime-grid" id="stats-grid">
+        <div class="lifetime-card wide">
+          <div><div class="big" id="st-total-dist">0.0</div><div class="lbl">Total kilometres</div></div>
+          <div style="margin-left:auto;text-align:right">
+            <div style="font-size:13px;color:var(--text2)" id="st-total-rides">0 rides</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px" id="st-month-rides-lbl">0 this month</div>
+          </div>
+        </div>
+        <div class="lifetime-card"><div class="big" id="st-max-speed">0.0</div><div class="lbl">Top speed (km/h)</div></div>
+        <div class="lifetime-card"><div class="big" id="st-total-time">0h</div><div class="lbl">Total ride time</div></div>
+        <div class="lifetime-card"><div class="big" id="st-avg-dist">0.0</div><div class="lbl">Avg distance (km)</div></div>
+        <div class="lifetime-card"><div class="big" id="st-avg-speed">0.0</div><div class="lbl">Avg speed (km/h)</div></div>
+        <div class="lifetime-card"><div class="big" id="st-max-gforce">0.00</div><div class="lbl">Max G-force (g)</div></div>
+        <div class="lifetime-card"><div class="big" id="st-max-elev">—</div><div class="lbl">Max elevation (m)</div></div>
+      </div>
+      <div class="chart-section">
+        <div class="chart-title">Speed per ride (km/h)</div>
+        <div class="chart-wrap"><canvas id="chart-speed" class="ride-chart"></canvas></div>
+      </div>
+      <div class="chart-section">
+        <div class="chart-title">Distance per ride (km)</div>
+        <div class="chart-wrap"><canvas id="chart-dist" class="ride-chart"></canvas></div>
+      </div>
+      <div class="chart-section">
+        <div class="chart-title">Duration per ride (minutes)</div>
+        <div class="chart-wrap"><canvas id="chart-dur" class="ride-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div class="page" id="page-settings">
+    <div class="settings-inner">
+      <div class="settings-title">Settings</div>
+      <div class="settings-sub">Configure your Ride Tracker.</div>
+
+      <div class="settings-card">
+        <h3>🛴 My Vehicles</h3>
+        <p>Add vehicles to tag rides. The first vehicle is the default.</p>
+        <div class="vehicle-list" id="vehicle-mgmt-list"></div>
+        <div class="vehicle-add-row">
+          <input class="vehicle-add-input" id="vehicle-add-input" type="text" placeholder="e.g. Segway Max G3" maxlength="40">
+          <button class="vehicle-add-btn" onclick="addVehicle()">Add</button>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>🎤 Voice commands</h3>
+        <p>Say <strong>"Start recording"</strong> or <strong>"Stop recording"</strong> to control the app hands-free. Requires microphone permission.</p>
+        <button class="settings-btn" onclick="toggleVoice()" id="voice-toggle-btn">Enable voice commands</button>
+        <div id="voice-status-text" style="margin-top:8px;font-size:12px;color:var(--text2)"></div>
+      </div>
+
+      <div class="settings-card">
+        <h3>🗺 Google Maps API Key</h3>
+        <p>Enables live route maps. Free from console.cloud.google.com → Maps JavaScript API.</p>
+        <input class="settings-input" id="settings-key-input" type="text" placeholder="Paste API key here" autocomplete="off" autocorrect="off" spellcheck="false">
+        <div id="key-status" class="key-status"></div>
+        <button class="settings-btn" onclick="saveApiKey()">Save key</button>
+        <button class="settings-btn danger" onclick="clearApiKey()" style="margin-left:8px">Remove</button>
+      </div>
+
+      <div class="settings-card">
+        <h3>💾 Storage</h3>
+        <p>All data stored locally on your device via IndexedDB — never leaves your phone.</p>
+        <div id="storage-info" style="font-size:12px;color:var(--text2)">Loading…</div>
+      </div>
+
+      <div class="settings-card" style="position:relative">
+        <div class="sync-badge" id="sync-badge">Synced</div>
+        <h3>☁️ Google Drive Sync</h3>
+        <p>Automatically backs up and syncs your rides across devices via Google Drive. Your data is saved to a file called <strong>G3RideTracker_rides.json</strong> in your Drive.</p>
+        <div class="drive-status" id="drive-status-el"><div class="dot"></div><span id="drive-status-txt">Not connected</span></div>
+        <button class="settings-btn" id="drive-connect-btn" onclick="driveAuth()" style="margin-top:10px">Connect Google Drive</button>
+        <button class="settings-btn danger" id="drive-disconnect-btn" onclick="driveDisconnect()" style="margin-top:8px;display:none">Disconnect Drive</button>
+        <button class="settings-btn" id="drive-sync-btn" onclick="driveSync()" style="margin-top:8px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);display:none">Sync now</button>
+      </div>
+
+      <div class="settings-card">
+        <h3>🗑 Delete all rides</h3>
+        <p>Permanently deletes every ride. Cannot be undone.</p>
+        <button class="settings-btn danger" onclick="deleteAllRides()">Delete all ride data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detail-map" class="modal-map"></div>
+    <div class="modal-body">
+      <div class="modal-title-row">
+        <div style="flex:1">
+          <div class="modal-title" id="detail-title">Ride</div>
+          <div class="modal-date" id="detail-date"></div>
+        </div>
+        <button class="modal-close" onclick="closeDetailModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-vehicle-row"><span id="d-vehicle-tag" class="ride-vehicle-tag"></span></div>
+      <div class="modal-weather" id="d-weather"></div>
+      <div class="stats-grid">
+        <div class="stat-block"><div class="val" id="d-dist">—</div><div class="lbl">Distance</div></div>
+        <div class="stat-block"><div class="val" id="d-dur">—</div><div class="lbl">Duration</div></div>
+        <div class="stat-block"><div class="val" id="d-max">—</div><div class="lbl">Max speed</div></div>
+        <div class="stat-block"><div class="val" id="d-avg">—</div><div class="lbl">Avg speed</div></div>
+        <div class="stat-block"><div class="val" id="d-gforce">—</div><div class="lbl">Max G-force</div></div>
+        <div class="stat-block"><div class="val" id="d-elev">—</div><div class="lbl">Elev max/min</div></div>
+      </div>
+      <div class="modal-section-lbl">Notes</div>
+      <div class="modal-notes" id="d-notes">No notes added.</div>
+      <textarea class="edit-notes-input notes-input" id="d-notes-edit" rows="4" placeholder="Add notes…"></textarea>
+      <div id="d-media-section">
+        <div class="modal-section-lbl">Photos &amp; Videos</div>
+        <div class="modal-media" id="d-media"></div>
+      </div>
+      <button class="action-btn accent" onclick="toggleEditNotes()">✏️ Edit notes</button>
+      <button class="action-btn accent" onclick="addMediaToRide()">📷 Add photos / videos</button>
+      <button class="action-btn" onclick="renameRide()">Rename this ride</button>
+      <button class="delete-ride-btn" id="delete-ride-btn">Delete this ride</button>
+    </div>
+  </div>
+</div>
+
+<!-- FULLSCREEN MEDIA VIEWER -->
+<div id="media-viewer" onclick="closeMediaViewer()">
+  <button id="media-viewer-close" onclick="closeMediaViewer()">×</button>
+  <div id="media-viewer-inner"></div>
+</div>
+
+<div class="voice-cmd-toast" id="voice-toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   INDEXEDDB
+══════════════════════════════════════════════════════ */
+let db = null;
+const DB_NAME = 'G3RideTracker', DB_VER = 2, STORE = 'rides';
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+const dbOp = (mode, fn) => new Promise((res, rej) => {
+  const tx = db.transaction(STORE, mode), s = tx.objectStore(STORE), r = fn(s);
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+const dbGetAll = () => dbOp('readonly', s => s.getAll());
+const dbPut = ride => dbOp('readwrite', s => s.put(ride));
+const dbDelete = id => dbOp('readwrite', s => s.delete(id));
+const dbClear = () => dbOp('readwrite', s => s.clear());
+
+/* ══════════════════════════════════════════════════════
+   LOCAL STORAGE PREFS
+══════════════════════════════════════════════════════ */
+const getSetting = k => { try { return localStorage.getItem(k); } catch(e) { return null; } };
+const setSetting = (k,v) => { try { localStorage.setItem(k,v); } catch(e) {} };
+const removeSetting = k => { try { localStorage.removeItem(k); } catch(e) {} };
+
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+let rides = [], vehicles = [], selectedVehicle = '';
+
+/* DRIVE SYNC STATE */
+const DRIVE_CLIENT_ID = '216845088387-o8o90klumcerbh02b3akk5tfr6jacq0p.apps.googleusercontent.com';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+let driveToken = null;
+let driveFileId = null;
+
+let isRecording = false, watchId = null, timerInterval = null;
+let elapsedSecs = 0, currentRoutePoints = [], currentMaxSpeed = 0;
+let currentDist = 0, lastPos = null, mediaFiles = [];
+let currentMaxGforce = 0, elevations = [], currentWeather = null;
+let map = null, polyline = null, detailMap = null, currentDetailId = null;
+let voiceEnabled = false, recognition = null;
+let statsFilter = 'all'; // 'all' or vehicle name
+let editingNotes = false;
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+async function init() {
+  try {
+    db = await openDB();
+    rides = await dbGetAll();
+    rides.sort((a,b) => b.startTime - a.startTime);
+  } catch(e) {
+    document.getElementById('db-banner').style.display = 'block';
+    try { rides = JSON.parse(localStorage.getItem('g3_rides_fb')||'[]'); } catch(e2) { rides=[]; }
+  }
+  // Load vehicles
+  try { vehicles = JSON.parse(getSetting('g3_vehicles')||'[]'); } catch(e) { vehicles=[]; }
+  if (!vehicles.length) { vehicles = ['Segway Max G3']; saveVehicles(); }
+  selectedVehicle = getSetting('g3_last_vehicle') || vehicles[0];
+  if (!vehicles.includes(selectedVehicle)) selectedVehicle = vehicles[0];
+
+  populateVehicleSelect();
+  updateHeaderSub();
+  loadMapsIfKey();
+  updateStorageInfo();
+  updateSettingsKeyDisplay();
+  renderVehicleMgmt();
+  updateVoiceBtn();
+  renderHistory();
+  renderStats();
+
+  // Voice: restore if was enabled
+  if (getSetting('g3_voice') === '1') enableVoice(true);
+
+  // Restore Drive token if saved
+  const savedToken = getSetting('g3_drive_token');
+  if (savedToken) {
+    driveToken = savedToken;
+    updateDriveStatus('connected', 'Connected — syncing…');
+    driveSync();
+  } else {
+    updateDriveStatus('disconnected', 'Not connected');
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   VEHICLES
+══════════════════════════════════════════════════════ */
+function saveVehicles() { setSetting('g3_vehicles', JSON.stringify(vehicles)); }
+
+function populateVehicleSelect() {
+  const sel = document.getElementById('vehicle-select');
+  sel.innerHTML = vehicles.map(v => `<option value="${escHtml(v)}" ${v===selectedVehicle?'selected':''}>${escHtml(v)}</option>`).join('');
+}
+
+function onVehicleChange() {
+  selectedVehicle = document.getElementById('vehicle-select').value;
+  setSetting('g3_last_vehicle', selectedVehicle);
+  updateHeaderSub();
+}
+
+function updateHeaderSub() {
+  document.getElementById('header-sub').textContent = selectedVehicle || 'Ride Tracker';
+}
+
+function addVehicle() {
+  const inp = document.getElementById('vehicle-add-input');
+  const name = inp.value.trim();
+  if (!name) return;
+  if (vehicles.includes(name)) { showToast('Vehicle already exists'); return; }
+  vehicles.push(name);
+  saveVehicles();
+  inp.value = '';
+  populateVehicleSelect();
+  renderVehicleMgmt();
+  showToast(`Added: ${name}`);
+}
+
+function deleteVehicle(name) {
+  if (vehicles.length <= 1) { showToast('Must have at least one vehicle'); return; }
+  if (!confirm(`Delete "${name}"?`)) return;
+  vehicles = vehicles.filter(v => v !== name);
+  if (selectedVehicle === name) { selectedVehicle = vehicles[0]; setSetting('g3_last_vehicle', selectedVehicle); }
+  saveVehicles();
+  populateVehicleSelect();
+  renderVehicleMgmt();
+  updateHeaderSub();
+}
+
+function renderVehicleMgmt() {
+  const el = document.getElementById('vehicle-mgmt-list');
+  el.innerHTML = vehicles.map((v,i) => `
+    <div class="vehicle-row">
+      ${i===0?'<span class="vehicle-row-default">★ Default</span>':''}
+      <div class="vehicle-row-name">${escHtml(v)}</div>
+      <button class="vehicle-row-del" onclick="deleteVehicle('${escHtml(v)}')">×</button>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════════════ */
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if (name==='history') renderHistory();
+  if (name==='stats') renderStats();
+  if (name==='settings') { updateSettingsKeyDisplay(); updateStorageInfo(); renderVehicleMgmt(); }
+}
+
+/* ══════════════════════════════════════════════════════
+   RECORDING
+══════════════════════════════════════════════════════ */
+function toggleRecording() {
+  if (!isRecording) startRecording(); else stopRecording();
+}
+
+async function startRecording() {
+  if (!navigator.geolocation) { alert('Geolocation not available.'); return; }
+  isRecording = true;
+  currentRoutePoints = []; currentMaxSpeed = 0; currentDist = 0;
+  lastPos = null; elapsedSecs = 0; mediaFiles = [];
+  currentMaxGforce = 0; elevations = []; currentWeather = null;
+
+  document.getElementById('ride-notes').value = '';
+  document.getElementById('record-btn').classList.add('recording');
+  document.getElementById('btn-icon-play').style.display = 'none';
+  document.getElementById('btn-icon-stop').style.display = '';
+  document.getElementById('rec-badge').classList.add('visible');
+  document.getElementById('live-stats-section').style.display = '';
+  document.getElementById('idle-msg').style.display = 'none';
+  document.getElementById('stat-elev-max').textContent = '—';
+  document.getElementById('stat-elev-min').textContent = '—';
+  document.getElementById('stat-gforce').textContent = '0.00';
+  document.getElementById('stat-weather-live').textContent = '…';
+
+  // Reset media strip
+  const strip = document.getElementById('media-strip');
+  strip.innerHTML = '';
+  strip.appendChild(makeAddMediaBtn());
+
+  // Timer
+  timerInterval = setInterval(() => {
+    elapsedSecs++;
+    document.getElementById('rec-timer').textContent = formatDur(elapsedSecs);
+    document.getElementById('stat-dur').textContent = formatDur(elapsedSecs);
+    if (elapsedSecs > 0 && currentDist > 0) {
+      document.getElementById('stat-avg').textContent = ((currentDist/1000)/(elapsedSecs/3600)).toFixed(1);
+    }
+  }, 1000);
+
+  // GPS
+  watchId = navigator.geolocation.watchPosition(onPosition, e => console.warn('GPS:',e.message), {
+    enableHighAccuracy:true, maximumAge:1000, timeout:15000
+  });
+
+  // G-force
+  if (window.DeviceMotionEvent) {
+    window.addEventListener('devicemotion', onMotion);
+    // Request permission on iOS
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      try { await DeviceMotionEvent.requestPermission(); } catch(e) {}
+    }
+  }
+
+  // Weather fetch at ride start
+  navigator.geolocation.getCurrentPosition(async pos => {
+    try {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&timezone=auto`;
+      const r = await fetch(url);
+      const d = await r.json();
+      const temp = Math.round(d.current.temperature_2m);
+      const desc = weatherDesc(d.current.weather_code);
+      currentWeather = `${weatherEmoji(d.current.weather_code)} ${temp}°C ${desc}`;
+      document.getElementById('stat-weather-live').textContent = `${temp}°C`;
+    } catch(e) { currentWeather = null; document.getElementById('stat-weather-live').textContent = '—'; }
+  }, () => { currentWeather = null; }, { timeout: 8000 });
+
+  initLiveMap();
+}
+
+function onPosition(pos) {
+  const { latitude:lat, longitude:lng, speed, altitude } = pos.coords;
+  const speedKmh = speed != null ? Math.max(0, speed*3.6) : 0;
+  currentRoutePoints.push({ lat, lng, speedKmh, altitude:altitude||0, ts:Date.now() });
+  if (lastPos) { const d = haversine(lastPos.lat,lastPos.lng,lat,lng); if(d>2) currentDist+=d; }
+  lastPos = {lat,lng};
+  if (speedKmh > currentMaxSpeed) currentMaxSpeed = speedKmh;
+  if (altitude != null) elevations.push(altitude);
+  document.getElementById('stat-speed').textContent = speedKmh.toFixed(1);
+  document.getElementById('stat-max').textContent = currentMaxSpeed.toFixed(1);
+  document.getElementById('stat-dist').textContent = (currentDist/1000).toFixed(2);
+  if (elevations.length) {
+    document.getElementById('stat-elev-max').textContent = Math.max(...elevations).toFixed(0);
+    document.getElementById('stat-elev-min').textContent = Math.min(...elevations).toFixed(0);
+  }
+  if (map && window.google) { const pt = new google.maps.LatLng(lat,lng); polyline.getPath().push(pt); map.panTo(pt); }
+}
+
+function onMotion(e) {
+  const a = e.accelerationIncludingGravity;
+  if (!a) return;
+  const g = Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2)/9.81;
+  if (g > currentMaxGforce) { currentMaxGforce = g; document.getElementById('stat-gforce').textContent = g.toFixed(2); }
+}
+
+async function stopRecording() {
+  if (!isRecording) return;
+  isRecording = false;
+  clearInterval(timerInterval);
+  if (watchId != null) navigator.geolocation.clearWatch(watchId);
+  window.removeEventListener('devicemotion', onMotion);
+
+  document.getElementById('record-btn').classList.remove('recording');
+  document.getElementById('btn-icon-play').style.display = '';
+  document.getElementById('btn-icon-stop').style.display = 'none';
+  document.getElementById('rec-badge').classList.remove('visible');
+
+  const now = Date.now();
+  const avgKmh = elapsedSecs > 0 ? (currentDist/1000)/(elapsedSecs/3600) : 0;
+  const ride = {
+    id: now,
+    startTime: now - elapsedSecs*1000,
+    endTime: now,
+    durationSecs: elapsedSecs,
+    distanceM: currentDist,
+    maxSpeedKmh: currentMaxSpeed,
+    avgSpeedKmh: avgKmh,
+    maxGforce: currentMaxGforce,
+    elevMax: elevations.length ? Math.max(...elevations) : null,
+    elevMin: elevations.length ? Math.min(...elevations) : null,
+    routePoints: currentRoutePoints,
+    notes: document.getElementById('ride-notes').value.trim(),
+    media: [...mediaFiles],
+    title: autoTitle(),
+    vehicle: selectedVehicle,
+    weather: currentWeather
+  };
+
+  try {
+    if (db) await dbPut(ride);
+    else { const fb=JSON.parse(localStorage.getItem('g3_rides_fb')||'[]'); fb.unshift(ride); localStorage.setItem('g3_rides_fb',JSON.stringify(fb)); }
+  } catch(e) { console.error('Save failed',e); }
+
+  rides.unshift(ride);
+  document.getElementById('live-stats-section').style.display = 'none';
+  document.getElementById('idle-msg').style.display = '';
+  document.getElementById('map-placeholder').style.display = 'flex';
+  document.getElementById('map').innerHTML = '';
+  map = null; polyline = null;
+  showToast('✓ Ride saved');
+  updateStorageInfo();
+  driveSaveRide(ride);
+}
+
+function autoTitle() {
+  const h = new Date().getHours();
+  if (h<6) return 'Night ride'; if (h<12) return 'Morning ride';
+  if (h<17) return 'Afternoon ride'; if (h<21) return 'Evening ride';
+  return 'Night ride';
+}
+
+/* ══════════════════════════════════════════════════════
+   VOICE COMMANDS
+══════════════════════════════════════════════════════ */
+function toggleVoice() {
+  if (voiceEnabled) disableVoice(); else enableVoice(false);
+}
+
+function enableVoice(silent) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showToast('Voice not supported in this browser'); return; }
+  try {
+    recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'en-AU';
+    recognition.onresult = e => {
+      const t = e.results[e.results.length-1][0].transcript.trim().toLowerCase();
+      if (t.includes('start record') || t.includes('start riding')) {
+        if (!isRecording) { showVoiceToast('🎤 Starting…'); startRecording(); }
+      } else if (t.includes('stop record') || t.includes('stop riding') || t.includes('save ride')) {
+        if (isRecording) { showVoiceToast('🎤 Stopping…'); stopRecording(); }
+      }
+    };
+    recognition.onerror = e => { if (e.error !== 'no-speech') console.warn('Voice error',e.error); };
+    recognition.onend = () => { if (voiceEnabled) recognition.start(); };
+    recognition.start();
+    voiceEnabled = true;
+    setSetting('g3_voice','1');
+    document.getElementById('voice-status').classList.add('visible');
+    document.getElementById('voice-text').textContent = 'Voice on';
+    if (!silent) showToast('🎤 Voice commands enabled');
+    updateVoiceBtn();
+  } catch(e) { showToast('Could not start voice recognition'); }
+}
+
+function disableVoice() {
+  voiceEnabled = false;
+  setSetting('g3_voice','0');
+  if (recognition) { recognition.onend = null; recognition.stop(); recognition = null; }
+  document.getElementById('voice-status').classList.remove('visible');
+  showToast('Voice commands disabled');
+  updateVoiceBtn();
+}
+
+function updateVoiceBtn() {
+  const btn = document.getElementById('voice-toggle-btn');
+  const st = document.getElementById('voice-status-text');
+  if (voiceEnabled) {
+    btn.textContent = 'Disable voice commands';
+    btn.style.background = 'rgba(231,76,60,0.15)';
+    btn.style.color = 'var(--danger)';
+    st.textContent = '✓ Active — say "Start recording" or "Stop recording"';
+  } else {
+    btn.textContent = 'Enable voice commands';
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#000';
+    st.textContent = 'Tap to enable. Microphone permission required.';
+  }
+}
+
+function showVoiceToast(msg) {
+  const t = document.getElementById('voice-toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ══════════════════════════════════════════════════════
+   MEDIA
+══════════════════════════════════════════════════════ */
+function makeAddMediaBtn() {
+  const btn = document.createElement('button');
+  btn.className = 'add-media-btn';
+  btn.onclick = () => document.getElementById('media-input').click();
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add`;
+  return btn;
+}
+
+function handleMedia(input) {
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const data = { src:e.target.result, type:file.type.startsWith('video')?'video':'image' };
+      mediaFiles.push(data);
+      addMediaThumb(data, mediaFiles.length-1);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function addMediaThumb(data, idx) {
+  const strip = document.getElementById('media-strip');
+  const wrap = document.createElement('div');
+  wrap.className = 'media-thumb-wrap';
+  let el = data.type==='video' ? Object.assign(document.createElement('video'),{controls:true}) : document.createElement('img');
+  el.src = data.src;
+  if (data.type==='video') el.style.cssText='width:72px;height:72px;border-radius:10px;object-fit:cover';
+  const del = document.createElement('button');
+  del.className = 'del-btn'; del.innerHTML = '×';
+  del.onclick = () => { mediaFiles.splice(idx,1); wrap.remove(); };
+  wrap.appendChild(el); wrap.appendChild(del);
+  strip.insertBefore(wrap, strip.lastElementChild);
+}
+
+/* Post-ride media editing */
+function addMediaToRide() {
+  document.getElementById('edit-media-input').click();
+}
+
+function handleEditMedia(input) {
+  const ride = rides.find(r => r.id === currentDetailId);
+  if (!ride) return;
+  if (!ride.media) ride.media = [];
+  let pending = input.files.length;
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      ride.media.push({ src:e.target.result, type:file.type.startsWith('video')?'video':'image' });
+      pending--;
+      if (pending === 0) {
+        dbPut(ride).catch(()=>{});
+        openDetail(ride.id); // refresh modal
+        showToast('Media added');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+/* ══════════════════════════════════════════════════════
+   MAPS
+══════════════════════════════════════════════════════ */
+function initLiveMap() {
+  if (!window.google) return;
+  document.getElementById('map-placeholder').style.display = 'none';
+  map = new google.maps.Map(document.getElementById('map'), {
+    center:{lat:-27.5,lng:153.0}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true
+  });
+  polyline = new google.maps.Polyline({ path:[], strokeColor:'#00c8ff', strokeOpacity:0.9, strokeWeight:4, map });
+}
+
+function renderDetailMap(ride) {
+  if (!window.google || !ride.routePoints || !ride.routePoints.length) return;
+  const pts = ride.routePoints.map(p => ({lat:p.lat,lng:p.lng}));
+  detailMap = new google.maps.Map(document.getElementById('detail-map'), {
+    center:pts[Math.floor(pts.length/2)], zoom:14, mapTypeId:'roadmap', disableDefaultUI:true
+  });
+  new google.maps.Polyline({path:pts,strokeColor:'#00c8ff',strokeOpacity:0.9,strokeWeight:4,map:detailMap});
+  new google.maps.Marker({position:pts[0],map:detailMap,label:{text:'S',color:'#fff'}});
+  new google.maps.Marker({position:pts[pts.length-1],map:detailMap,label:{text:'E',color:'#fff'}});
+  const bounds = new google.maps.LatLngBounds();
+  pts.forEach(p => bounds.extend(p));
+  detailMap.fitBounds(bounds,20);
+}
+
+/* ══════════════════════════════════════════════════════
+   HISTORY
+══════════════════════════════════════════════════════ */
+function renderHistory() {
+  const list = document.getElementById('ride-list');
+  const empty = document.getElementById('empty-history');
+  list.innerHTML = '';
+  if (!rides.length) { empty.style.display='flex'; list.style.display='none'; return; }
+  empty.style.display='none'; list.style.display='flex';
+  rides.forEach(ride => {
+    const div = document.createElement('div');
+    div.className = 'ride-item';
+    div.onclick = () => openDetail(ride.id);
+    const distKm = (ride.distanceM/1000).toFixed(2);
+    const hasMedia = ride.media && ride.media.length;
+    div.innerHTML = `
+      <div class="ride-item-top">
+        <div class="ride-title-row">
+          <div class="ride-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5.5" cy="17.5" r="2.5"/><circle cx="18.5" cy="17.5" r="2.5"/><path d="M8 17.5H16"/><path d="M13 17.5L11 10H8.5"/><path d="M11 10L15.5 8V6"/><path d="M13.5 6H17.5"/></svg></div>
+          <div>
+            <div class="ride-name">${escHtml(ride.title||'Unnamed ride')}</div>
+            <div class="ride-date">${formatDate(ride.startTime)}</div>
+            ${ride.vehicle?`<div class="ride-vehicle-tag">${escHtml(ride.vehicle)}</div>`:''}
+          </div>
+        </div>
+        <div>
+          <div class="ride-dist-big">${distKm}<span> km</span></div>
+          ${hasMedia?`<div class="has-media-badge">📷 ${ride.media.length}</div>`:''}
+        </div>
+      </div>
+      <div class="ride-pills">
+        <div class="pill">${formatDur(ride.durationSecs)}</div>
+        <div class="pill">⚡ Max ${ride.maxSpeedKmh.toFixed(1)} km/h</div>
+        <div class="pill">~ ${ride.avgSpeedKmh.toFixed(1)} km/h avg</div>
+        ${ride.weather?`<div class="pill">${ride.weather}</div>`:''}
+        ${ride.notes?'<div class="pill">📝 Notes</div>':''}
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   DETAIL MODAL
+══════════════════════════════════════════════════════ */
+function openDetail(id) {
+  const ride = rides.find(r => r.id===id);
+  if (!ride) return;
+  currentDetailId = id;
+  editingNotes = false;
+  document.getElementById('d-notes').style.display = '';
+  document.getElementById('d-notes-edit').style.display = 'none';
+
+  document.getElementById('detail-title').textContent = ride.title||'Unnamed ride';
+  document.getElementById('detail-date').textContent = formatDate(ride.startTime)+' · '+formatTime(ride.startTime);
+  const vtag = document.getElementById('d-vehicle-tag');
+  vtag.textContent = ride.vehicle || ''; vtag.style.display = ride.vehicle?'':'none';
+  const wEl = document.getElementById('d-weather');
+  wEl.textContent = ride.weather || ''; wEl.style.display = ride.weather?'':'none';
+  document.getElementById('d-dist').textContent = (ride.distanceM/1000).toFixed(2)+' km';
+  document.getElementById('d-dur').textContent = formatDur(ride.durationSecs);
+  document.getElementById('d-max').textContent = ride.maxSpeedKmh.toFixed(1)+' km/h';
+  document.getElementById('d-avg').textContent = ride.avgSpeedKmh.toFixed(1)+' km/h';
+  document.getElementById('d-gforce').textContent = ride.maxGforce!=null ? ride.maxGforce.toFixed(2)+'g' : '—';
+  document.getElementById('d-elev').textContent = ride.elevMax!=null ? `${ride.elevMax.toFixed(0)}m / ${ride.elevMin.toFixed(0)}m` : '—';
+  document.getElementById('d-notes').textContent = ride.notes||'No notes added.';
+  document.getElementById('d-notes-edit').value = ride.notes||'';
+
+  // Media
+  const mc = document.getElementById('d-media'); mc.innerHTML = '';
+  if (ride.media && ride.media.length) {
+    ride.media.forEach((m, idx) => {
+      let el;
+      if (m.type==='video') {
+        el = document.createElement('video');
+        el.src = m.src; el.controls = true; el.playsInline = true;
+        el.style.cssText = 'width:88px;height:88px;border-radius:10px;object-fit:cover';
+        if (idx===0) el.style.marginTop='8px';
+      } else {
+        el = document.createElement('img');
+        el.src = m.src;
+        el.onclick = () => openMediaViewer(m);
+      }
+      mc.appendChild(el);
+    });
+  }
+
+  document.getElementById('delete-ride-btn').onclick = () => deleteRide(id);
+  document.getElementById('detail-map').innerHTML = '';
+  document.getElementById('detail-modal').classList.add('open');
+  setTimeout(() => renderDetailMap(ride), 100);
+}
+
+function toggleEditNotes() {
+  const ride = rides.find(r => r.id===currentDetailId);
+  if (!ride) return;
+  editingNotes = !editingNotes;
+  const display = document.getElementById('d-notes');
+  const edit = document.getElementById('d-notes-edit');
+  const btn = document.querySelector('.action-btn.accent');
+  if (editingNotes) {
+    display.style.display = 'none'; edit.style.display = 'block'; edit.focus();
+    btn.textContent = '💾 Save notes';
+  } else {
+    const newNotes = edit.value.trim();
+    ride.notes = newNotes;
+    display.textContent = newNotes||'No notes added.';
+    display.style.display = ''; edit.style.display = 'none';
+    btn.textContent = '✏️ Edit notes';
+    dbPut(ride).catch(()=>{});
+    renderHistory();
+    showToast('Notes saved');
+  }
+}
+
+function closeDetailModal() { document.getElementById('detail-modal').classList.remove('open'); detailMap=null; }
+function closeModal(e) { if (e.target===document.getElementById('detail-modal')) closeDetailModal(); }
+
+async function deleteRide(id) {
+  if (!confirm('Delete this ride? Cannot be undone.')) return;
+  rides = rides.filter(r=>r.id!==id);
+  try { if(db) await dbDelete(id); } catch(e) {}
+  closeDetailModal(); renderHistory(); renderStats();
+}
+
+function renameRide() {
+  const ride = rides.find(r=>r.id===currentDetailId);
+  if (!ride) return;
+  const n = prompt('Rename ride:', ride.title||'');
+  if (n===null) return;
+  ride.title = n.trim()||ride.title;
+  dbPut(ride).catch(()=>{});
+  document.getElementById('detail-title').textContent = ride.title;
+  renderHistory();
+}
+
+/* ══════════════════════════════════════════════════════
+   STATS + CHARTS
+══════════════════════════════════════════════════════ */
+let chartSpeed=null, chartDist=null, chartDur=null;
+
+function renderStats() {
+  // Build filter chips
+  const filterRow = document.getElementById('stats-filter-row');
+  const allVehicles = [...new Set(rides.map(r=>r.vehicle||'Unknown'))];
+  filterRow.innerHTML = `<button class="filter-chip ${statsFilter==='all'?'active':''}" onclick="setStatsFilter('all')">All vehicles</button>`
+    + allVehicles.map(v=>`<button class="filter-chip ${statsFilter===v?'active':''}" onclick="setStatsFilter('${escHtml(v)}')">${escHtml(v)}</button>`).join('');
+
+  const filtered = statsFilter==='all' ? rides : rides.filter(r=>(r.vehicle||'Unknown')===statsFilter);
+  const totalDist = filtered.reduce((s,r)=>s+r.distanceM,0)/1000;
+  const totalSecs = filtered.reduce((s,r)=>s+r.durationSecs,0);
+  const maxSpeed = filtered.reduce((m,r)=>Math.max(m,r.maxSpeedKmh),0);
+  const avgDist = filtered.length ? totalDist/filtered.length : 0;
+  const avgSpeed = filtered.length ? filtered.reduce((s,r)=>s+r.avgSpeedKmh,0)/filtered.length : 0;
+  const maxGforce = filtered.reduce((m,r)=>Math.max(m,r.maxGforce||0),0);
+  const elevMaxAll = filtered.reduce((m,r)=>r.elevMax!=null?Math.max(m,r.elevMax):m, -Infinity);
+  const now = new Date();
+  const monthRides = filtered.filter(r=>{const d=new Date(r.startTime);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;
+
+  document.getElementById('st-total-dist').textContent = totalDist.toFixed(1);
+  document.getElementById('st-total-rides').textContent = filtered.length+' ride'+(filtered.length!==1?'s':'');
+  document.getElementById('st-month-rides-lbl').textContent = monthRides+' this month';
+  document.getElementById('st-max-speed').textContent = maxSpeed.toFixed(1);
+  document.getElementById('st-total-time').textContent = formatTotalTime(totalSecs);
+  document.getElementById('st-avg-dist').textContent = avgDist.toFixed(1);
+  document.getElementById('st-avg-speed').textContent = avgSpeed.toFixed(1);
+  document.getElementById('st-max-gforce').textContent = maxGforce.toFixed(2);
+  document.getElementById('st-max-elev').textContent = elevMaxAll > -Infinity ? elevMaxAll.toFixed(0)+'m' : '—';
+
+  drawCharts(filtered);
+}
+
+function setStatsFilter(v) { statsFilter=v; renderStats(); }
+
+function drawCharts(filtered) {
+  const recent = [...filtered].reverse().slice(-20); // last 20 rides oldest-first
+  const labels = recent.map(r => formatShortDate(r.startTime));
+  const speedData = recent.map(r => +r.maxSpeedKmh.toFixed(1));
+  const distData = recent.map(r => +(r.distanceM/1000).toFixed(2));
+  const durData = recent.map(r => +(r.durationSecs/60).toFixed(1));
+
+  chartSpeed = drawChart('chart-speed', chartSpeed, labels, speedData, '#00c8ff', 'km/h');
+  chartDist  = drawChart('chart-dist',  chartDist,  labels, distData,  '#2ecc71', 'km');
+  chartDur   = drawChart('chart-dur',   chartDur,   labels, durData,   '#f39c12', 'min');
+}
+
+function drawChart(id, existing, labels, data, color, unit) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return existing;
+  if (existing) { existing.destroy(); }
+  if (!data.length) { const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); return null; }
+
+  // Simple canvas chart — no external library needed
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = canvas.offsetWidth||300, H = 140;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  canvas.style.height = H+'px';
+  ctx.scale(dpr, dpr);
+
+  const pad = {top:16,right:16,bottom:36,left:40};
+  const cW = W-pad.left-pad.right, cH = H-pad.top-pad.bottom;
+  const max = Math.max(...data)*1.1||1, min = 0;
+  const xStep = data.length>1 ? cW/(data.length-1) : cW;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+  [0,0.25,0.5,0.75,1].forEach(t=>{
+    const y=pad.top+cH*(1-t);
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cW,y); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='9px sans-serif'; ctx.textAlign='right';
+    ctx.fillText((min+(max-min)*t).toFixed(1), pad.left-4, y+3);
+  });
+
+  // Area fill
+  ctx.beginPath();
+  data.forEach((v,i)=>{ const x=pad.left+i*xStep, y=pad.top+cH*(1-(v-min)/(max-min)); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(pad.left+(data.length-1)*xStep, pad.top+cH);
+  ctx.lineTo(pad.left, pad.top+cH); ctx.closePath();
+  ctx.fillStyle=color+'22'; ctx.fill();
+
+  // Line
+  ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round';
+  data.forEach((v,i)=>{ const x=pad.left+i*xStep, y=pad.top+cH*(1-(v-min)/(max-min)); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+
+  // Dots
+  data.forEach((v,i)=>{ const x=pad.left+i*xStep, y=pad.top+cH*(1-(v-min)/(max-min)); ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fillStyle=color; ctx.fill(); });
+
+  // X labels — only show a subset
+  ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+  const step = data.length>8 ? Math.ceil(data.length/6) : 1;
+  labels.forEach((l,i)=>{ if(i%step===0||i===labels.length-1) ctx.fillText(l, pad.left+i*xStep, H-8); });
+
+  return { destroy: ()=>{ ctx.clearRect(0,0,W*dpr,H*dpr); } };
+}
+
+/* ══════════════════════════════════════════════════════
+   WEATHER HELPERS
+══════════════════════════════════════════════════════ */
+function weatherDesc(code) {
+  if (code===0) return 'Clear'; if (code<=2) return 'Partly cloudy'; if (code<=3) return 'Overcast';
+  if (code<=9) return 'Foggy'; if (code<=19) return 'Drizzle'; if (code<=29) return 'Rain';
+  if (code<=39) return 'Snow'; if (code<=49) return 'Fog'; if (code<=59) return 'Drizzle';
+  if (code<=69) return 'Rain'; if (code<=79) return 'Snow'; if (code<=84) return 'Showers';
+  if (code<=94) return 'Thunderstorm'; return 'Stormy';
+}
+function weatherEmoji(code) {
+  if (code===0) return '☀️'; if (code<=2) return '⛅'; if (code<=3) return '☁️';
+  if (code<=9) return '🌫️'; if (code<=39) return '🌧️'; if (code<=49) return '🌫️';
+  if (code<=69) return '🌧️'; if (code<=79) return '❄️'; if (code<=84) return '🌦️';
+  return '⛈️';
+}
+
+/* ══════════════════════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════════════════════ */
+function loadMapsIfKey() {
+  const key = getSetting('g3_maps_key');
+  if (key && !window.google) {
+    window.mapsReady = () => console.log('Maps ready');
+    const s = document.createElement('script');
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=mapsReady`;
+    s.async = true; document.head.appendChild(s);
+  }
+}
+function saveApiKey() {
+  const key = document.getElementById('settings-key-input').value.trim();
+  if (!key) { alert('Please paste a key first.'); return; }
+  setSetting('g3_maps_key', key);
+  document.getElementById('settings-key-input').value = '';
+  updateSettingsKeyDisplay();
+  showToast('API key saved — restart app to activate maps');
+}
+function clearApiKey() {
+  if (!confirm('Remove the Maps API key?')) return;
+  removeSetting('g3_maps_key'); updateSettingsKeyDisplay(); showToast('API key removed');
+}
+function updateSettingsKeyDisplay() {
+  const key = getSetting('g3_maps_key'), el = document.getElementById('key-status');
+  if (key) { el.className='key-status ok'; el.textContent='\u2713 Key saved: '+key.substring(0,8)+'\u2026'; }
+  else { el.className='key-status none'; el.textContent='No key set \u2014 maps disabled'; }
+}
+async function deleteAllRides() {
+  if (!confirm('Delete ALL rides permanently? Cannot be undone.')) return;
+  rides=[];
+  try { if(db) await dbClear(); } catch(e) {}
+  renderHistory(); renderStats(); updateStorageInfo(); showToast('All rides deleted');
+}
+function updateStorageInfo() {
+  const el = document.getElementById('storage-info');
+  if (el) el.textContent = rides.length + ' ride' + (rides.length!==1?'s':'') + ' stored \u00b7 IndexedDB (persistent)';
+}
+
+/* ══════════════════════════════════════════════════════
+   MEDIA VIEWER
+══════════════════════════════════════════════════════ */
+function openMediaViewer(m) {
+  const inner = document.getElementById('media-viewer-inner');
+  inner.innerHTML = '';
+  const el = document.createElement('img');
+  el.src = m.src; el.onclick = e => e.stopPropagation();
+  inner.appendChild(el);
+  document.getElementById('media-viewer').classList.add('open');
+}
+function closeMediaViewer() { document.getElementById('media-viewer').classList.remove('open'); }
+
+/* ══════════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════════ */
+function formatDur(secs) {
+  const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60;
+  return h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`;
+}
+function formatTotalTime(secs) { const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60); return h>0?`${h}h ${m}m`:`${m}m`; }
+function formatDate(ts) { return new Date(ts).toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
+function formatShortDate(ts) { return new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
+function formatTime(ts) { return new Date(ts).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}); }
+function haversine(la1,lo1,la2,lo2) {
+  const R=6371000,dL=(la2-la1)*Math.PI/180,dl=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dl/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg) {
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2ecc71;color:white;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:999;white-space:nowrap';
+  t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2500);
+}
+
+
+/* ══════════════════════════════════════════════════════
+   GOOGLE DRIVE SYNC
+══════════════════════════════════════════════════════ */
+function driveAuth() {
+  if (!window.google || !window.google.accounts) {
+    showToast('Google sign-in not loaded yet — try again in a moment');
+    return;
+  }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: DRIVE_CLIENT_ID,
+    scope: DRIVE_SCOPE,
+    callback: async (resp) => {
+      if (resp.error) { showToast('Drive auth failed: ' + resp.error); return; }
+      driveToken = resp.access_token;
+      setSetting('g3_drive_token', driveToken);
+      updateDriveStatus('connected', 'Connected');
+      document.getElementById('drive-connect-btn').style.display = 'none';
+      document.getElementById('drive-disconnect-btn').style.display = '';
+      document.getElementById('drive-sync-btn').style.display = '';
+      showToast('✓ Google Drive connected');
+      await driveSync();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function driveDisconnect() {
+  if (!confirm('Disconnect Google Drive? Your local rides will not be deleted.')) return;
+  driveToken = null; driveFileId = null;
+  removeSetting('g3_drive_token');
+  removeSetting('g3_drive_file_id');
+  updateDriveStatus('disconnected', 'Not connected');
+  document.getElementById('drive-connect-btn').style.display = '';
+  document.getElementById('drive-disconnect-btn').style.display = 'none';
+  document.getElementById('drive-sync-btn').style.display = 'none';
+  document.getElementById('sync-badge').classList.remove('visible');
+  showToast('Drive disconnected');
+}
+
+function updateDriveStatus(state, msg) {
+  const el = document.getElementById('drive-status-el');
+  const txt = document.getElementById('drive-status-txt');
+  if (!el || !txt) return;
+  el.className = 'drive-status ' + state;
+  txt.textContent = msg;
+  if (state === 'connected') {
+    document.getElementById('drive-connect-btn').style.display = 'none';
+    document.getElementById('drive-disconnect-btn').style.display = '';
+    document.getElementById('drive-sync-btn').style.display = '';
+  }
+}
+
+async function driveSync() {
+  if (!driveToken) return;
+  updateDriveStatus('syncing', 'Syncing…');
+  try {
+    // Find or create the file in appDataFolder
+    let fileId = getSetting('g3_drive_file_id') || driveFileId;
+    if (!fileId) {
+      // Search for existing file
+      const search = await fetch(
+        'https://www.googleapis.com/drive/v3/files?spaces=drive&q=name%3D%22G3RideTracker_rides.json%22+and+trashed%3Dfalse&fields=files(id)',
+        { headers: { Authorization: 'Bearer ' + driveToken } }
+      );
+      const sData = await search.json();
+      if (sData.files && sData.files.length) {
+        fileId = sData.files[0].id;
+      }
+    }
+
+    if (fileId) {
+      // Download and merge
+      const dl = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+        { headers: { Authorization: 'Bearer ' + driveToken } }
+      );
+      if (dl.ok) {
+        const remoteRides = await dl.json();
+        // Merge: combine local + remote, deduplicate by id, keep newest
+        const merged = Object.values(
+          [...rides, ...remoteRides].reduce((acc, r) => {
+            if (!acc[r.id] || r.endTime > (acc[r.id].endTime||0)) acc[r.id] = r;
+            return acc;
+          }, {})
+        ).sort((a,b) => b.startTime - a.startTime);
+        rides = merged;
+        // Save merged to local DB
+        if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
+        renderHistory(); renderStats();
+      }
+      driveFileId = fileId;
+      setSetting('g3_drive_file_id', fileId);
+      // Upload merged data
+      await driveUpload(fileId);
+    } else {
+      // Create new file
+      fileId = await driveCreate();
+      if (fileId) {
+        driveFileId = fileId;
+        setSetting('g3_drive_file_id', fileId);
+      }
+    }
+
+    updateDriveStatus('connected', 'Synced · ' + formatTime(Date.now()));
+    document.getElementById('sync-badge').classList.add('visible');
+    updateStorageInfo();
+  } catch(e) {
+    console.error('Drive sync error', e);
+    // Token may have expired
+    if (e.message && e.message.includes('401')) {
+      driveToken = null; removeSetting('g3_drive_token');
+      updateDriveStatus('error', 'Session expired — reconnect');
+      document.getElementById('drive-connect-btn').style.display = '';
+    } else {
+      updateDriveStatus('error', 'Sync failed — will retry next open');
+    }
+  }
+}
+
+async function driveUpload(fileId) {
+  const body = JSON.stringify(rides);
+  await fetch(
+    `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+    {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + driveToken, 'Content-Type': 'application/json' },
+      body
+    }
+  );
+}
+
+async function driveCreate() {
+  // Create file metadata
+  const meta = await fetch(
+    'https://www.googleapis.com/drive/v3/files',
+    {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + driveToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'G3RideTracker_rides.json', parents: ['root'] })
+    }
+  );
+  const mData = await meta.json();
+  if (!mData.id) return null;
+  // Upload content
+  await driveUpload(mData.id);
+  return mData.id;
+}
+
+async function driveSaveRide(ride) {
+  // Called after each ride save to push to Drive
+  if (!driveToken) return;
+  try { await driveSync(); } catch(e) { console.warn('Drive save failed silently', e); }
+}
+
+init();
+</script>
+</body>
+</html>
