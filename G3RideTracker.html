@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>G3 Ride Tracker</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 :root{--bg:#0a0a14;--bg2:#12121f;--bg3:#1a1a2e;--bg4:#22223a;--accent:#00c8ff;--accent2:#0090cc;--danger:#e74c3c;--success:#2ecc71;--warn:#f39c12;--text:#eef0f4;--text2:#8890a0;--text3:#4a5060;--border:rgba(255,255,255,0.07);--r:12px;--r-lg:20px;--font:-apple-system,'SF Pro Display','Segoe UI',sans-serif}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -1285,6 +1285,14 @@ function initFirebase() {
   try {
     fbApp = firebase.initializeApp(firebaseConfig);
     fbDb = firebase.firestore();
+    // Handle redirect result first
+    firebase.auth().getRedirectResult().then(result => {
+      if (result && result.user) {
+        console.log('Signed in via redirect:', result.user.email);
+      }
+    }).catch(err => {
+      console.warn('Redirect result error:', err.message);
+    });
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         fbUser = user;
@@ -1307,9 +1315,10 @@ function initFirebase() {
 }
 
 function firebaseSignIn() {
-  if (!fbApp) { showToast('Firebase not loaded yet'); return; }
+  if (!fbApp) { showToast('Firebase not loaded yet — try again in a moment'); return; }
   const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider).catch(err => {
+  // Use redirect instead of popup — works reliably on mobile and all browsers
+  firebase.auth().signInWithRedirect(provider).catch(err => {
     showToast('Sign in failed: ' + err.message);
   });
 }
