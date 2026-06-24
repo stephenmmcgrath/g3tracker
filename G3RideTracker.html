@@ -9,9 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>G3 Ride Tracker</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://unpkg.com/firebase@9.23.0/compat/app.js"></script>
-<script src="https://unpkg.com/firebase@9.23.0/compat/auth.js"></script>
-<script src="https://unpkg.com/firebase@9.23.0/compat/firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#0a0a14;--bg2:#12121f;--bg3:#1a1a2e;--bg4:#22223a;--accent:#00c8ff;--accent2:#0090cc;--danger:#e74c3c;--success:#2ecc71;--warn:#f39c12;--text:#eef0f4;--text2:#8890a0;--text3:#4a5060;--border:rgba(255,255,255,0.07);--r:12px;--r-lg:20px;--font:-apple-system,'SF Pro Display','Segoe UI',sans-serif}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -411,12 +409,12 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
       <div class="settings-card" style="position:relative">
         <div class="sync-badge" id="sync-badge">Synced</div>
-        <h3>☁️ Cloud Sync (Firebase)</h3>
-        <p>Automatically syncs your rides across all your devices. Sign in with Google to enable — no extra permissions or verification required.</p>
-        <div class="drive-status" id="drive-status-el"><div class="dot"></div><span id="drive-status-txt">Not signed in</span></div>
-        <button class="settings-btn" id="firebase-signin-btn" onclick="firebaseSignIn()" style="margin-top:10px">Sign in with Google</button>
-        <button class="settings-btn danger" id="firebase-signout-btn" onclick="firebaseSignOut()" style="margin-top:8px;display:none">Sign out</button>
-        <button class="settings-btn" id="firebase-sync-btn" onclick="firebaseSync()" style="margin-top:8px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);display:none">Sync now</button>
+        <h3>☁️ Cloud Sync</h3>
+        <p>Automatically syncs your rides across all your devices. No sign-in required — just enable and go!</p>
+        <div class="drive-status" id="drive-status-el"><div class="dot"></div><span id="drive-status-txt">Not enabled</span></div>
+        <button class="settings-btn" id="supabase-enable-btn" onclick="enableSupabaseSync()" style="margin-top:10px">Enable cloud sync</button>
+        <button class="settings-btn danger" id="supabase-disable-btn" onclick="disableSupabaseSync()" style="margin-top:8px;display:none">Disable sync</button>
+        <button class="settings-btn" id="supabase-sync-btn" onclick="supabaseSync()" style="margin-top:8px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);display:none">Sync now</button>
       </div>
 
       <div class="settings-card">
@@ -515,16 +513,16 @@ const removeSetting = k => { try { localStorage.removeItem(k); } catch(e) {} };
 ══════════════════════════════════════════════════════ */
 let rides = [], vehicles = [], selectedVehicle = '';
 
-/* FIREBASE CONFIG */
-const firebaseConfig = {
-  apiKey: "AIzaSyDnwoNF44Ml54uVq4kJhOtlxD3TVWkQD4w",
-  authDomain: "g3ridetracker.firebaseapp.com",
-  projectId: "g3ridetracker",
-  storageBucket: "g3ridetracker.firebasestorage.app",
-  messagingSenderId: "267182563415",
-  appId: "1:267182563415:web:de4475d97dac5ea2704312"
-};
-let fbApp = null, fbDb = null, fbUser = null;
+/* SUPABASE CONFIG */
+const SUPABASE_URL = 'https://rkfoehpnleolzoffcjou.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_MQmKVyjXRRZka-HVh6BAow_0J8dTJ8b';
+const DEVICE_ID = (() => {
+  let id = localStorage.getItem('g3_device_id');
+  if (!id) { id = 'dev_' + Math.random().toString(36).substr(2,9); localStorage.setItem('g3_device_id', id); }
+  return id;
+})();
+let supabaseClient = null;
+let syncEnabled = false;
 
 let isRecording = false, watchId = null, timerInterval = null;
 let elapsedSecs = 0, currentRoutePoints = [], currentMaxSpeed = 0;
@@ -566,8 +564,8 @@ async function init() {
   // Voice: restore if was enabled
   if (getSetting('g3_voice') === '1') enableVoice(true);
 
-  // Init Firebase
-  initFirebase();
+  // Init Supabase sync if enabled
+  initSupabase();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1294,113 +1292,109 @@ function showToast(msg) {
 
 
 /* ══════════════════════════════════════════════════════
-   FIREBASE SYNC
+   SUPABASE SYNC
 ══════════════════════════════════════════════════════ */
-function initFirebase() {
+function initSupabase() {
   try {
-    fbApp = firebase.initializeApp(firebaseConfig);
-    fbDb = firebase.firestore();
-    // Handle redirect result first
-    firebase.auth().getRedirectResult().then(result => {
-      if (result && result.user) {
-        console.log('Signed in via redirect:', result.user.email);
-      }
-    }).catch(err => {
-      console.warn('Redirect result error:', err.message);
-    });
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        fbUser = user;
-        updateDriveStatus('connected', 'Signed in as ' + user.email);
-        document.getElementById('firebase-signin-btn').style.display = 'none';
-        document.getElementById('firebase-signout-btn').style.display = '';
-        document.getElementById('firebase-sync-btn').style.display = '';
-        document.getElementById('sync-badge').classList.add('visible');
-        firebaseSync();
-      } else {
-        fbUser = null;
-        updateDriveStatus('disconnected', 'Not signed in');
-        document.getElementById('firebase-signin-btn').style.display = '';
-        document.getElementById('firebase-signout-btn').style.display = 'none';
-        document.getElementById('firebase-sync-btn').style.display = 'none';
-        document.getElementById('sync-badge').classList.remove('visible');
-      }
-    });
-  } catch(e) { console.error('Firebase init error', e); }
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    syncEnabled = getSetting('g3_sync_enabled') === '1';
+    if (syncEnabled) {
+      updateSyncStatus('connected', 'Sync enabled');
+      document.getElementById('supabase-enable-btn').style.display = 'none';
+      document.getElementById('supabase-disable-btn').style.display = '';
+      document.getElementById('supabase-sync-btn').style.display = '';
+      document.getElementById('sync-badge').classList.add('visible');
+      supabaseSync();
+    } else {
+      updateSyncStatus('disconnected', 'Not enabled');
+    }
+  } catch(e) {
+    console.error('Supabase init error', e);
+    updateSyncStatus('error', 'Sync unavailable');
+  }
 }
 
-function firebaseSignIn() {
-  if (!fbApp) { showToast('Firebase not loaded yet — try again in a moment'); return; }
-  const provider = new firebase.auth.GoogleAuthProvider();
-  // Use redirect instead of popup — works reliably on mobile and all browsers
-  firebase.auth().signInWithRedirect(provider).catch(err => {
-    showToast('Sign in failed: ' + err.message);
-  });
+function enableSupabaseSync() {
+  syncEnabled = true;
+  setSetting('g3_sync_enabled', '1');
+  document.getElementById('supabase-enable-btn').style.display = 'none';
+  document.getElementById('supabase-disable-btn').style.display = '';
+  document.getElementById('supabase-sync-btn').style.display = '';
+  document.getElementById('sync-badge').classList.add('visible');
+  updateSyncStatus('connected', 'Sync enabled');
+  showToast('✓ Cloud sync enabled');
+  supabaseSync();
 }
 
-function firebaseSignOut() {
-  firebase.auth().signOut().then(() => {
-    showToast('Signed out from sync');
-  });
+function disableSupabaseSync() {
+  if (!confirm('Disable cloud sync? Your local rides will not be deleted.')) return;
+  syncEnabled = false;
+  setSetting('g3_sync_enabled', '0');
+  document.getElementById('supabase-enable-btn').style.display = '';
+  document.getElementById('supabase-disable-btn').style.display = 'none';
+  document.getElementById('supabase-sync-btn').style.display = 'none';
+  document.getElementById('sync-badge').classList.remove('visible');
+  updateSyncStatus('disconnected', 'Not enabled');
+  showToast('Cloud sync disabled');
 }
 
-async function firebaseSync() {
-  if (!fbUser || !fbDb) return;
-  updateDriveStatus('syncing', 'Syncing…');
+function updateSyncStatus(state, msg) {
+  const el = document.getElementById('drive-status-el');
+  const txt = document.getElementById('drive-status-txt');
+  if (!el || !txt) return;
+  el.className = 'drive-status ' + state;
+  txt.textContent = msg;
+}
+
+async function supabaseSync() {
+  if (!syncEnabled || !supabaseClient) return;
+  updateSyncStatus('syncing', 'Syncing…');
   try {
-    const userDoc = fbDb.collection('users').doc(fbUser.uid);
-    const ridesCol = userDoc.collection('rides');
-
-    // Upload local rides that aren't in Firebase yet
+    // Upload local rides to Supabase
     for (const ride of rides) {
-      // Store media separately to avoid document size limits
-      const rideData = { ...ride, media: ride.media ? ride.media.length : 0 };
-      await ridesCol.doc(String(ride.id)).set(rideData, { merge: true });
-      // Store media in subcollection if present
-      if (ride.media && ride.media.length) {
-        const mediaCol = ridesCol.doc(String(ride.id)).collection('media');
-        for (let i = 0; i < ride.media.length; i++) {
-          await mediaCol.doc(String(i)).set(ride.media[i], { merge: true });
-        }
-      }
+      // Store media as base64 strings but skip if too large
+      const rideToStore = {
+        ride_id: String(ride.id),
+        device_id: DEVICE_ID,
+        data: JSON.stringify({...ride, media: ride.media ? ride.media.map(m => ({...m, src: m.src.length > 500000 ? '' : m.src})) : []}),
+        start_time: new Date(ride.startTime).toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      await supabaseClient.from('rides').upsert(rideToStore, { onConflict: 'ride_id' });
     }
 
-    // Download all rides from Firebase
-    const snapshot = await ridesCol.get();
-    const remoteRides = [];
-    for (const doc of snapshot.docs) {
-      const data = doc.data();
-      // Fetch media subcollection
-      const mediaSnap = await ridesCol.doc(doc.id).collection('media').get();
-      data.media = mediaSnap.docs.map(m => m.data());
-      remoteRides.push(data);
+    // Download all rides from Supabase
+    const { data, error } = await supabaseClient.from('rides').select('data').order('start_time', { ascending: false });
+    if (error) throw error;
+
+    if (data && data.length) {
+      const remoteRides = data.map(r => JSON.parse(r.data));
+      // Merge local + remote, deduplicate by id
+      const merged = Object.values(
+        [...rides, ...remoteRides].reduce((acc, r) => {
+          if (!acc[r.id] || (r.endTime||0) > (acc[r.id].endTime||0)) acc[r.id] = r;
+          return acc;
+        }, {})
+      ).sort((a,b) => b.startTime - a.startTime);
+
+      rides = merged;
+      if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
+      renderHistory(); renderStats();
     }
 
-    // Merge local + remote, deduplicate by id
-    const merged = Object.values(
-      [...rides, ...remoteRides].reduce((acc, r) => {
-        if (!acc[r.id] || (r.endTime||0) > (acc[r.id].endTime||0)) acc[r.id] = r;
-        return acc;
-      }, {})
-    ).sort((a,b) => b.startTime - a.startTime);
-
-    rides = merged;
-    if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
-    renderHistory(); renderStats();
-
-    updateDriveStatus('connected', 'Synced · ' + formatTime(Date.now()));
+    updateSyncStatus('connected', 'Synced · ' + formatTime(Date.now()));
     document.getElementById('sync-badge').classList.add('visible');
     updateStorageInfo();
   } catch(e) {
-    console.error('Firebase sync error', e);
-    updateDriveStatus('error', 'Sync failed — check connection');
+    console.error('Supabase sync error', e);
+    updateSyncStatus('error', 'Sync failed — will retry');
   }
 }
 
 async function driveSaveRide(ride) {
-  // Auto-sync to Firebase after each ride save
-  if (!fbUser || !fbDb) return;
-  try { await firebaseSync(); } catch(e) { console.warn('Firebase save failed silently', e); }
+  // Auto-sync after each ride save
+  if (!syncEnabled || !supabaseClient) return;
+  try { await supabaseSync(); } catch(e) { console.warn('Sync failed silently', e); }
 }
 
 init();
