@@ -924,7 +924,16 @@ function handleEditMedia(input) {
    MAPS
 ══════════════════════════════════════════════════════ */
 function initLiveMap() {
-  if (!window.google) return;
+  if (!window.google) {
+    // Maps not loaded yet — wait for it
+    const key = getSetting('g3_maps_key');
+    if (key) {
+      showToast('Loading map…');
+      // loadMapsIfKey will call initLiveMap when ready via mapsReady callback
+      loadMapsIfKey();
+    }
+    return;
+  }
   document.getElementById('map-placeholder').style.display = 'none';
   map = new google.maps.Map(document.getElementById('map'), {
     center:{lat:-27.5,lng:153.0}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true
@@ -1206,12 +1215,18 @@ function weatherEmoji(code) {
 ══════════════════════════════════════════════════════ */
 function loadMapsIfKey() {
   const key = getSetting('g3_maps_key');
-  if (key && !window.google) {
-    window.mapsReady = () => console.log('Maps ready');
-    const s = document.createElement('script');
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=mapsReady`;
-    s.async = true; document.head.appendChild(s);
-  }
+  if (!key) return;
+  if (window.google) return; // already loaded
+  window.mapsReady = () => {
+    console.log('Google Maps loaded successfully');
+    // If a ride is already in progress when maps loads, init the map now
+    if (isRecording) initLiveMap();
+  };
+  const s = document.createElement('script');
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=mapsReady&loading=async`;
+  s.async = true;
+  s.onerror = () => console.error('Maps script failed to load — check API key and restrictions');
+  document.head.appendChild(s);
 }
 function saveApiKey() {
   const key = document.getElementById('settings-key-input').value.trim();
