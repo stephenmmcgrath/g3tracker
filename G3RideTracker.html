@@ -9,6 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>G3 Ride Tracker</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <style>
 :root{--bg:#0a0a14;--bg2:#12121f;--bg3:#1a1a2e;--bg4:#22223a;--accent:#00c8ff;--accent2:#0090cc;--danger:#e74c3c;--success:#2ecc71;--warn:#f39c12;--text:#eef0f4;--text2:#8890a0;--text3:#4a5060;--border:rgba(255,255,255,0.07);--r:12px;--r-lg:20px;--font:-apple-system,'SF Pro Display','Segoe UI',sans-serif}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -192,7 +195,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 .vehicle-add-btn{padding:9px 16px;background:var(--accent);color:#000;border-radius:var(--r);font-size:13px;font-weight:600}
 
 
-/* DRIVE SYNC */
+/* FIREBASE SYNC */
 .drive-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-top:8px;padding:8px 10px;background:var(--bg4);border-radius:8px}
 .drive-status .dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
 .drive-status.connected .dot{background:var(--success)}
@@ -408,12 +411,12 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
       <div class="settings-card" style="position:relative">
         <div class="sync-badge" id="sync-badge">Synced</div>
-        <h3>☁️ Google Drive Sync</h3>
-        <p>Automatically backs up and syncs your rides across devices via Google Drive. Your data is saved to a file called <strong>G3RideTracker_rides.json</strong> in your Drive.</p>
-        <div class="drive-status" id="drive-status-el"><div class="dot"></div><span id="drive-status-txt">Not connected</span></div>
-        <button class="settings-btn" id="drive-connect-btn" onclick="driveAuth()" style="margin-top:10px">Connect Google Drive</button>
-        <button class="settings-btn danger" id="drive-disconnect-btn" onclick="driveDisconnect()" style="margin-top:8px;display:none">Disconnect Drive</button>
-        <button class="settings-btn" id="drive-sync-btn" onclick="driveSync()" style="margin-top:8px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);display:none">Sync now</button>
+        <h3>☁️ Cloud Sync (Firebase)</h3>
+        <p>Automatically syncs your rides across all your devices. Sign in with Google to enable — no extra permissions or verification required.</p>
+        <div class="drive-status" id="drive-status-el"><div class="dot"></div><span id="drive-status-txt">Not signed in</span></div>
+        <button class="settings-btn" id="firebase-signin-btn" onclick="firebaseSignIn()" style="margin-top:10px">Sign in with Google</button>
+        <button class="settings-btn danger" id="firebase-signout-btn" onclick="firebaseSignOut()" style="margin-top:8px;display:none">Sign out</button>
+        <button class="settings-btn" id="firebase-sync-btn" onclick="firebaseSync()" style="margin-top:8px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);display:none">Sync now</button>
       </div>
 
       <div class="settings-card">
@@ -512,11 +515,16 @@ const removeSetting = k => { try { localStorage.removeItem(k); } catch(e) {} };
 ══════════════════════════════════════════════════════ */
 let rides = [], vehicles = [], selectedVehicle = '';
 
-/* DRIVE SYNC STATE */
-const DRIVE_CLIENT_ID = '216845088387-o8o90klumcerbh02b3akk5tfr6jacq0p.apps.googleusercontent.com';
-const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
-let driveToken = null;
-let driveFileId = null;
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyDnwoNF44Ml54uVq4kJhOtlxD3TVWkQD4w",
+  authDomain: "g3ridetracker.firebaseapp.com",
+  projectId: "g3ridetracker",
+  storageBucket: "g3ridetracker.firebasestorage.app",
+  messagingSenderId: "267182563415",
+  appId: "1:267182563415:web:de4475d97dac5ea2704312"
+};
+let fbApp = null, fbDb = null, fbUser = null;
 
 let isRecording = false, watchId = null, timerInterval = null;
 let elapsedSecs = 0, currentRoutePoints = [], currentMaxSpeed = 0;
@@ -558,15 +566,8 @@ async function init() {
   // Voice: restore if was enabled
   if (getSetting('g3_voice') === '1') enableVoice(true);
 
-  // Restore Drive token if saved
-  const savedToken = getSetting('g3_drive_token');
-  if (savedToken) {
-    driveToken = savedToken;
-    updateDriveStatus('connected', 'Connected — syncing…');
-    driveSync();
-  } else {
-    updateDriveStatus('disconnected', 'Not connected');
-  }
+  // Init Firebase
+  initFirebase();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1278,157 +1279,104 @@ function showToast(msg) {
 
 
 /* ══════════════════════════════════════════════════════
-   GOOGLE DRIVE SYNC
+   FIREBASE SYNC
 ══════════════════════════════════════════════════════ */
-function driveAuth() {
-  if (!window.google || !window.google.accounts) {
-    showToast('Google sign-in not loaded yet — try again in a moment');
-    return;
-  }
-  const client = google.accounts.oauth2.initTokenClient({
-    client_id: DRIVE_CLIENT_ID,
-    scope: DRIVE_SCOPE,
-    callback: async (resp) => {
-      if (resp.error) { showToast('Drive auth failed: ' + resp.error); return; }
-      driveToken = resp.access_token;
-      setSetting('g3_drive_token', driveToken);
-      updateDriveStatus('connected', 'Connected');
-      document.getElementById('drive-connect-btn').style.display = 'none';
-      document.getElementById('drive-disconnect-btn').style.display = '';
-      document.getElementById('drive-sync-btn').style.display = '';
-      showToast('✓ Google Drive connected');
-      await driveSync();
-    }
+function initFirebase() {
+  try {
+    fbApp = firebase.initializeApp(firebaseConfig);
+    fbDb = firebase.firestore();
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        fbUser = user;
+        updateDriveStatus('connected', 'Signed in as ' + user.email);
+        document.getElementById('firebase-signin-btn').style.display = 'none';
+        document.getElementById('firebase-signout-btn').style.display = '';
+        document.getElementById('firebase-sync-btn').style.display = '';
+        document.getElementById('sync-badge').classList.add('visible');
+        firebaseSync();
+      } else {
+        fbUser = null;
+        updateDriveStatus('disconnected', 'Not signed in');
+        document.getElementById('firebase-signin-btn').style.display = '';
+        document.getElementById('firebase-signout-btn').style.display = 'none';
+        document.getElementById('firebase-sync-btn').style.display = 'none';
+        document.getElementById('sync-badge').classList.remove('visible');
+      }
+    });
+  } catch(e) { console.error('Firebase init error', e); }
+}
+
+function firebaseSignIn() {
+  if (!fbApp) { showToast('Firebase not loaded yet'); return; }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider).catch(err => {
+    showToast('Sign in failed: ' + err.message);
   });
-  client.requestAccessToken();
 }
 
-function driveDisconnect() {
-  if (!confirm('Disconnect Google Drive? Your local rides will not be deleted.')) return;
-  driveToken = null; driveFileId = null;
-  removeSetting('g3_drive_token');
-  removeSetting('g3_drive_file_id');
-  updateDriveStatus('disconnected', 'Not connected');
-  document.getElementById('drive-connect-btn').style.display = '';
-  document.getElementById('drive-disconnect-btn').style.display = 'none';
-  document.getElementById('drive-sync-btn').style.display = 'none';
-  document.getElementById('sync-badge').classList.remove('visible');
-  showToast('Drive disconnected');
+function firebaseSignOut() {
+  firebase.auth().signOut().then(() => {
+    showToast('Signed out from sync');
+  });
 }
 
-function updateDriveStatus(state, msg) {
-  const el = document.getElementById('drive-status-el');
-  const txt = document.getElementById('drive-status-txt');
-  if (!el || !txt) return;
-  el.className = 'drive-status ' + state;
-  txt.textContent = msg;
-  if (state === 'connected') {
-    document.getElementById('drive-connect-btn').style.display = 'none';
-    document.getElementById('drive-disconnect-btn').style.display = '';
-    document.getElementById('drive-sync-btn').style.display = '';
-  }
-}
-
-async function driveSync() {
-  if (!driveToken) return;
+async function firebaseSync() {
+  if (!fbUser || !fbDb) return;
   updateDriveStatus('syncing', 'Syncing…');
   try {
-    // Find or create the file in appDataFolder
-    let fileId = getSetting('g3_drive_file_id') || driveFileId;
-    if (!fileId) {
-      // Search for existing file
-      const search = await fetch(
-        'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%22G3RideTracker_rides.json%22&fields=files(id)',
-        { headers: { Authorization: 'Bearer ' + driveToken } }
-      );
-      const sData = await search.json();
-      if (sData.files && sData.files.length) {
-        fileId = sData.files[0].id;
+    const userDoc = fbDb.collection('users').doc(fbUser.uid);
+    const ridesCol = userDoc.collection('rides');
+
+    // Upload local rides that aren't in Firebase yet
+    for (const ride of rides) {
+      // Store media separately to avoid document size limits
+      const rideData = { ...ride, media: ride.media ? ride.media.length : 0 };
+      await ridesCol.doc(String(ride.id)).set(rideData, { merge: true });
+      // Store media in subcollection if present
+      if (ride.media && ride.media.length) {
+        const mediaCol = ridesCol.doc(String(ride.id)).collection('media');
+        for (let i = 0; i < ride.media.length; i++) {
+          await mediaCol.doc(String(i)).set(ride.media[i], { merge: true });
+        }
       }
     }
 
-    if (fileId) {
-      // Download and merge
-      const dl = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-        { headers: { Authorization: 'Bearer ' + driveToken } }
-      );
-      if (dl.ok) {
-        const remoteRides = await dl.json();
-        // Merge: combine local + remote, deduplicate by id, keep newest
-        const merged = Object.values(
-          [...rides, ...remoteRides].reduce((acc, r) => {
-            if (!acc[r.id] || r.endTime > (acc[r.id].endTime||0)) acc[r.id] = r;
-            return acc;
-          }, {})
-        ).sort((a,b) => b.startTime - a.startTime);
-        rides = merged;
-        // Save merged to local DB
-        if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
-        renderHistory(); renderStats();
-      }
-      driveFileId = fileId;
-      setSetting('g3_drive_file_id', fileId);
-      // Upload merged data
-      await driveUpload(fileId);
-    } else {
-      // Create new file
-      fileId = await driveCreate();
-      if (fileId) {
-        driveFileId = fileId;
-        setSetting('g3_drive_file_id', fileId);
-      }
+    // Download all rides from Firebase
+    const snapshot = await ridesCol.get();
+    const remoteRides = [];
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      // Fetch media subcollection
+      const mediaSnap = await ridesCol.doc(doc.id).collection('media').get();
+      data.media = mediaSnap.docs.map(m => m.data());
+      remoteRides.push(data);
     }
+
+    // Merge local + remote, deduplicate by id
+    const merged = Object.values(
+      [...rides, ...remoteRides].reduce((acc, r) => {
+        if (!acc[r.id] || (r.endTime||0) > (acc[r.id].endTime||0)) acc[r.id] = r;
+        return acc;
+      }, {})
+    ).sort((a,b) => b.startTime - a.startTime);
+
+    rides = merged;
+    if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
+    renderHistory(); renderStats();
 
     updateDriveStatus('connected', 'Synced · ' + formatTime(Date.now()));
     document.getElementById('sync-badge').classList.add('visible');
     updateStorageInfo();
   } catch(e) {
-    console.error('Drive sync error', e);
-    // Token may have expired
-    if (e.message && e.message.includes('401')) {
-      driveToken = null; removeSetting('g3_drive_token');
-      updateDriveStatus('error', 'Session expired — reconnect');
-      document.getElementById('drive-connect-btn').style.display = '';
-    } else {
-      updateDriveStatus('error', 'Sync failed — will retry next open');
-    }
+    console.error('Firebase sync error', e);
+    updateDriveStatus('error', 'Sync failed — check connection');
   }
 }
 
-async function driveUpload(fileId) {
-  const body = JSON.stringify(rides);
-  await fetch(
-    `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
-    {
-      method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + driveToken, 'Content-Type': 'application/json' },
-      body
-    }
-  );
-}
-
-async function driveCreate() {
-  // Create file metadata
-  const meta = await fetch(
-    'https://www.googleapis.com/drive/v3/files',
-    {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + driveToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'G3RideTracker_rides.json', parents: ['appDataFolder'] })
-    }
-  );
-  const mData = await meta.json();
-  if (!mData.id) return null;
-  // Upload content
-  await driveUpload(mData.id);
-  return mData.id;
-}
-
 async function driveSaveRide(ride) {
-  // Called after each ride save to push to Drive
-  if (!driveToken) return;
-  try { await driveSync(); } catch(e) { console.warn('Drive save failed silently', e); }
+  // Auto-sync to Firebase after each ride save
+  if (!fbUser || !fbDb) return;
+  try { await firebaseSync(); } catch(e) { console.warn('Firebase save failed silently', e); }
 }
 
 init();
