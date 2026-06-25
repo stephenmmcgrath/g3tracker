@@ -202,6 +202,9 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 .sync-badge{position:absolute;top:8px;right:8px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:var(--success);font-size:10px;padding:2px 7px;border-radius:10px;display:none}
 .sync-badge.visible{display:block}
 
+/* STRAVA */
+.strava-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(252,76,2,0.1);color:#fc4c02;font-size:10px;border-radius:6px;padding:2px 7px;margin-top:4px}
+
 /* DB BANNER */
 #db-banner{background:rgba(231,76,60,0.1);border-bottom:1px solid rgba(231,76,60,0.2);padding:8px 16px;font-size:12px;color:var(--danger);display:none;text-align:center}
 
@@ -417,6 +420,25 @@ canvas.ride-chart{width:100%!important;max-height:160px}
         <button class="settings-btn" id="supabase-sync-btn" onclick="supabaseSync()" style="margin-top:8px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);display:none">Sync now</button>
       </div>
 
+      <div class="settings-card" style="position:relative">
+        <h3>🟠 Strava Integration</h3>
+        <p>Automatically post completed rides to Strava. Requires your Strava subscription.</p>
+        <div class="drive-status" id="strava-status-el"><div class="dot"></div><span id="strava-status-txt">Not connected</span></div>
+        <button class="settings-btn" id="strava-connect-btn" onclick="stravaAuth()" style="margin-top:10px;background:#fc4c02;color:white">Connect Strava</button>
+        <button class="settings-btn danger" id="strava-disconnect-btn" onclick="stravaDisconnect()" style="margin-top:8px;display:none">Disconnect Strava</button>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;background:var(--bg4);border-radius:10px" id="strava-autopost-row" style="display:none">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">Auto-post rides to Strava</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Automatically post each saved ride</div>
+          </div>
+          <label style="position:relative;width:44px;height:24px;flex-shrink:0">
+            <input type="checkbox" id="strava-autopost-toggle" onchange="toggleStravaAutopost()" style="opacity:0;width:0;height:0;position:absolute">
+            <span id="strava-autopost-slider" style="position:absolute;inset:0;border-radius:24px;background:var(--text3);cursor:pointer;transition:0.2s"></span>
+            <span id="strava-autopost-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:0.2s"></span>
+          </label>
+        </div>
+      </div>
+
       <div class="settings-card">
         <h3>🗑 Delete all rides</h3>
         <p>Permanently deletes every ride. Cannot be undone.</p>
@@ -460,6 +482,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
       </div>
       <button class="action-btn accent" onclick="toggleEditNotes()">✏️ Edit notes</button>
       <button class="action-btn accent" onclick="addMediaToRide()">📷 Add photos / videos</button>
+      <button class="action-btn" id="strava-post-btn" onclick="postToStrava()" style="background:rgba(252,76,2,0.1);border-color:rgba(252,76,2,0.3);color:#fc4c02;display:none">🟠 Post to Strava</button>
       <button class="action-btn" onclick="renameRide()">Rename this ride</button>
       <button class="delete-ride-btn" id="delete-ride-btn">Delete this ride</button>
     </div>
@@ -523,6 +546,12 @@ const DEVICE_ID = (() => {
 })();
 let supabaseClient = null;
 let syncEnabled = false;
+// Strava
+const STRAVA_CLIENT_ID = '261028';
+const STRAVA_CLIENT_SECRET = 'd69a13c1aa7b4bbe0bace7aafcab19d0bd7f993d';
+const STRAVA_REDIRECT = 'https://stephenmmcgrath.github.io/g3tracker/GRideTracker.html';
+let stravaToken = null;
+let stravaAutopost = false;
 
 let isRecording = false, watchId = null, timerInterval = null;
 let elapsedSecs = 0, currentRoutePoints = [], currentMaxSpeed = 0;
@@ -566,6 +595,8 @@ async function init() {
 
   // Init Supabase sync if enabled
   initSupabase();
+  // Init Strava
+  initStrava();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -779,6 +810,10 @@ async function stopRecording() {
   showToast('✓ Ride saved');
   updateStorageInfo();
   driveSaveRide(ride);
+  // Auto-post to Strava if enabled
+  if (stravaAutopost && stravaToken) {
+    setTimeout(() => autoPostToStrava(ride), 1500);
+  }
 }
 
 function autoTitle() {
@@ -1044,6 +1079,22 @@ function openDetail(id) {
   }
 
   document.getElementById('delete-ride-btn').onclick = () => deleteRide(id);
+
+  // Strava button
+  const stravaBtn = document.getElementById('strava-post-btn');
+  if (stravaToken) {
+    stravaBtn.style.display = '';
+    if (ride.stravaId) {
+      stravaBtn.textContent = '✓ Posted to Strava';
+      stravaBtn.style.opacity = '0.6';
+    } else {
+      stravaBtn.textContent = '🟠 Post to Strava';
+      stravaBtn.style.opacity = '1';
+    }
+  } else {
+    stravaBtn.style.display = 'none';
+  }
+
   document.getElementById('detail-map').innerHTML = '';
   document.getElementById('detail-modal').classList.add('open');
   setTimeout(() => renderDetailMap(ride), 100);
@@ -1478,6 +1529,334 @@ function openVoiceCamera(facing) {
     reader.readAsDataURL(file);
   };
   input.click();
+}
+
+
+/* ══════════════════════════════════════════════════════
+   STRAVA INTEGRATION
+══════════════════════════════════════════════════════ */
+function initStrava() {
+  // Check for OAuth callback code in URL
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+
+  if (code && state === 'strava_auth') {
+    // Exchange code for token
+    exchangeStravaCode(code);
+    // Clean up URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return;
+  }
+
+  // Restore saved token
+  const saved = getSetting('g3_strava_token');
+  if (saved) {
+    try {
+      stravaToken = JSON.parse(saved);
+      // Check if token is expired
+      if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) {
+        refreshStravaToken();
+      } else {
+        updateStravaStatus('connected', 'Connected as ' + (stravaToken.athlete_name || 'athlete'));
+        document.getElementById('strava-connect-btn').style.display = 'none';
+        document.getElementById('strava-disconnect-btn').style.display = '';
+        showStravaAutopostRow();
+      }
+    } catch(e) { stravaToken = null; }
+  }
+}
+
+function stravaAuth() {
+  const authUrl = 'https://www.strava.com/oauth/authorize' +
+    '?client_id=' + STRAVA_CLIENT_ID +
+    '&redirect_uri=' + encodeURIComponent('https://stephenmmcgrath.github.io/g3tracker/G3RideTracker.html') +
+    '&response_type=code' +
+    '&approval_prompt=auto' +
+    '&scope=activity:write' +
+    '&state=strava_auth';
+  window.location.href = authUrl;
+}
+
+async function exchangeStravaCode(code) {
+  updateStravaStatus('syncing', 'Connecting to Strava…');
+  try {
+    const resp = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: STRAVA_CLIENT_ID,
+        client_secret: STRAVA_CLIENT_SECRET,
+        code: code,
+        grant_type: 'authorization_code'
+      })
+    });
+    const data = await resp.json();
+    if (data.access_token) {
+      stravaToken = {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: data.expires_at,
+        athlete_name: data.athlete ? data.athlete.firstname : 'athlete'
+      };
+      setSetting('g3_strava_token', JSON.stringify(stravaToken));
+      updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name);
+      document.getElementById('strava-connect-btn').style.display = 'none';
+      document.getElementById('strava-disconnect-btn').style.display = '';
+      showStravaAutopostRow();
+      showToast('✓ Strava connected!');
+    } else {
+      updateStravaStatus('error', 'Connection failed — try again');
+      showToast('Strava connection failed');
+    }
+  } catch(e) {
+    console.error('Strava auth error', e);
+    updateStravaStatus('error', 'Connection failed');
+  }
+}
+
+async function refreshStravaToken() {
+  if (!stravaToken || !stravaToken.refresh_token) return;
+  try {
+    const resp = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: STRAVA_CLIENT_ID,
+        client_secret: STRAVA_CLIENT_SECRET,
+        refresh_token: stravaToken.refresh_token,
+        grant_type: 'refresh_token'
+      })
+    });
+    const data = await resp.json();
+    if (data.access_token) {
+      stravaToken.access_token = data.access_token;
+      stravaToken.refresh_token = data.refresh_token;
+      stravaToken.expires_at = data.expires_at;
+      setSetting('g3_strava_token', JSON.stringify(stravaToken));
+      updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name);
+      document.getElementById('strava-connect-btn').style.display = 'none';
+      document.getElementById('strava-disconnect-btn').style.display = '';
+    }
+  } catch(e) { console.error('Token refresh failed', e); }
+}
+
+function stravaDisconnect() {
+  if (!confirm('Disconnect Strava? You can reconnect any time.')) return;
+  stravaToken = null;
+  removeSetting('g3_strava_token');
+  updateStravaStatus('disconnected', 'Not connected');
+  document.getElementById('strava-connect-btn').style.display = '';
+  document.getElementById('strava-disconnect-btn').style.display = 'none';
+  document.getElementById('strava-autopost-row').style.display = 'none';
+  stravaAutopost = false;
+  setSetting('g3_strava_autopost', '0');
+  showToast('Strava disconnected');
+}
+
+function updateStravaStatus(state, msg) {
+  const el = document.getElementById('strava-status-el');
+  const txt = document.getElementById('strava-status-txt');
+  if (!el || !txt) return;
+  el.className = 'drive-status ' + state;
+  txt.textContent = msg;
+}
+
+async function postToStrava() {
+  if (!stravaToken) { showToast('Connect Strava first in Settings'); return; }
+  const ride = rides.find(r => r.id === currentDetailId);
+  if (!ride) return;
+
+  // Refresh token if expired
+  if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) {
+    await refreshStravaToken();
+  }
+
+  showToast('Posting to Strava…');
+
+  try {
+    // Build GPX data from route points
+    let gpxData = null;
+    if (ride.routePoints && ride.routePoints.length > 1) {
+      gpxData = buildGPX(ride);
+    }
+
+    let activityId = null;
+
+    if (gpxData) {
+      // Upload GPX file
+      const formData = new FormData();
+      const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
+      formData.append('file', blob, 'ride.gpx');
+      formData.append('data_type', 'gpx');
+      formData.append('name', ride.title || 'G3 Ride');
+      formData.append('description', ride.notes || 'Recorded with G3 Ride Tracker');
+      formData.append('sport_type', 'EBikeRide');
+      formData.append('commute', '0');
+
+      const uploadResp = await fetch('https://www.strava.com/api/v3/uploads', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + stravaToken.access_token },
+        body: formData
+      });
+      const uploadData = await uploadResp.json();
+
+      if (uploadData.error) throw new Error(uploadData.error);
+
+      // Poll for upload completion
+      activityId = await pollStravaUpload(uploadData.id);
+    } else {
+      // No GPS data — create manual activity
+      const startDate = new Date(ride.startTime).toISOString();
+      const resp = await fetch('https://www.strava.com/api/v3/activities', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + stravaToken.access_token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: ride.title || 'G3 Ride',
+          sport_type: 'EBikeRide',
+          start_date_local: startDate,
+          elapsed_time: ride.durationSecs,
+          description: ride.notes || 'Recorded with G3 Ride Tracker',
+          distance: ride.distanceM,
+          commute: false
+        })
+      });
+      const data = await resp.json();
+      activityId = data.id;
+    }
+
+    if (activityId) {
+      // Mark ride as posted to Strava
+      ride.stravaId = activityId;
+      dbPut(ride).catch(() => {});
+      if (syncEnabled && supabaseClient) driveSaveRide(ride);
+      document.getElementById('strava-post-btn').textContent = '✓ Posted to Strava';
+      document.getElementById('strava-post-btn').style.opacity = '0.6';
+      showToast('✓ Posted to Strava!');
+    }
+  } catch(e) {
+    console.error('Strava post error', e);
+    showToast('Failed to post to Strava — try again');
+  }
+}
+
+async function pollStravaUpload(uploadId) {
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    const resp = await fetch('https://www.strava.com/api/v3/uploads/' + uploadId, {
+      headers: { Authorization: 'Bearer ' + stravaToken.access_token }
+    });
+    const data = await resp.json();
+    if (data.activity_id) return data.activity_id;
+    if (data.error) throw new Error(data.error);
+  }
+  throw new Error('Upload timed out');
+}
+
+function buildGPX(ride) {
+  const pts = ride.routePoints.map(p => {
+    const time = new Date(p.ts || ride.startTime).toISOString();
+    return `      <trkpt lat="${p.lat}" lon="${p.lng}">
+        <ele>${(p.altitude || 0).toFixed(1)}</ele>
+        <time>${time}</time>
+        <extensions><gpxtpx:TrackPointExtension><gpxtpx:speed>${((p.speedKmh || 0) / 3.6).toFixed(2)}</gpxtpx:speed></gpxtpx:TrackPointExtension></extensions>
+      </trkpt>`;
+  }).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="G3 Ride Tracker"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">
+  <trk>
+    <name>${(ride.title || 'G3 Ride').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</name>
+    <trkseg>
+${pts}
+    </trkseg>
+  </trk>
+</gpx>`;
+}
+
+
+function showStravaAutopostRow() {
+  const row = document.getElementById('strava-autopost-row');
+  if (row) {
+    row.style.display = 'flex';
+    stravaAutopost = getSetting('g3_strava_autopost') === '1';
+    const toggle = document.getElementById('strava-autopost-toggle');
+    const slider = document.getElementById('strava-autopost-slider');
+    const knob = document.getElementById('strava-autopost-knob');
+    if (toggle) toggle.checked = stravaAutopost;
+    if (slider) slider.style.background = stravaAutopost ? 'var(--success)' : 'var(--text3)';
+    if (knob) knob.style.transform = stravaAutopost ? 'translateX(20px)' : 'translateX(0)';
+  }
+}
+
+function toggleStravaAutopost() {
+  const toggle = document.getElementById('strava-autopost-toggle');
+  const slider = document.getElementById('strava-autopost-slider');
+  const knob = document.getElementById('strava-autopost-knob');
+  stravaAutopost = toggle.checked;
+  setSetting('g3_strava_autopost', stravaAutopost ? '1' : '0');
+  if (slider) slider.style.background = stravaAutopost ? 'var(--success)' : 'var(--text3)';
+  if (knob) knob.style.transform = stravaAutopost ? 'translateX(20px)' : 'translateX(0)';
+  showToast(stravaAutopost ? '✓ Auto-post enabled' : 'Auto-post disabled');
+}
+
+async function autoPostToStrava(ride) {
+  if (!stravaToken || !ride) return;
+  // Refresh token if expired
+  if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) {
+    await refreshStravaToken();
+  }
+  try {
+    let activityId = null;
+    if (ride.routePoints && ride.routePoints.length > 1) {
+      const gpxData = buildGPX(ride);
+      const formData = new FormData();
+      const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
+      formData.append('file', blob, 'ride.gpx');
+      formData.append('data_type', 'gpx');
+      formData.append('name', ride.title || 'G3 Ride');
+      formData.append('description', ride.notes || 'Recorded with G3 Ride Tracker');
+      formData.append('sport_type', 'EBikeRide');
+      formData.append('commute', '0');
+      const uploadResp = await fetch('https://www.strava.com/api/v3/uploads', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + stravaToken.access_token },
+        body: formData
+      });
+      const uploadData = await uploadResp.json();
+      if (uploadData.error) throw new Error(uploadData.error);
+      activityId = await pollStravaUpload(uploadData.id);
+    } else {
+      const resp = await fetch('https://www.strava.com/api/v3/activities', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + stravaToken.access_token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: ride.title || 'G3 Ride',
+          sport_type: 'EBikeRide',
+          start_date_local: new Date(ride.startTime).toISOString(),
+          elapsed_time: ride.durationSecs,
+          description: ride.notes || 'Recorded with G3 Ride Tracker',
+          distance: ride.distanceM,
+          commute: false
+        })
+      });
+      const data = await resp.json();
+      activityId = data.id;
+    }
+    if (activityId) {
+      ride.stravaId = activityId;
+      dbPut(ride).catch(() => {});
+      showToast('🟠 Posted to Strava!');
+    }
+  } catch(e) {
+    console.error('Auto-post to Strava failed', e);
+    showToast('Strava post failed — try manually from ride detail');
+  }
 }
 
 init();
