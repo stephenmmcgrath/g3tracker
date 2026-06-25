@@ -809,6 +809,10 @@ function enableVoice(silent) {
         if (!isRecording) { showVoiceToast('🎤 Starting…'); startRecording(); }
       } else if (t.includes('stop record') || t.includes('stop riding') || t.includes('save ride')) {
         if (isRecording) { showVoiceToast('🎤 Stopping…'); stopRecording(); }
+      } else if (t.includes('take selfie') || t.includes('take a selfie')) {
+        if (isRecording) { showVoiceToast('📸 Selfie camera…'); openVoiceCamera('user'); }
+      } else if (t.includes('take photo') || t.includes('take a photo') || t.includes('take picture')) {
+        if (isRecording) { showVoiceToast('📸 Camera…'); openVoiceCamera('environment'); }
       }
     };
     recognition.onerror = e => { if (e.error !== 'no-speech') console.warn('Voice error',e.error); };
@@ -1074,6 +1078,19 @@ async function deleteRide(id) {
   if (!confirm('Delete this ride? Cannot be undone.')) return;
   rides = rides.filter(r=>r.id!==id);
   try { if(db) await dbDelete(id); } catch(e) {}
+  // Mark as deleted in Supabase so other devices remove it too
+  if (syncEnabled && supabaseClient) {
+    try {
+      await supabaseClient.from('rides').upsert({
+        ride_id: String(id),
+        device_id: DEVICE_ID,
+        deleted: true,
+        data: null,
+        start_time: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'ride_id' });
+    } catch(e) { console.warn('Delete sync failed', e); }
+  }
   closeDetailModal(); renderHistory(); renderStats();
 }
 
@@ -1245,6 +1262,24 @@ function updateSettingsKeyDisplay() {
 }
 async function deleteAllRides() {
   if (!confirm('Delete ALL rides permanently? Cannot be undone.')) return;
+  // Mark all as deleted in Supabase before clearing local
+  if (syncEnabled && supabaseClient) {
+    try {
+      const { data } = await supabaseClient.from('rides').select('ride_id').eq('deleted', false);
+      if (data && data.length) {
+        for (const row of data) {
+          await supabaseClient.from('rides').upsert({
+            ride_id: row.ride_id,
+            device_id: DEVICE_ID,
+            deleted: true,
+            data: null,
+            start_time: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'ride_id' });
+        }
+      }
+    } catch(e) { console.warn('Delete all sync failed', e); }
+  }
   rides=[];
   try { if(db) await dbClear(); } catch(e) {}
   renderHistory(); renderStats(); updateStorageInfo(); showToast('All rides deleted');
@@ -1350,28 +1385,51 @@ async function supabaseSync() {
   if (!syncEnabled || !supabaseClient) return;
   updateSyncStatus('syncing', 'Syncing…');
   try {
-    // Upload local rides to Supabase
+    // Step 1: Download ALL rides from Supabase first (including tombstones)
+    const { data: remoteData, error: fetchError } = await supabaseClient
+      .from('rides')
+      .select('ride_id, data, deleted')
+      .order('start_time', { ascending: false });
+    if (fetchError) throw fetchError;
+
+    // Build set of remotely deleted ride IDs
+    const remoteDeleted = new Set(
+      (remoteData || []).filter(r => r.deleted).map(r => r.ride_id)
+    );
+
+    // Step 2: Remove locally any rides deleted on another device
+    if (remoteDeleted.size > 0) {
+      const before = rides.length;
+      rides = rides.filter(r => !remoteDeleted.has(String(r.id)));
+      if (rides.length !== before) {
+        if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
+      }
+    }
+
+    // Step 3: Upload local rides (that aren't deleted remotely)
     for (const ride of rides) {
-      // Store media as base64 strings but skip if too large
+      if (remoteDeleted.has(String(ride.id))) continue; // don't re-upload deleted rides
       const rideToStore = {
         ride_id: String(ride.id),
         device_id: DEVICE_ID,
-        data: JSON.stringify({...ride, media: ride.media ? ride.media.map(m => ({...m, src: m.src.length > 500000 ? '' : m.src})) : []}),
+        deleted: false,
+        data: JSON.stringify({...ride, media: ride.media ? ride.media.map(m => ({...m, src: m.src && m.src.length > 500000 ? '' : (m.src||'')})) : []}),
         start_time: new Date(ride.startTime).toISOString(),
         updated_at: new Date().toISOString()
       };
       await supabaseClient.from('rides').upsert(rideToStore, { onConflict: 'ride_id' });
     }
 
-    // Download all rides from Supabase
-    const { data, error } = await supabaseClient.from('rides').select('data').order('start_time', { ascending: false });
-    if (error) throw error;
+    // Step 4: Merge remote non-deleted rides into local
+    const remoteRides = (remoteData || [])
+      .filter(r => !r.deleted && r.data)
+      .map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } })
+      .filter(Boolean);
 
-    if (data && data.length) {
-      const remoteRides = data.map(r => JSON.parse(r.data));
-      // Merge local + remote, deduplicate by id
+    if (remoteRides.length > 0) {
       const merged = Object.values(
         [...rides, ...remoteRides].reduce((acc, r) => {
+          if (!r || !r.id) return acc;
           if (!acc[r.id] || (r.endTime||0) > (acc[r.id].endTime||0)) acc[r.id] = r;
           return acc;
         }, {})
@@ -1379,9 +1437,9 @@ async function supabaseSync() {
 
       rides = merged;
       if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
-      renderHistory(); renderStats();
     }
 
+    renderHistory(); renderStats();
     updateSyncStatus('connected', 'Synced · ' + formatTime(Date.now()));
     document.getElementById('sync-badge').classList.add('visible');
     updateStorageInfo();
@@ -1395,6 +1453,31 @@ async function driveSaveRide(ride) {
   // Auto-sync after each ride save
   if (!syncEnabled || !supabaseClient) return;
   try { await supabaseSync(); } catch(e) { console.warn('Sync failed silently', e); }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   VOICE CAMERA
+══════════════════════════════════════════════════════ */
+function openVoiceCamera(facing) {
+  // Create a temporary file input with the right camera
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = facing; // 'environment' = rear, 'user' = front
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const data = { src: ev.target.result, type: 'image' };
+      mediaFiles.push(data);
+      addMediaThumb(data, mediaFiles.length - 1);
+      showVoiceToast('📸 Photo added!');
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
 }
 
 init();
