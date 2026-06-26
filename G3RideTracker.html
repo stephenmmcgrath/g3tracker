@@ -311,13 +311,22 @@ canvas.ride-chart{width:100%!important;max-height:160px}
       </div>
       <div class="section">
         <div class="section-label">Photos &amp; videos</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button id="voice-cam-rear" onclick="triggerCamera('environment')" style="flex:1;padding:10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;color:var(--text2);font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>📷 Photo
+          </button>
+          <button id="voice-cam-front" onclick="triggerCamera('user')" style="flex:1;padding:10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;color:var(--text2);font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M15 3h4v4"/></svg>🤳 Selfie
+          </button>
+        </div>
         <div class="media-strip" id="media-strip">
           <button class="add-media-btn" onclick="document.getElementById('media-input').click()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Gallery
           </button>
         </div>
         <input type="file" id="media-input" accept="image/*,video/*" multiple onchange="handleMedia(this)">
         <input type="file" id="edit-media-input" accept="image/*,video/*" multiple onchange="handleEditMedia(this)">
+        <input type="file" id="voice-cam-input" accept="image/*" onchange="handleVoiceCamMedia(this)">
       </div>
     </div>
 
@@ -557,6 +566,8 @@ let isRecording = false, watchId = null, timerInterval = null;
 let elapsedSecs = 0, currentRoutePoints = [], currentMaxSpeed = 0;
 let currentDist = 0, lastPos = null, mediaFiles = [];
 let currentMaxGforce = 0, elevations = [], currentWeather = null;
+let wakeLock = null;
+let gforceSamples = []; // for smoothing
 let map = null, polyline = null, detailMap = null, currentDetailId = null;
 let voiceEnabled = false, recognition = null;
 let statsFilter = 'all'; // 'all' or vehicle name
@@ -702,6 +713,7 @@ async function startRecording() {
     elapsedSecs++;
     document.getElementById('rec-timer').textContent = formatDur(elapsedSecs);
     document.getElementById('stat-dur').textContent = formatDur(elapsedSecs);
+    // Avg speed from distance / elapsed time
     if (elapsedSecs > 0 && currentDist > 0) {
       document.getElementById('stat-avg').textContent = ((currentDist/1000)/(elapsedSecs/3600)).toFixed(1);
     }
@@ -735,17 +747,44 @@ async function startRecording() {
     } catch(e) { currentWeather = null; document.getElementById('stat-weather-live').textContent = '—'; }
   }, () => { currentWeather = null; }, { timeout: 8000 });
 
+  // Wake Lock — keep screen on during recording
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch(e) { console.warn('Wake lock failed:', e); }
+  } else {
+    showToast('⚠️ Keep screen on during ride for accurate GPS');
+  }
+
   initLiveMap();
 }
 
 function onPosition(pos) {
-  const { latitude:lat, longitude:lng, speed, altitude } = pos.coords;
-  const speedKmh = speed != null ? Math.max(0, speed*3.6) : 0;
-  currentRoutePoints.push({ lat, lng, speedKmh, altitude:altitude||0, ts:Date.now() });
-  if (lastPos) { const d = haversine(lastPos.lat,lastPos.lng,lat,lng); if(d>2) currentDist+=d; }
-  lastPos = {lat,lng};
+  const { latitude:lat, longitude:lng, altitude, accuracy } = pos.coords;
+  const now = Date.now();
+
+  // Ignore poor accuracy readings (> 50m)
+  if (accuracy && accuracy > 50) return;
+
+  let speedKmh = 0;
+  if (lastPos && lastPos.ts) {
+    const dist = haversine(lastPos.lat, lastPos.lng, lat, lng);
+    const timeDiff = (now - lastPos.ts) / 1000; // seconds
+    if (dist > 1 && timeDiff > 0) { // filter jitter < 1m
+      speedKmh = Math.max(0, (dist / timeDiff) * 3.6); // m/s to km/h
+      // Cap at 80km/h to filter GPS glitches
+      if (speedKmh > 80) speedKmh = 0;
+    }
+    if (dist > 2) currentDist += dist; // only count movement > 2m
+  }
+
+  currentRoutePoints.push({ lat, lng, speedKmh, altitude:altitude||0, ts:now });
+  lastPos = { lat, lng, ts: now };
+
   if (speedKmh > currentMaxSpeed) currentMaxSpeed = speedKmh;
   if (altitude != null) elevations.push(altitude);
+
   document.getElementById('stat-speed').textContent = speedKmh.toFixed(1);
   document.getElementById('stat-max').textContent = currentMaxSpeed.toFixed(1);
   document.getElementById('stat-dist').textContent = (currentDist/1000).toFixed(2);
@@ -759,8 +798,16 @@ function onPosition(pos) {
 function onMotion(e) {
   const a = e.accelerationIncludingGravity;
   if (!a) return;
-  const g = Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2)/9.81;
-  if (g > currentMaxGforce) { currentMaxGforce = g; document.getElementById('stat-gforce').textContent = g.toFixed(2); }
+  const raw = Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2)/9.81;
+  // Smooth with rolling average of last 10 samples to filter footsteps/bumps
+  gforceSamples.push(raw);
+  if (gforceSamples.length > 10) gforceSamples.shift();
+  const smoothed = gforceSamples.reduce((s,v) => s+v, 0) / gforceSamples.length;
+  // Only count as G-force event if sustained (smoothed > 1.5g threshold)
+  if (smoothed > 1.5 && smoothed > currentMaxGforce) {
+    currentMaxGforce = smoothed;
+    document.getElementById('stat-gforce').textContent = smoothed.toFixed(2);
+  }
 }
 
 async function stopRecording() {
@@ -769,6 +816,8 @@ async function stopRecording() {
   clearInterval(timerInterval);
   if (watchId != null) navigator.geolocation.clearWatch(watchId);
   window.removeEventListener('devicemotion', onMotion);
+  // Release wake lock
+  if (wakeLock) { try { await wakeLock.release(); } catch(e) {} wakeLock = null; }
 
   document.getElementById('record-btn').classList.remove('recording');
   document.getElementById('btn-icon-play').style.display = '';
@@ -1510,25 +1559,39 @@ async function driveSaveRide(ride) {
 /* ══════════════════════════════════════════════════════
    VOICE CAMERA
 ══════════════════════════════════════════════════════ */
-function openVoiceCamera(facing) {
-  // Create a temporary file input with the right camera
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.capture = facing; // 'environment' = rear, 'user' = front
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const data = { src: ev.target.result, type: 'image' };
-      mediaFiles.push(data);
-      addMediaThumb(data, mediaFiles.length - 1);
-      showVoiceToast('📸 Photo added!');
-    };
-    reader.readAsDataURL(file);
-  };
+function triggerCamera(facing) {
+  const input = document.getElementById('voice-cam-input');
+  input.capture = facing;
   input.click();
+}
+
+function openVoiceCamera(facing) {
+  // Highlight the appropriate button and trigger it
+  const btnId = facing === 'user' ? 'voice-cam-front' : 'voice-cam-rear';
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => {
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--text2)';
+    }, 2000);
+  }
+  triggerCamera(facing);
+}
+
+function handleVoiceCamMedia(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const data = { src: ev.target.result, type: 'image' };
+    mediaFiles.push(data);
+    addMediaThumb(data, mediaFiles.length - 1);
+    showVoiceToast('📸 Photo added!');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
 }
 
 
