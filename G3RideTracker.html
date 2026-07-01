@@ -990,7 +990,7 @@ function handleEditMedia(input) {
    MAPS
 ══════════════════════════════════════════════════════ */
 function initLiveMap() {
-  if (!window.google) {
+  if (!window.google || !window.google.maps) {
     const key = getSetting('g3_maps_key');
     if (key) {
       showToast('Loading map…');
@@ -998,16 +998,24 @@ function initLiveMap() {
     }
     return;
   }
-  document.getElementById('map-placeholder').style.display = 'none';
-  // Default to SE Qld — will re-centre when first GPS point arrives
-  map = new google.maps.Map(document.getElementById('map'), {
-    center:{lat:-27.57,lng:152.95}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true
-  });
-  polyline = new google.maps.Polyline({ path:[], strokeColor:'#00c8ff', strokeOpacity:0.9, strokeWeight:4, map });
-  // Try to centre on actual position immediately
-  navigator.geolocation.getCurrentPosition(pos => {
-    if (map) map.setCenter({lat:pos.coords.latitude, lng:pos.coords.longitude});
-  }, () => {}, { timeout:5000, enableHighAccuracy:true });
+  try {
+    const mapEl = document.getElementById('map');
+    const placeholder = document.getElementById('map-placeholder');
+    if (!mapEl) return;
+    if (placeholder) placeholder.style.display = 'none';
+    map = new google.maps.Map(mapEl, {
+      center:{lat:-27.57,lng:152.95}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true
+    });
+    polyline = new google.maps.Polyline({
+      path:[], strokeColor:'#00c8ff', strokeOpacity:0.9, strokeWeight:4, map
+    });
+    // Centre on actual position
+    navigator.geolocation.getCurrentPosition(pos => {
+      if (map) map.setCenter({lat:pos.coords.latitude, lng:pos.coords.longitude});
+    }, () => {}, { timeout:5000, enableHighAccuracy:true });
+  } catch(e) {
+    console.error('Map init error:', e);
+  }
 }
 
 function renderDetailMap(ride) {
@@ -1314,14 +1322,17 @@ function weatherEmoji(code) {
 function loadMapsIfKey() {
   const key = getSetting('g3_maps_key');
   if (!key) return;
-  if (window.google) return; // already loaded
+  if (window.google) {
+    // Already loaded — just init the map if recording
+    if (isRecording) initLiveMap();
+    return;
+  }
   window.mapsReady = () => {
     console.log('Google Maps loaded successfully');
-    // If a ride is already in progress when maps loads, init the map now
     if (isRecording) initLiveMap();
   };
   const s = document.createElement('script');
-  s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=mapsReady&loading=async`;
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=mapsReady`;
   s.async = true;
   s.onerror = () => console.error('Maps script failed to load — check API key and restrictions');
   document.head.appendChild(s);
