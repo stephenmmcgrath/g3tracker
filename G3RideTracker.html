@@ -995,6 +995,12 @@ function initLiveMap() {
     if (key) {
       showToast('Loading map…');
       loadMapsIfKey();
+      // Retry after 3 seconds if Maps still not loaded
+      setTimeout(() => {
+        if (isRecording && window.google && window.google.maps && !map) initLiveMap();
+      }, 3000);
+    } else {
+      showToast('Add Maps API key in Settings for route map');
     }
     return;
   }
@@ -1003,8 +1009,15 @@ function initLiveMap() {
     const placeholder = document.getElementById('map-placeholder');
     if (!mapEl) return;
     if (placeholder) placeholder.style.display = 'none';
+    
+    // Clear any previous map instance
+    mapEl.innerHTML = '';
+    
     map = new google.maps.Map(mapEl, {
-      center:{lat:-27.57,lng:152.95}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true
+      center:{lat:-27.57,lng:152.95}, zoom:15, 
+      mapTypeId:'roadmap', 
+      disableDefaultUI:true,
+      gestureHandling:'greedy'
     });
     polyline = new google.maps.Polyline({
       path:[], strokeColor:'#00c8ff', strokeOpacity:0.9, strokeWeight:4, map
@@ -1013,8 +1026,11 @@ function initLiveMap() {
     navigator.geolocation.getCurrentPosition(pos => {
       if (map) map.setCenter({lat:pos.coords.latitude, lng:pos.coords.longitude});
     }, () => {}, { timeout:5000, enableHighAccuracy:true });
+    
+    console.log('Map initialised successfully');
   } catch(e) {
-    console.error('Map init error:', e);
+    console.error('Map init error:', e.message);
+    showToast('Map error — check API key in Settings');
   }
 }
 
@@ -1322,19 +1338,23 @@ function weatherEmoji(code) {
 function loadMapsIfKey() {
   const key = getSetting('g3_maps_key');
   if (!key) return;
-  if (window.google) {
-    // Already loaded — just init the map if recording
+  if (window.google && window.google.maps) {
     if (isRecording) initLiveMap();
     return;
   }
+  // Load Maps script
   window.mapsReady = () => {
-    console.log('Google Maps loaded successfully');
+    console.log('Google Maps ready');
     if (isRecording) initLiveMap();
   };
+  // Remove any existing Maps script first to avoid duplicates
+  const existing = document.querySelector('script[src*="maps.googleapis"]');
+  if (existing) existing.remove();
+  
   const s = document.createElement('script');
   s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=mapsReady`;
-  s.async = true;
-  s.onerror = () => console.error('Maps script failed to load — check API key and restrictions');
+  s.async = false; // Load synchronously so it's ready when needed
+  s.onerror = (e) => console.error('Maps failed:', e);
   document.head.appendChild(s);
 }
 function saveApiKey() {
