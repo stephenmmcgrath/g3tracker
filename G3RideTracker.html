@@ -311,22 +311,13 @@ canvas.ride-chart{width:100%!important;max-height:160px}
       </div>
       <div class="section">
         <div class="section-label">Photos &amp; videos</div>
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button id="voice-cam-rear" onclick="triggerCamera('environment')" style="flex:1;padding:10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;color:var(--text2);font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>📷 Photo
-          </button>
-          <button id="voice-cam-front" onclick="triggerCamera('user')" style="flex:1;padding:10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;color:var(--text2);font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M15 3h4v4"/></svg>🤳 Selfie
-          </button>
-        </div>
         <div class="media-strip" id="media-strip">
           <button class="add-media-btn" onclick="document.getElementById('media-input').click()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Gallery
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add
           </button>
         </div>
         <input type="file" id="media-input" accept="image/*,video/*" multiple onchange="handleMedia(this)">
         <input type="file" id="edit-media-input" accept="image/*,video/*" multiple onchange="handleEditMedia(this)">
-        <input type="file" id="voice-cam-input" accept="image/*" onchange="handleVoiceCamMedia(this)">
       </div>
     </div>
 
@@ -886,10 +877,18 @@ function enableVoice(silent) {
         if (!isRecording) { showVoiceToast('🎤 Starting…'); startRecording(); }
       } else if (t.includes('stop record') || t.includes('stop riding') || t.includes('save ride')) {
         if (isRecording) { showVoiceToast('🎤 Stopping…'); stopRecording(); }
-      } else if (t.includes('take selfie') || t.includes('take a selfie')) {
-        if (isRecording) { showVoiceToast('📸 Selfie camera…'); openVoiceCamera('user'); }
-      } else if (t.includes('take photo') || t.includes('take a photo') || t.includes('take picture')) {
-        if (isRecording) { showVoiceToast('📸 Camera…'); openVoiceCamera('environment'); }
+      } else if (t.includes('take selfie') || t.includes('take a selfie') || t.includes('take photo') || t.includes('take a photo') || t.includes('take picture')) {
+        if (isRecording) {
+          showVoiceToast('📸 Tap Add to take a photo');
+          document.getElementById('media-strip').scrollIntoView({ behavior: 'smooth' });
+          // Highlight the add button briefly
+          const addBtn = document.querySelector('#media-strip .add-media-btn');
+          if (addBtn) {
+            addBtn.style.borderColor = 'var(--accent)';
+            addBtn.style.color = 'var(--accent)';
+            setTimeout(() => { addBtn.style.borderColor = ''; addBtn.style.color = ''; }, 2000);
+          }
+        }
       }
     };
     recognition.onerror = e => { if (e.error !== 'no-speech') console.warn('Voice error',e.error); };
