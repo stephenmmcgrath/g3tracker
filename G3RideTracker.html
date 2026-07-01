@@ -566,7 +566,7 @@ let isRecording = false, watchId = null, timerInterval = null;
 let elapsedSecs = 0, currentRoutePoints = [], currentMaxSpeed = 0;
 let currentDist = 0, lastPos = null, mediaFiles = [];
 let currentMaxGforce = 0, elevations = [], currentWeather = null;
-let wakeLock = null;
+let noSleepVideo = null;
 let gforceSamples = []; // for smoothing
 let map = null, polyline = null, detailMap = null, currentDetailId = null;
 let voiceEnabled = false, recognition = null;
@@ -747,15 +747,8 @@ async function startRecording() {
     } catch(e) { currentWeather = null; document.getElementById('stat-weather-live').textContent = '—'; }
   }, () => { currentWeather = null; }, { timeout: 8000 });
 
-  // Wake Lock — keep screen on during recording
-  if ('wakeLock' in navigator) {
-    try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => { wakeLock = null; });
-    } catch(e) { console.warn('Wake lock failed:', e); }
-  } else {
-    showToast('⚠️ Keep screen on during ride for accurate GPS');
-  }
+  // Keep screen on using video trick (works across all Android browsers)
+  startNoSleep();
 
   initLiveMap();
 }
@@ -804,7 +797,7 @@ function onMotion(e) {
   if (gforceSamples.length > 10) gforceSamples.shift();
   const smoothed = gforceSamples.reduce((s,v) => s+v, 0) / gforceSamples.length;
   // Only count as G-force event if sustained (smoothed > 1.5g threshold)
-  if (smoothed > 1.5 && smoothed > currentMaxGforce) {
+  if (smoothed > 2.5 && smoothed > currentMaxGforce) {
     currentMaxGforce = smoothed;
     document.getElementById('stat-gforce').textContent = smoothed.toFixed(2);
   }
@@ -816,8 +809,8 @@ async function stopRecording() {
   clearInterval(timerInterval);
   if (watchId != null) navigator.geolocation.clearWatch(watchId);
   window.removeEventListener('devicemotion', onMotion);
-  // Release wake lock
-  if (wakeLock) { try { await wakeLock.release(); } catch(e) {} wakeLock = null; }
+  // Stop no-sleep
+  stopNoSleep();
 
   document.getElementById('record-btn').classList.remove('recording');
   document.getElementById('btn-icon-play').style.display = '';
@@ -1011,20 +1004,23 @@ function handleEditMedia(input) {
 ══════════════════════════════════════════════════════ */
 function initLiveMap() {
   if (!window.google) {
-    // Maps not loaded yet — wait for it
     const key = getSetting('g3_maps_key');
     if (key) {
       showToast('Loading map…');
-      // loadMapsIfKey will call initLiveMap when ready via mapsReady callback
       loadMapsIfKey();
     }
     return;
   }
   document.getElementById('map-placeholder').style.display = 'none';
+  // Default to SE Qld — will re-centre when first GPS point arrives
   map = new google.maps.Map(document.getElementById('map'), {
-    center:{lat:-27.5,lng:153.0}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true
+    center:{lat:-27.57,lng:152.95}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true
   });
   polyline = new google.maps.Polyline({ path:[], strokeColor:'#00c8ff', strokeOpacity:0.9, strokeWeight:4, map });
+  // Try to centre on actual position immediately
+  navigator.geolocation.getCurrentPosition(pos => {
+    if (map) map.setCenter({lat:pos.coords.latitude, lng:pos.coords.longitude});
+  }, () => {}, { timeout:5000, enableHighAccuracy:true });
 }
 
 function renderDetailMap(ride) {
@@ -1920,6 +1916,49 @@ async function autoPostToStrava(ride) {
     console.error('Auto-post to Strava failed', e);
     showToast('Strava post failed — try manually from ride detail');
   }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   NO SLEEP (keep screen on during recording)
+══════════════════════════════════════════════════════ */
+function startNoSleep() {
+  // Try Wake Lock API first
+  if ('wakeLock' in navigator) {
+    navigator.wakeLock.request('screen').then(lock => {
+      noSleepVideo = lock; // reuse var
+      lock.addEventListener('release', () => { noSleepVideo = null; });
+    }).catch(() => startNoSleepVideo());
+  } else {
+    startNoSleepVideo();
+  }
+}
+
+function startNoSleepVideo() {
+  // Fallback: play a tiny silent looping video — tricks Android into keeping screen on
+  try {
+    const v = document.createElement('video');
+    v.setAttribute('playsinline', '');
+    v.setAttribute('muted', '');
+    v.setAttribute('loop', '');
+    v.style.cssText = 'position:fixed;top:-1px;left:-1px;width:1px;height:1px;opacity:0.01;z-index:-1';
+    // Tiny 1x1 transparent mp4 as data URI
+    v.src = 'data:video/mp4;base64,AAAAIGZ0eXBtcDQyAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAs1tZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5YTYxIC0gSC4yNjQvTVBFRy00IEFWQ2NvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDE0IC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MSByZWY9MyBkZWJsb2NrPTE6MDowIGFuYWx5c2U9MHgzOjB4MTEzIG1lPWhleCBzdWJtZT03IHBzeT0xIHBzeV9yZD0xLjAwOjAuMDAgbWl4ZWRfcmVmPTEgbWVfcmFuZ2U9MTYgY2hyb21hX21lPTEgdHJlbGxpcz0xIDh4OGRjdD0xIGNxbT0wIGRlYWR6b25lPTIxLDExIGZhc3RfcHNraXA9MSBjaHJvbWFfcXBfb2Zmc2V0PS0yIHRocmVhZHM9NjAgbG9va2FoZWFkX3RocmVhZHM9MTAgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MyBiX3B5cmFtaWQ9MiByZWZzPTMgYmFkYXB0PTEgYl9iaWFzPTAgZGlyZWN0PTEgd2VpZ2h0Yj0xIG9wZW5fZ29wPTAgd2VpZ2h0cD0yIGtleWludD0yNTAga2V5aW50X21pbj0yNSBzY2VuZWN1dD00MCBpbnRyYV9yZWZyZXNoPTAgcmNfbG9va2FoZWFkPTQwIHJjPWNyZiBtYnRyZWU9MSBjcmY9MjMuMCBxY29tcD0wLjYwIHFwbWluPTAgcXBtYXg9NjkgcXBzdGVwPTQgaXBfcmF0aW89MS40MCBhcT0xOjEuMDAAgAAAAFZliIQL8mKAAKvMnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycAAAAEGaIRgQn/+1oAAAAwAAAwAAMvAAAAQZohGBCf/7WgAAAwAAAwAAMvA==';
+    document.body.appendChild(v);
+    v.play().catch(() => {});
+    noSleepVideo = v;
+  } catch(e) { console.warn('NoSleep video failed', e); }
+}
+
+function stopNoSleep() {
+  if (!noSleepVideo) return;
+  if (noSleepVideo.release) {
+    noSleepVideo.release().catch(() => {});
+  } else if (noSleepVideo.pause) {
+    noSleepVideo.pause();
+    noSleepVideo.remove();
+  }
+  noSleepVideo = null;
 }
 
 init();
