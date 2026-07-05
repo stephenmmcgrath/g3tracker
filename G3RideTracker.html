@@ -679,8 +679,10 @@ async function startRecording() {
   if (!navigator.geolocation) { alert('Geolocation not available.'); return; }
   isRecording = true;
   currentRoutePoints = []; currentMaxSpeed = 0; currentDist = 0;
+  window._speedBuffer = []; window._movingSecs = 0;
   lastPos = null; elapsedSecs = 0; mediaFiles = [];
   currentMaxGforce = 0; elevations = []; currentWeather = null;
+  gforceSamples = [];
 
   document.getElementById('ride-notes').value = '';
   document.getElementById('record-btn').classList.add('recording');
@@ -755,23 +757,49 @@ function onPosition(pos) {
   if (lastPos && lastPos.ts) {
     const dist = haversine(lastPos.lat, lastPos.lng, lat, lng);
     const timeDiff = (now - lastPos.ts) / 1000; // seconds
-    if (dist > 1 && timeDiff > 0) { // filter jitter < 1m
-      speedKmh = Math.max(0, (dist / timeDiff) * 3.6); // m/s to km/h
-      // Cap at 80km/h to filter GPS glitches
-      if (speedKmh > 80) speedKmh = 0;
+    if (dist > 1 && timeDiff > 0) {
+      const rawSpeed = Math.max(0, (dist / timeDiff) * 3.6);
+      // Ignore anything over 60km/h as a GPS glitch
+      speedKmh = rawSpeed > 60 ? 0 : rawSpeed;
     }
-    if (dist > 2) currentDist += dist; // only count movement > 2m
+    if (dist > 2) currentDist += dist;
   }
 
   currentRoutePoints.push({ lat, lng, speedKmh, altitude:altitude||0, ts:now });
   lastPos = { lat, lng, ts: now };
 
-  if (speedKmh > currentMaxSpeed) currentMaxSpeed = speedKmh;
+  // Max speed: only update if 3 consecutive readings all agree speed is higher
+  // Store last 3 speed readings for consensus check
+  if (!window._speedBuffer) window._speedBuffer = [];
+  window._speedBuffer.push(speedKmh);
+  if (window._speedBuffer.length > 3) window._speedBuffer.shift();
+  if (window._speedBuffer.length === 3) {
+    const minOfLast3 = Math.min(...window._speedBuffer);
+    if (minOfLast3 > currentMaxSpeed && minOfLast3 > 0) {
+      currentMaxSpeed = minOfLast3; // use minimum of 3 to be conservative
+    }
+  }
+
+  // Moving time average: only count seconds where speed is between 2 and 60 km/h
+  if (speedKmh >= 2 && speedKmh <= 60) {
+    if (!window._movingSecs) window._movingSecs = 0;
+    window._movingSecs += (lastPos && lastPos.ts) ? Math.min((now - (lastPos.prevTs||now)) / 1000, 5) : 0;
+  }
+
   if (altitude != null) elevations.push(altitude);
 
+  // Display current speed
   document.getElementById('stat-speed').textContent = speedKmh.toFixed(1);
   document.getElementById('stat-max').textContent = currentMaxSpeed.toFixed(1);
   document.getElementById('stat-dist').textContent = (currentDist/1000).toFixed(2);
+
+  // Moving average speed
+  const movingSecs = window._movingSecs || 0;
+  if (movingSecs > 0 && currentDist > 0) {
+    const movingAvg = (currentDist / 1000) / (movingSecs / 3600);
+    if (movingAvg <= 60) document.getElementById('stat-avg').textContent = movingAvg.toFixed(1);
+  }
+
   if (elevations.length) {
     document.getElementById('stat-elev-max').textContent = Math.max(...elevations).toFixed(0);
     document.getElementById('stat-elev-min').textContent = Math.min(...elevations).toFixed(0);
@@ -783,12 +811,17 @@ function onMotion(e) {
   const a = e.accelerationIncludingGravity;
   if (!a) return;
   const raw = Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2)/9.81;
-  // Smooth with rolling average of last 10 samples to filter footsteps/bumps
+
+  // Rolling average of last 15 samples (~300ms at 50Hz)
   gforceSamples.push(raw);
-  if (gforceSamples.length > 10) gforceSamples.shift();
+  if (gforceSamples.length > 15) gforceSamples.shift();
   const smoothed = gforceSamples.reduce((s,v) => s+v, 0) / gforceSamples.length;
-  // Only count as G-force event if sustained (smoothed > 1.5g threshold)
-  if (smoothed > 2.5 && smoothed > currentMaxGforce) {
+
+  // Only count if ALL of the last 15 samples are above threshold (truly sustained)
+  const minSustained = Math.min(...gforceSamples);
+  const threshold = 1.8; // 1.8g — catches real braking/bumps, filters vibration
+
+  if (gforceSamples.length === 15 && minSustained > threshold && smoothed > currentMaxGforce) {
     currentMaxGforce = smoothed;
     document.getElementById('stat-gforce').textContent = smoothed.toFixed(2);
   }
@@ -809,7 +842,8 @@ async function stopRecording() {
   document.getElementById('rec-badge').classList.remove('visible');
 
   const now = Date.now();
-  const avgKmh = elapsedSecs > 0 ? (currentDist/1000)/(elapsedSecs/3600) : 0;
+  const movingSecs = window._movingSecs || elapsedSecs;
+  const avgKmh = movingSecs > 0 ? (currentDist/1000)/(movingSecs/3600) : 0;
   const ride = {
     id: now,
     startTime: now - elapsedSecs*1000,
@@ -817,6 +851,7 @@ async function stopRecording() {
     durationSecs: elapsedSecs,
     distanceM: currentDist,
     maxSpeedKmh: currentMaxSpeed,
+    movingTimeSecs: window._movingSecs || elapsedSecs,
     avgSpeedKmh: avgKmh,
     maxGforce: currentMaxGforce,
     elevMax: elevations.length ? Math.max(...elevations) : null,
