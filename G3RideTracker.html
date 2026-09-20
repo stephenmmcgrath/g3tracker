@@ -190,6 +190,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 .vehicle-add-row{display:flex;gap:8px}
 .vehicle-add-input{flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;padding:9px 12px;outline:none}
 .vehicle-add-btn{padding:9px 16px;background:var(--accent);color:#000;border-radius:var(--r);font-size:13px;font-weight:600}
+.specs-lbl{font-size:10px;color:var(--text2);display:block;margin-bottom:2px;margin-left:2px;text-transform:uppercase;letter-spacing:0.5px}
 
 /* FIREBASE SYNC */
 .drive-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-top:8px;padding:8px 10px;background:var(--bg4);border-radius:8px}
@@ -387,6 +388,27 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <div id="g-balance-alert" style="margin-top:12px; padding:10px; background:rgba(243,156,18,0.1); color:var(--warn); border-radius:8px; font-size:12px; display:none;">
  <strong>⚠️ Top-End Balance Due:</strong> Charge to 100% and leave on charger for <span id="g-dwell-time"></span> to balance cells. Ride within 24h to drop below 90%.
  </div>
+ </div>
+
+ <!-- Vehicle Specifications -->
+ <div class="settings-card">
+ <h3>📊 Vehicle Specifications</h3>
+ <p style="margin-bottom:8px;">Autopopulates for top 65 models. Edit to save custom overrides.</p>
+ <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+ <div><label class="specs-lbl">Type</label><input type="text" id="spec-type" class="settings-input" placeholder="e.g. Scooter"></div>
+ <div><label class="specs-lbl">Weight</label><input type="text" id="spec-wt" class="settings-input" placeholder="e.g. 24.6kg"></div>
+ <div><label class="specs-lbl">Motor</label><input type="text" id="spec-motor" class="settings-input" placeholder="e.g. 850W"></div>
+ <div><label class="specs-lbl">Voltage</label><input type="text" id="spec-volt" class="settings-input" placeholder="e.g. 48V"></div>
+ <div><label class="specs-lbl">Capacity</label><input type="text" id="spec-cap" class="settings-input" placeholder="e.g. 597Wh"></div>
+ <div><label class="specs-lbl">Cells</label><input type="text" id="spec-cells" class="settings-input" placeholder="e.g. 18650 EVE"></div>
+ <div style="grid-column: 1 / -1;"><label class="specs-lbl">BMS System</label><input type="text" id="spec-bms" class="settings-input" placeholder="e.g. Smart Active"></div>
+ <div style="grid-column: 1 / -1;"><label class="specs-lbl">Tyres</label><input type="text" id="spec-tyre" class="settings-input" placeholder="e.g. 11-inch Tubeless"></div>
+ <div><label class="specs-lbl">Frame</label><input type="text" id="spec-frame" class="settings-input" placeholder="e.g. Aerospace Alloy"></div>
+ <div><label class="specs-lbl">Website</label><input type="text" id="spec-url" class="settings-input" placeholder="e.g. segway.com"></div>
+ <div style="grid-column: 1 / -1;"><label class="specs-lbl">Unfolded (L x W x H)</label><input type="text" id="spec-unf" class="settings-input" placeholder="e.g. 120 x 47 x 122 cm"></div>
+ <div style="grid-column: 1 / -1;"><label class="specs-lbl">Folded (L x W x H)</label><input type="text" id="spec-fold" class="settings-input" placeholder="e.g. 120 x 47 x 53 cm"></div>
+ </div>
+ <button class="settings-btn" onclick="saveCustomSpecs()" style="margin-top:12px; width:100%; background:var(--bg4); color:var(--text); border:1px solid var(--border);">💾 Save / Update Specs</button>
  </div>
 
  <!-- Battery Health Trends -->
@@ -587,37 +609,91 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 </div>
 
 <div class="voice-cmd-toast" id="voice-toast"></div>
-
 <script>
 /* ══════════════════════════════════════════════════════
- GARAGE & MAINTENANCE STATE
+ GARAGE & MAINTENANCE STATE (WITH 65-VEHICLE DB)
 ══════════════════════════════════════════════════════ */
-const VEHICLE_SPECS = {
- "Segway Max G3": {
- bmsType: "Smart Active BMS (App Integrated)",
- ceiling: 80, floor: 35,
- balanceCycles: 15, balanceMonths: 3,
- dwellHours: "1-2 hours",
- factoryPsiFront: 42, factoryPsiRear: 42
- },
- "Pure Advance Flex": {
- bmsType: "Top-End Passive Balancing BMS",
- ceiling: 90, floor: 25,
- balanceCycles: 10, balanceMonths: 2,
- dwellHours: "2-3 hours",
- factoryPsiFront: 36, factoryPsiRear: 36
- },
- "Samebike LO26": {
- bmsType: "Daly Smart Active BMS (13S3P, 48V)",
- ceiling: 80, floor: 30,
- balanceCycles: 10, balanceMonths: 3,
- dwellHours: "2-4 hours",
- factoryPsiFront: 45, factoryPsiRear: 45
- },
- "XT3 Pro": { bmsType: "Standard BMS", ceiling: 80, floor: 20, balanceCycles: 15, balanceMonths: 3, dwellHours: "2 hours", factoryPsiFront: 40, factoryPsiRear: 40 },
- "Escape": { bmsType: "Standard BMS", ceiling: 80, floor: 20, balanceCycles: 15, balanceMonths: 3, dwellHours: "2 hours", factoryPsiFront: 45, factoryPsiRear: 45 },
- "Escape Ultra Suspension": { bmsType: "Standard BMS", ceiling: 80, floor: 20, balanceCycles: 15, balanceMonths: 3, dwellHours: "2 hours", factoryPsiFront: 45, factoryPsiRear: 45 }
+const DEFAULT_SPECS = {
+ // USER'S EXISTING VEHICLES
+ "Segway Max G3": { type:"Scooter", wt:"24.6kg", motor:"900W Max", volt:"48V", cap:"597Wh", cells:"21700", bms:"Smart Active BMS", tyre:"10-inch Tubeless Self-healing", frame:"Carbon Steel", url:"segway.com", unf:"120 x 47 x 122 cm", fold:"120 x 47 x 53 cm", factoryPsiFront:42, factoryPsiRear:42, balanceCycles:15, balanceMonths:3, dwellHours:"1-2 hours" },
+ "Pure Advance Flex": { type:"Scooter", wt:"16.2kg", motor:"710W Peak", volt:"36V", cap:"345Wh", cells:"18650", bms:"Top-End Passive", tyre:"10-inch Tubeless", frame:"Alloy", url:"pureelectric.com", unf:"104 x 60 x 108 cm", fold:"62 x 30 x 57 cm", factoryPsiFront:36, factoryPsiRear:36, balanceCycles:10, balanceMonths:2, dwellHours:"2-3 hours" },
+ "Samebike LO26": { type:"E-Bike", wt:"25.5kg", motor:"500W", volt:"48V", cap:"499Wh", cells:"18650", bms:"Daly Smart Active BMS", tyre:"26x1.95-inch MTB", frame:"Aluminum Alloy", url:"samebike.com", unf:"177 x 65 x 104 cm", fold:"103 x 37 x 104 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:10, balanceMonths:3, dwellHours:"2-4 hours" },
+ "XT3 Pro": { type:"Scooter", wt:"28kg", motor:"1000W", volt:"48V", cap:"720Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Pneumatic", frame:"Alloy", url:"#", unf:"120 x 60 x 120 cm", fold:"120 x 25 x 50 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours" },
+ "Escape": { type:"Scooter", wt:"20kg", motor:"500W", volt:"48V", cap:"600Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch", frame:"Alloy", url:"#", unf:"115 x 50 x 115 cm", fold:"115 x 50 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours" },
+ "Escape Ultra Suspension": { type:"Scooter", wt:"22kg", motor:"600W", volt:"48V", cap:"650Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch", frame:"Alloy", url:"#", unf:"115 x 50 x 115 cm", fold:"115 x 50 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours" },
+ 
+ // TOP 50 SCOOTERS
+ "Segway Max G30P": { type:"Scooter", wt:"19.1kg", motor:"350W", volt:"36V", cap:"551Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"segway.com", unf:"116 x 47 x 120 cm", fold:"116 x 47 x 53 cm" },
+ "Ninebot Max G2": { type:"Scooter", wt:"24.3kg", motor:"450W", volt:"36V", cap:"551Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"segway.com", unf:"121 x 57 x 126 cm", fold:"121 x 57 x 60 cm" },
+ "Segway GT2": { type:"Scooter", wt:"52.6kg", motor:"3000W Dual", volt:"50.4V", cap:"1512Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"segway.com", unf:"148 x 65 x 130 cm", fold:"148 x 65 x 86 cm" },
+ "Segway GT1": { type:"Scooter", wt:"47.6kg", motor:"1400W", volt:"50.4V", cap:"1008Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"segway.com", unf:"148 x 65 x 130 cm", fold:"148 x 65 x 86 cm" },
+ "Apollo City Pro 2023": { type:"Scooter", wt:"29.5kg", motor:"500W Dual", volt:"48V", cap:"864Wh", cells:"21700", bms:"Apollo Smart", tyre:"10-inch Tubeless", frame:"Alloy", url:"apolloscooters.co", unf:"119 x 60 x 124 cm", fold:"119 x 60 x 53 cm" },
+ "Apollo Phantom V3": { type:"Scooter", wt:"35kg", motor:"1200W Dual", volt:"52V", cap:"1216Wh", cells:"18650", bms:"Apollo Smart", tyre:"10-inch Tube", frame:"Alloy", url:"apolloscooters.co", unf:"129 x 68 x 124 cm", fold:"129 x 68 x 53 cm" },
+ "Apollo Pro": { type:"Scooter", wt:"42.5kg", motor:"3000W Dual", volt:"52V", cap:"1560Wh", cells:"21700 Samsung", bms:"Apollo Smart", tyre:"12-inch Tubeless", frame:"Aircraft Alloy", url:"apolloscooters.co", unf:"132 x 78 x 132 cm", fold:"132 x 78 x 60 cm" },
+ "Nami Burn-E 2 Max": { type:"Scooter", wt:"47kg", motor:"1500W Dual", volt:"72V", cap:"2520Wh", cells:"Panasonic/LG", bms:"Smart Active", tyre:"11-inch Tubeless", frame:"Carbon/Alloy", url:"namiscooters.com", unf:"134 x 70 x 134 cm", fold:"134 x 70 x 63 cm" },
+ "Nami Klima": { type:"Scooter", wt:"36kg", motor:"1000W Dual", volt:"60V", cap:"1500Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"namiscooters.com", unf:"128 x 68 x 122 cm", fold:"128 x 68 x 53 cm" },
+ "Kaabo Mantis King GT": { type:"Scooter", wt:"33kg", motor:"1100W Dual", volt:"60V", cap:"1440Wh", cells:"Samsung 21700", bms:"Smart BMS", tyre:"10-inch Tube", frame:"Alloy", url:"kaabo.com", unf:"127 x 66 x 125 cm", fold:"127 x 66 x 56 cm" },
+ "Kaabo Wolf King GTR": { type:"Scooter", wt:"62kg", motor:"2000W Dual", volt:"72V", cap:"2520Wh", cells:"LG 50S 21700", bms:"Removable Smart", tyre:"12-inch Tubeless", frame:"Alloy", url:"kaabo.com", unf:"162 x 74 x 130 cm", fold:"162 x 74 x 50 cm" },
+ "Kaabo Wolf Warrior X": { type:"Scooter", wt:"33kg", motor:"1100W Dual", volt:"60V", cap:"1260Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"kaabo.com", unf:"121 x 65 x 121 cm", fold:"121 x 65 x 57 cm" },
+ "Vsett 10+": { type:"Scooter", wt:"35.5kg", motor:"1400W Dual", volt:"60V", cap:"1680Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Aviation Alloy", url:"vsett.com", unf:"129 x 68 x 127 cm", fold:"129 x 68 x 58 cm" },
+ "Vsett 9+": { type:"Scooter", wt:"25kg", motor:"650W Dual", volt:"48V", cap:"1008Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"vsett.com", unf:"122 x 63 x 121 cm", fold:"122 x 63 x 48 cm" },
+ "Dualtron Thunder 2": { type:"Scooter", wt:"47kg", motor:"5040W Peak Dual", volt:"72V", cap:"2880Wh", cells:"LG 21700", bms:"Standard BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"minimotors.com", unf:"120 x 60 x 121 cm", fold:"120 x 60 x 51 cm" },
+ "Dualtron Victor": { type:"Scooter", wt:"32.9kg", motor:"2000W Dual", volt:"60V", cap:"1440Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"111 x 60 x 122 cm", fold:"111 x 60 x 56 cm" },
+ "Dualtron Mini": { type:"Scooter", wt:"22kg", motor:"1450W Peak", volt:"52V", cap:"910Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"114 x 52 x 106 cm", fold:"114 x 52 x 40 cm" },
+ "Inokim OXO": { type:"Scooter", wt:"33.5kg", motor:"1000W Dual", volt:"60V", cap:"1536Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Aviation Alloy", url:"inokim.com", unf:"122 x 58 x 127 cm", fold:"122 x 58 x 53 cm" },
+ "Inokim Light 2": { type:"Scooter", wt:"13.7kg", motor:"350W", volt:"36V", cap:"374Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"inokim.com", unf:"105 x 46 x 108 cm", fold:"95 x 36 x 17 cm" },
+ "Xiaomi Mi Pro 2": { type:"Scooter", wt:"14.2kg", motor:"300W", volt:"36V", cap:"474Wh", cells:"18650", bms:"Smart BMS", tyre:"8.5-inch Tube", frame:"Aerospace Alloy", url:"mi.com", unf:"113 x 43 x 118 cm", fold:"113 x 43 x 49 cm" },
+ "Xiaomi 4 Pro": { type:"Scooter", wt:"16.5kg", motor:"350W", volt:"36V", cap:"446Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"mi.com", unf:"119 x 48 x 124 cm", fold:"119 x 48 x 51 cm" },
+ "Fluid Mosquito": { type:"Scooter", wt:"13kg", motor:"500W", volt:"48V", cap:"460Wh", cells:"18650", bms:"Standard BMS", tyre:"8-inch Solid", frame:"Alloy", url:"fluidfreeride.com", unf:"106 x 43 x 114 cm", fold:"106 x 14 x 33 cm" },
+ "Fluid CityRider": { type:"Scooter", wt:"12.9kg", motor:"350W", volt:"36V", cap:"360Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Solid", frame:"Alloy", url:"fluidfreeride.com", unf:"109 x 43 x 114 cm", fold:"109 x 43 x 40 cm" },
+ "Varla Eagle One": { type:"Scooter", wt:"30.8kg", motor:"1000W Dual", volt:"52V", cap:"946Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"varlascooter.com", unf:"127 x 66 x 127 cm", fold:"127 x 66 x 50 cm" },
+ "Varla Pegasus": { type:"Scooter", wt:"30kg", motor:"500W Dual", volt:"48V", cap:"750Wh", cells:"18650", bms:"Standard BMS", tyre:"8-inch Solid", frame:"Alloy", url:"varlascooter.com", unf:"119 x 59 x 119 cm", fold:"119 x 59 x 48 cm" },
+ "EMOVE Cruiser S": { type:"Scooter", wt:"23.5kg", motor:"1000W", volt:"52V", cap:"1560Wh", cells:"LG 21700", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"voromotors.com", unf:"121 x 57 x 118 cm", fold:"121 x 25 x 40 cm" },
+ "EMOVE Roadrunner": { type:"Scooter", wt:"24.9kg", motor:"350W F / 500W R", volt:"48V", cap:"1252Wh", cells:"18650", bms:"Removable BMS", tyre:"14-inch Tube", frame:"Alloy", url:"voromotors.com", unf:"129 x 63 x 96 cm", fold:"Non-folding" },
+ "Unagi Model One Voyager": { type:"Scooter", wt:"13.4kg", motor:"250W Dual", volt:"36V", cap:"360Wh", cells:"18650", bms:"Smart BMS", tyre:"7.5-inch Solid", frame:"Carbon Fiber/Magnesium", url:"unagiscooters.com", unf:"96 x 42 x 110 cm", fold:"96 x 42 x 38 cm" },
+ "Hiboy S2 Pro": { type:"Scooter", wt:"16.5kg", motor:"500W", volt:"36V", cap:"410Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Solid", frame:"Alloy", url:"hiboy.com", unf:"115 x 42 x 119 cm", fold:"115 x 42 x 49 cm" },
+ "Hiboy Titan Pro": { type:"Scooter", wt:"28.1kg", motor:"1200W Dual", volt:"48V", cap:"840Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"hiboy.com", unf:"120 x 60 x 119 cm", fold:"120 x 60 x 50 cm" },
+ "Gotrax G4": { type:"Scooter", wt:"16.3kg", motor:"350W", volt:"36V", cap:"374Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"gotrax.com", unf:"113 x 43 x 121 cm", fold:"113 x 43 x 48 cm" },
+ "Gotrax GX2": { type:"Scooter", wt:"34.5kg", motor:"800W Dual", volt:"48V", cap:"960Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"gotrax.com", unf:"127 x 66 x 127 cm", fold:"127 x 66 x 53 cm" },
+ "Turboant X7 Pro": { type:"Scooter", wt:"15kg", motor:"350W", volt:"36V", cap:"360Wh", cells:"Removable 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"turboant.com", unf:"108 x 42 x 118 cm", fold:"108 x 42 x 46 cm" },
+ "InMotion RS": { type:"Scooter", wt:"58kg", motor:"2000W Dual", volt:"72V", cap:"2880Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Alloy", url:"inmotionworld.com", unf:"147 x 71 x 134 cm", fold:"147 x 71 x 68 cm" },
+ "InMotion Climber": { type:"Scooter", wt:"20.8kg", motor:"450W Dual", volt:"36V", cap:"533Wh", cells:"18650", bms:"Smart BMS", tyre:"8-inch Tube", frame:"Alloy", url:"inmotionworld.com", unf:"116 x 51 x 119 cm", fold:"116 x 51 x 54 cm" },
+ "Mukuta 10 Plus": { type:"Scooter", wt:"36kg", motor:"1400W Dual", volt:"60V", cap:"1536Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"mukutariding.com", unf:"129 x 68 x 127 cm", fold:"129 x 68 x 55 cm" },
+ "Teverun Fighter Supreme": { type:"Scooter", wt:"45kg", motor:"2000W Dual", volt:"72V", cap:"2520Wh", cells:"LG 21700", bms:"Smart Active BMS", tyre:"11-inch Tubeless", frame:"Alloy/Steel", url:"teverun.com", unf:"131 x 64 x 132 cm", fold:"131 x 32 x 57 cm" },
+ "Teverun Blade Mini Pro": { type:"Scooter", wt:"29kg", motor:"500W Dual", volt:"48V", cap:"748Wh", cells:"18650", bms:"Smart BMS", tyre:"9-inch Tube", frame:"Alloy", url:"teverun.com", unf:"118 x 60 x 121 cm", fold:"118 x 60 x 53 cm" },
+ "YUME X11": { type:"Scooter", wt:"53kg", motor:"3000W Dual", volt:"60V", cap:"2100Wh", cells:"18650 Panasonic", bms:"Standard BMS", tyre:"11-inch Off-road", frame:"Alloy", url:"yumeway.com", unf:"139 x 68 x 139 cm", fold:"139 x 68 x 60 cm" },
+ "RoadRunner RS5+": { type:"Scooter", wt:"40kg", motor:"1400W Dual", volt:"52V", cap:"1456Wh", cells:"Removable LG 21700", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"roadrunnerscooters.com", unf:"127 x 68 x 132 cm", fold:"127 x 68 x 55 cm" },
+ "MiniMotors Speedway Leger": { type:"Scooter", wt:"20.6kg", motor:"500W", volt:"48V", cap:"748Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"110 x 53 x 117 cm", fold:"110 x 53 x 38 cm" },
+ "Weped SST": { type:"Scooter", wt:"52kg", motor:"5000W Peak Dual", volt:"72V", cap:"3240Wh", cells:"Samsung SDI 21700", bms:"Smart BMS", tyre:"11-inch Tubeless Ultra-Wide", frame:"Aviation Alloy", url:"weped.co.kr", unf:"134 x 63 x 121 cm", fold:"134 x 27 x 53 cm" },
+ "Solar P1 2.0": { type:"Scooter", wt:"27kg", motor:"1200W Dual", volt:"52V", cap:"936Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"solarscooters.com", unf:"121 x 63 x 121 cm", fold:"121 x 63 x 48 cm" },
+ "Solar FF Lite": { type:"Scooter", wt:"34kg", motor:"1600W Dual", volt:"60V", cap:"1080Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"solarscooters.com", unf:"129 x 65 x 129 cm", fold:"129 x 65 x 50 cm" },
+ "NIU KQi3 Max": { type:"Scooter", wt:"21.1kg", motor:"450W", volt:"48V", cap:"608Wh", cells:"18650", bms:"NIU Smart BMS", tyre:"9.5-inch Tubeless", frame:"Alloy", url:"niu.com", unf:"117 x 54 x 120 cm", fold:"117 x 54 x 50 cm" },
+ "NIU KQi2 Pro": { type:"Scooter", wt:"18.4kg", motor:"300W", volt:"48V", cap:"365Wh", cells:"18650", bms:"NIU Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"niu.com", unf:"112 x 52 x 120 cm", fold:"112 x 52 x 52 cm" },
+ "Joyor S10-S": { type:"Scooter", wt:"27.1kg", motor:"1000W Dual", volt:"60V", cap:"1080Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"joyorscooter.com", unf:"121 x 60 x 121 cm", fold:"121 x 60 x 53 cm" },
+ "Obarter X3": { type:"Scooter", wt:"42kg", motor:"1200W Dual", volt:"48V", cap:"1008Wh", cells:"18650", bms:"Standard BMS", tyre:"11-inch Off-road", frame:"Alloy", url:"#", unf:"134 x 70 x 134 cm", fold:"134 x 70 x 58 cm" },
+ "Kugoo Kirin G3": { type:"Scooter", wt:"25kg", motor:"1200W", volt:"52V", cap:"936Wh", cells:"18650", bms:"Standard BMS", tyre:"10.5-inch Tubeless", frame:"Alloy", url:"kugoo.com", unf:"120 x 66 x 129 cm", fold:"120 x 66 x 55 cm" },
+ "Superpedestrian Link": { type:"Scooter", wt:"27kg", motor:"500W", volt:"48V", cap:"980Wh", cells:"18650", bms:"Vehicle Intelligence System", tyre:"10-inch Solid", frame:"Alloy", url:"superpedestrian.com", unf:"119 x 50 x 119 cm", fold:"Non-folding" },
+ 
+ // TOP 15 E-BIKES
+ "Rad Power RadRunner 3 Plus": { type:"E-Bike", wt:"34.2kg", motor:"750W Rear Hub", volt:"48V", cap:"672Wh", cells:"18650", bms:"Smart BMS", tyre:"20x3.3-inch Kenda", frame:"6061 Alloy", url:"radpowerbikes.com", unf:"175 x 71 x 116 cm", fold:"Non-folding" },
+ "Aventon Level.2": { type:"E-Bike", wt:"28.1kg", motor:"500W Rear Hub", volt:"48V", cap:"672Wh", cells:"18650 LG", bms:"Smart BMS", tyre:"27.5x2.1-inch", frame:"Double-Butted Alloy", url:"aventon.com", unf:"180 x 68 x 106 cm", fold:"Non-folding" },
+ "Aventon Aventure.2": { type:"E-Bike", wt:"34.9kg", motor:"750W Rear Hub", volt:"48V", cap:"720Wh", cells:"18650 LG", bms:"Smart BMS", tyre:"26x4.0-inch Fat", frame:"Alloy", url:"aventon.com", unf:"190 x 71 x 114 cm", fold:"Non-folding" },
+ "Lectric XP 3.0": { type:"E-Bike", wt:"29kg", motor:"500W Rear Hub", volt:"48V", cap:"500Wh", cells:"18650", bms:"Standard BMS", tyre:"20x3.0-inch Fat", frame:"Alloy", url:"lectricebikes.com", unf:"167 x 63 x 119 cm", fold:"94 x 45 x 71 cm" },
+ "Ride1Up Core-5": { type:"E-Bike", wt:"22.2kg", motor:"750W Rear Hub", volt:"48V", cap:"500Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"27.5x2.2-inch Kenda", frame:"Alloy", url:"ride1up.com", unf:"177 x 68 x 101 cm", fold:"Non-folding" },
+ "Ride1Up LMT'D": { type:"E-Bike", wt:"24kg", motor:"750W Rear Hub", volt:"48V", cap:"672Wh", cells:"Samsung", bms:"Smart BMS", tyre:"27.5x2.4-inch Schwalbe", frame:"Alloy", url:"ride1up.com", unf:"177 x 68 x 101 cm", fold:"Non-folding" },
+ "Trek Allant+ 7": { type:"E-Bike", wt:"24.9kg", motor:"Bosch CX 250W Mid", volt:"36V", cap:"500Wh", cells:"Bosch PowerTube", bms:"Bosch Smart BMS", tyre:"27.5x2.4-inch", frame:"Hydroformed Alloy", url:"trekbikes.com", unf:"185 x 68 x 109 cm", fold:"Non-folding" },
+ "Specialized Turbo Vado 4.0": { type:"E-Bike", wt:"25.8kg", motor:"Specialized 2.0 250W Mid", volt:"36V", cap:"710Wh", cells:"Integrated", bms:"Specialized Smart", tyre:"27.5x2.35-inch Pathfinder", frame:"E5 Aluminum", url:"specialized.com", unf:"188 x 68 x 111 cm", fold:"Non-folding" },
+ "Juiced CrossCurrent X": { type:"E-Bike", wt:"29.4kg", motor:"750W Bafang Rear Hub", volt:"52V", cap:"998Wh", cells:"LG 18650", bms:"Smart BMS", tyre:"28x1.75-inch Schwalbe", frame:"Alloy", url:"juicedbikes.com", unf:"182 x 63 x 109 cm", fold:"Non-folding" },
+ "Juiced RipCurrent S": { type:"E-Bike", wt:"34.4kg", motor:"1000W Bafang Rear", volt:"52V", cap:"998Wh", cells:"LG 18650", bms:"Smart BMS", tyre:"26x4.0-inch Fat", frame:"Alloy", url:"juicedbikes.com", unf:"190 x 71 x 114 cm", fold:"Non-folding" },
+ "Himiway Cruiser": { type:"E-Bike", wt:"32.6kg", motor:"750W Rear Hub", volt:"48V", cap:"840Wh", cells:"Samsung/LG 18650", bms:"Standard BMS", tyre:"26x4.0-inch Kenda Fat", frame:"6061 Alloy", url:"himiwaybike.com", unf:"190 x 71 x 116 cm", fold:"Non-folding" },
+ "VanMoof S3": { type:"E-Bike", wt:"21kg", motor:"250W Front Hub", volt:"36V", cap:"504Wh", cells:"Integrated LG", bms:"VanMoof Smart", tyre:"28-inch Schwalbe", frame:"Coated Alloy", url:"vanmoof.com", unf:"177 x 66 x 106 cm", fold:"Non-folding" },
+ "Cowboy 4": { type:"E-Bike", wt:"18.9kg", motor:"250W Rear Hub", volt:"36V", cap:"360Wh", cells:"18650", bms:"Cowboy Smart", tyre:"27.5x1.8-inch", frame:"6061 Alloy", url:"cowboy.com", unf:"170 x 57 x 102 cm", fold:"Non-folding" },
+ "Gazelle Ultimate C8": { type:"E-Bike", wt:"24.4kg", motor:"Bosch Active Line Plus Mid", volt:"36V", cap:"500Wh", cells:"Bosch", bms:"Bosch Smart", tyre:"28x1.75-inch Schwalbe", frame:"Alloy", url:"gazellebikes.com", unf:"185 x 65 x 110 cm", fold:"Non-folding" },
+ "Engwe Engine Pro": { type:"E-Bike", wt:"31.7kg", motor:"750W Rear Hub", volt:"48V", cap:"768Wh", cells:"18650", bms:"Standard BMS", tyre:"20x4.0-inch Fat", frame:"Alloy", url:"engwe-bikes.com", unf:"170 x 68 x 124 cm", fold:"104 x 55 x 84 cm" }
 };
+
+let customSpecs = {}; // Holds user-overridden or newly created vehicles
+let VEHICLE_SPECS = {}; // Will hold merged DEFAULT + customSpecs
 
 let chargeLogs = [];
 let maintenanceLogs = [];
@@ -626,7 +702,7 @@ let activeChargeSession = null;
 let chartHealth = null;
 
 /* ══════════════════════════════════════════════════════
- INDEXEDDB
+ INDEXEDDB & STORAGE
 ══════════════════════════════════════════════════════ */
 let db = null;
 const DB_NAME = 'G3RideTracker', DB_VER = 2, STORE = 'rides';
@@ -651,19 +727,15 @@ const dbPut = ride => dbOp('readwrite', s => s.put(ride));
 const dbDelete = id => dbOp('readwrite', s => s.delete(id));
 const dbClear = () => dbOp('readwrite', s => s.clear());
 
-/* ══════════════════════════════════════════════════════
- LOCAL STORAGE PREFS
-══════════════════════════════════════════════════════ */
 const getSetting = k => { try { return localStorage.getItem(k); } catch(e) { return null; } };
 const setSetting = (k,v) => { try { localStorage.setItem(k,v); } catch(e) {} };
 const removeSetting = k => { try { localStorage.removeItem(k); } catch(e) {} };
 
 /* ══════════════════════════════════════════════════════
- STATE
+ APP STATE
 ══════════════════════════════════════════════════════ */
 let rides = [], vehicles = [], selectedVehicle = '';
 
-/* SUPABASE CONFIG */
 const SUPABASE_URL = 'https://rkfoehpnleolzoffcjou.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MQmKVyjXRRZka-HVh6BAow_0J8dTJ8b';
 const DEVICE_ID = (() => {
@@ -673,10 +745,9 @@ const DEVICE_ID = (() => {
 })();
 let supabaseClient = null;
 let syncEnabled = false;
-// Strava
+
 const STRAVA_CLIENT_ID = '261028';
 const STRAVA_CLIENT_SECRET = 'd69a13c1aa7b4bbe0bace7aafcab19d0bd7f993d';
-const STRAVA_REDIRECT = 'https://stephenmmcgrath.github.io/g3tracker/GRideTracker.html';
 let stravaToken = null;
 let stravaAutopost = false;
 
@@ -684,15 +755,11 @@ let isRecording = false, watchId = null, timerInterval = null;
 let elapsedSecs = 0, currentRoutePoints = [], currentMaxSpeed = 0;
 let currentDist = 0, lastPos = null, mediaFiles = [];
 let currentMaxGforce = 0, elevations = [], currentWeather = null;
-let noSleepVideo = null;
-let gforceSamples = []; // for smoothing
+let noSleepVideo = null, gforceSamples = [];
 let map = null, polyline = null, detailMap = null, currentDetailId = null;
-let voiceEnabled = false, recognition = null;
-let statsFilter = 'all'; // 'all' or vehicle name
-let editingNotes = false;
-
+let voiceEnabled = false, recognition = null, statsFilter = 'all', editingNotes = false;
 /* ══════════════════════════════════════════════════════
- INIT
+ INIT & SPECS LOGIC
 ══════════════════════════════════════════════════════ */
 async function init() {
  try {
@@ -703,6 +770,11 @@ async function init() {
  document.getElementById('db-banner').style.display = 'block';
  try { rides = JSON.parse(localStorage.getItem('g3_rides_fb')||'[]'); } catch(e2) { rides=[]; }
  }
+ 
+ // Load custom specs and merge with defaults
+ try { customSpecs = JSON.parse(getSetting('g3_custom_specs') || '{}'); } catch(e) { customSpecs = {}; }
+ mergeSpecs();
+
  // Load vehicles
  try { vehicles = JSON.parse(getSetting('g3_vehicles')||'[]'); } catch(e) { vehicles=[]; }
  if (!vehicles.length) { vehicles = ['Segway Max G3']; saveVehicles(); }
@@ -719,14 +791,19 @@ async function init() {
  renderHistory();
  renderStats();
 
- // Voice: restore if was enabled
  if (getSetting('g3_voice') === '1') enableVoice(true);
 
  loadGarageDataLocally();
- // Init Supabase sync if enabled
  initSupabase();
- // Init Strava
  initStrava();
+}
+
+function mergeSpecs() {
+ VEHICLE_SPECS = JSON.parse(JSON.stringify(DEFAULT_SPECS));
+ for (let v in customSpecs) {
+ if (!VEHICLE_SPECS[v]) VEHICLE_SPECS[v] = {};
+ Object.assign(VEHICLE_SPECS[v], customSpecs[v]);
+ }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -746,37 +823,27 @@ function onVehicleChange() {
  renderGarage();
 }
 
-function updateHeaderSub() {
- document.getElementById('header-sub').textContent = selectedVehicle || 'Ride Tracker';
-}
+function updateHeaderSub() { document.getElementById('header-sub').textContent = selectedVehicle || 'Ride Tracker'; }
 
 function addVehicle() {
  const inp = document.getElementById('vehicle-add-input');
  const name = inp.value.trim();
  if (!name) return;
- if (vehicles.includes(name)) { showToast('Vehicle already exists'); return; }
- vehicles.push(name);
- saveVehicles();
- inp.value = '';
- populateVehicleSelect();
- renderVehicleMgmt();
- showToast(`Added: ${name}`);
+ if (vehicles.includes(name)) return showToast('Vehicle already exists');
+ vehicles.push(name); saveVehicles(); inp.value = '';
+ populateVehicleSelect(); renderVehicleMgmt(); showToast(`Added: ${name}`);
 }
 
 function deleteVehicle(name) {
- if (vehicles.length <= 1) { showToast('Must have at least one vehicle'); return; }
+ if (vehicles.length <= 1) return showToast('Must have at least one vehicle');
  if (!confirm(`Delete "${name}"?`)) return;
  vehicles = vehicles.filter(v => v !== name);
  if (selectedVehicle === name) { selectedVehicle = vehicles[0]; setSetting('g3_last_vehicle', selectedVehicle); }
- saveVehicles();
- populateVehicleSelect();
- renderVehicleMgmt();
- updateHeaderSub();
+ saveVehicles(); populateVehicleSelect(); renderVehicleMgmt(); updateHeaderSub();
 }
 
 function renderVehicleMgmt() {
- const el = document.getElementById('vehicle-mgmt-list');
- el.innerHTML = vehicles.map((v,i) => `
+ document.getElementById('vehicle-mgmt-list').innerHTML = vehicles.map((v,i) => `
  <div class="vehicle-row">
  ${i===0?'<span class="vehicle-row-default">★ Default</span>':''}
  <div class="vehicle-row-name">${escHtml(v)}</div>
@@ -802,16 +869,55 @@ function showPage(name, btn) {
  GARAGE & CHARGING LOGIC
 ══════════════════════════════════════════════════════ */
 function renderGarage() {
- const specs = VEHICLE_SPECS[selectedVehicle] || VEHICLE_SPECS["Segway Max G3"];
+ const specs = VEHICLE_SPECS[selectedVehicle] || {};
  document.getElementById('g-vehicle-name').textContent = selectedVehicle;
- document.getElementById('g-bms-type').textContent = specs.bmsType;
- document.getElementById('g-factory-psi-f').textContent = specs.factoryPsiFront;
- document.getElementById('g-factory-psi-r').textContent = specs.factoryPsiRear;
+ document.getElementById('g-bms-type').textContent = specs.bms || "Unknown BMS";
+ document.getElementById('g-factory-psi-f').textContent = specs.factoryPsiFront || "--";
+ document.getElementById('g-factory-psi-r').textContent = specs.factoryPsiRear || "--";
  
+ populateSpecsUI(specs);
  evaluateBalanceRequirement(specs);
  evaluateMaintenance();
  evaluateBatteryHealth();
  evaluateRoutines();
+}
+
+function populateSpecsUI(specs) {
+ document.getElementById('spec-type').value = specs.type || '';
+ document.getElementById('spec-wt').value = specs.wt || '';
+ document.getElementById('spec-motor').value = specs.motor || '';
+ document.getElementById('spec-volt').value = specs.volt || '';
+ document.getElementById('spec-cap').value = specs.cap || '';
+ document.getElementById('spec-cells').value = specs.cells || '';
+ document.getElementById('spec-bms').value = specs.bms || '';
+ document.getElementById('spec-tyre').value = specs.tyre || '';
+ document.getElementById('spec-frame').value = specs.frame || '';
+ document.getElementById('spec-url').value = specs.url || '';
+ document.getElementById('spec-unf').value = specs.unf || '';
+ document.getElementById('spec-fold').value = specs.fold || '';
+}
+
+function saveCustomSpecs() {
+ if (!customSpecs[selectedVehicle]) customSpecs[selectedVehicle] = {};
+ const cs = customSpecs[selectedVehicle];
+ 
+ cs.type = document.getElementById('spec-type').value.trim();
+ cs.wt = document.getElementById('spec-wt').value.trim();
+ cs.motor = document.getElementById('spec-motor').value.trim();
+ cs.volt = document.getElementById('spec-volt').value.trim();
+ cs.cap = document.getElementById('spec-cap').value.trim();
+ cs.cells = document.getElementById('spec-cells').value.trim();
+ cs.bms = document.getElementById('spec-bms').value.trim();
+ cs.tyre = document.getElementById('spec-tyre').value.trim();
+ cs.frame = document.getElementById('spec-frame').value.trim();
+ cs.url = document.getElementById('spec-url').value.trim();
+ cs.unf = document.getElementById('spec-unf').value.trim();
+ cs.fold = document.getElementById('spec-fold').value.trim();
+
+ setSetting('g3_custom_specs', JSON.stringify(customSpecs));
+ mergeSpecs();
+ showToast(`Specs saved for ${selectedVehicle}`);
+ renderGarage();
 }
 
 function evaluateBalanceRequirement(specs) {
@@ -820,72 +926,45 @@ function evaluateBalanceRequirement(specs) {
  let lastBalanceDate = vLogs.length ? vLogs[vLogs.length-1].endTime : Date.now();
 
  for (let log of vLogs) {
- if (log.endPct >= 98) {
- lastBalanceDate = log.endTime;
- break;
- }
+ if (log.endPct >= 98) { lastBalanceDate = log.endTime; break; }
  cyclesSinceBalance++;
  }
-
  const daysSinceBalance = Math.floor((Date.now() - lastBalanceDate) / (1000 * 60 * 60 * 24));
- 
  document.getElementById('g-cycles-count').textContent = cyclesSinceBalance;
  document.getElementById('g-days-count').textContent = daysSinceBalance;
 
  const alertEl = document.getElementById('g-balance-alert');
- if (cyclesSinceBalance >= specs.balanceCycles || daysSinceBalance >= (specs.balanceMonths * 30)) {
+ const cycleLimit = specs.balanceCycles || 15;
+ const monthLimit = specs.balanceMonths || 3;
+ 
+ if (cyclesSinceBalance >= cycleLimit || daysSinceBalance >= (monthLimit * 30)) {
  alertEl.style.display = 'block';
- document.getElementById('g-dwell-time').textContent = specs.dwellHours;
- } else {
- alertEl.style.display = 'none';
- }
+ document.getElementById('g-dwell-time').textContent = specs.dwellHours || "1-2 hours";
+ } else { alertEl.style.display = 'none'; }
 }
 
 function evaluateBatteryHealth() {
  const vLogs = chargeLogs.filter(l => l.vehicle === selectedVehicle).sort((a,b) => a.endTime - b.endTime);
- const ranges = [];
- const labels = [];
- 
+ const ranges = [], labels = [];
  for (let i = 1; i < vLogs.length; i++) {
- const prev = vLogs[i-1];
- const curr = vLogs[i];
- const dist = curr.odoKm - prev.odoKm;
- const energy = prev.endPct - curr.startPct;
- 
+ const prev = vLogs[i-1], curr = vLogs[i];
+ const dist = curr.odoKm - prev.odoKm, energy = prev.endPct - curr.startPct;
  if (dist > 0 && energy > 0 && energy <= 100) {
  const r = (dist / energy) * 100;
- if (r > 5 && r < 200) { 
- ranges.push(+r.toFixed(1));
- labels.push(formatShortDate(curr.endTime));
+ if (r > 5 && r < 200) { ranges.push(+r.toFixed(1)); labels.push(formatShortDate(curr.endTime)); }
  }
  }
- }
-
- const rangeEl = document.getElementById('g-projected-range');
- const degEl = document.getElementById('g-degradation');
-
+ const rangeEl = document.getElementById('g-projected-range'), degEl = document.getElementById('g-degradation');
  if (ranges.length > 0) {
- const currentRange = ranges[ranges.length - 1];
- const maxRange = Math.max(...ranges);
+ const currentRange = ranges[ranges.length - 1], maxRange = Math.max(...ranges);
  rangeEl.textContent = currentRange.toFixed(1) + ' km';
- 
  const degradationPct = ((maxRange - currentRange) / maxRange) * 100;
- if (degradationPct < 10) {
- degEl.textContent = 'Good';
- degEl.style.color = 'var(--success)';
- } else if (degradationPct < 20) {
- degEl.textContent = 'Moderate Wear';
- degEl.style.color = 'var(--warn)';
- } else {
- degEl.textContent = 'High Wear (>20%)';
- degEl.style.color = 'var(--danger)';
- }
- 
+ if (degradationPct < 10) { degEl.textContent = 'Good'; degEl.style.color = 'var(--success)'; }
+ else if (degradationPct < 20) { degEl.textContent = 'Moderate Wear'; degEl.style.color = 'var(--warn)'; }
+ else { degEl.textContent = 'High Wear (>20%)'; degEl.style.color = 'var(--danger)'; }
  chartHealth = drawChart('chart-health', chartHealth, labels.slice(-20), ranges.slice(-20), '#9b59b6', 'km');
  } else {
- rangeEl.textContent = '—';
- degEl.textContent = 'Need more data';
- degEl.style.color = 'var(--text2)';
+ rangeEl.textContent = '—'; degEl.textContent = 'Need more data'; degEl.style.color = 'var(--text2)';
  chartHealth = drawChart('chart-health', chartHealth, [], [], '#9b59b6', 'km');
  }
 }
@@ -894,24 +973,19 @@ function startChargeSession() {
  const startPct = parseFloat(document.getElementById('charge-start-pct').value);
  const targetPct = parseFloat(document.getElementById('charge-target-pct').value);
  const odo = parseFloat(document.getElementById('charge-odo').value);
- 
  if (isNaN(startPct) || isNaN(targetPct)) return showToast('Enter valid percentages');
 
  activeChargeSession = { startTime: Date.now(), startPct, targetPct, odo };
- 
  const vLogs = chargeLogs.filter(l => l.vehicle === selectedVehicle && l.endPct > l.startPct);
  let avgRate = 0.35; 
- 
  if (vLogs.length >= 3) {
  const recentLogs = vLogs.slice(0, 5);
- const totalPctGained = recentLogs.reduce((acc, log) => acc + (log.endPct - log.startPct), 0);
+ const totalPct = recentLogs.reduce((acc, log) => acc + (log.endPct - log.startPct), 0);
  const totalMins = recentLogs.reduce((acc, log) => acc + ((log.endTime - log.startTime) / 60000), 0);
- avgRate = totalPctGained / totalMins;
+ avgRate = totalPct / totalMins;
  }
-
  const minsRemaining = (targetPct - startPct) / avgRate;
  const eta = new Date(Date.now() + (minsRemaining * 60000));
- 
  document.getElementById('charge-prediction').style.display = 'block';
  document.getElementById('charge-eta').textContent = eta.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 }
@@ -919,113 +993,61 @@ function startChargeSession() {
 function endChargeSession() {
  if (!activeChargeSession) return;
  const endPct = parseFloat(document.getElementById('charge-target-pct').value); 
- 
- const completedSession = {
- id: Date.now(),
- vehicle: selectedVehicle,
- startTime: activeChargeSession.startTime,
- endTime: Date.now(),
- startPct: activeChargeSession.startPct,
- endPct: endPct,
- odoKm: activeChargeSession.odo
+ const log = {
+ id: Date.now(), vehicle: selectedVehicle, startTime: activeChargeSession.startTime,
+ endTime: Date.now(), startPct: activeChargeSession.startPct, endPct: endPct, odoKm: activeChargeSession.odo
  };
-
- chargeLogs.unshift(completedSession);
- activeChargeSession = null;
+ chargeLogs.unshift(log); activeChargeSession = null;
  document.getElementById('charge-prediction').style.display = 'none';
- 
- renderGarage(); 
- saveGarageDataLocally();
- 
- if (syncEnabled && supabaseClient) {
- supabaseClient.from('charge_logs').upsert(completedSession).then(() => console.log('Charge logged'));
- }
+ renderGarage(); saveGarageDataLocally();
+ if (syncEnabled && supabaseClient) supabaseClient.from('charge_logs').upsert(log).catch(e=>{});
  showToast('Charge saved');
 }
 
 function logMaintenance() {
  const psiF = parseFloat(document.getElementById('maint-psi-f').value);
  const psiR = parseFloat(document.getElementById('maint-psi-r').value);
- 
  if (isNaN(psiF) && isNaN(psiR)) return showToast('Enter at least one pressure value');
-
- const log = {
- id: Date.now(),
- vehicle: selectedVehicle,
- timestamp: Date.now(),
- psiFront: psiF || null,
- psiRear: psiR || null
- };
-
- maintenanceLogs.unshift(log);
- saveGarageDataLocally();
- 
+ const log = { id: Date.now(), vehicle: selectedVehicle, timestamp: Date.now(), psiFront: psiF||null, psiRear: psiR||null };
+ maintenanceLogs.unshift(log); saveGarageDataLocally();
  showToast('Tyre pressures saved');
- document.getElementById('maint-psi-f').value = '';
- document.getElementById('maint-psi-r').value = '';
-
+ document.getElementById('maint-psi-f').value = ''; document.getElementById('maint-psi-r').value = '';
  evaluateMaintenance();
-
- if (syncEnabled && supabaseClient) {
- supabaseClient.from('maintenance_logs').upsert(log).catch(e => console.warn('Maintenance sync failed', e));
- }
+ if (syncEnabled && supabaseClient) supabaseClient.from('maintenance_logs').upsert(log).catch(e=>{});
 }
 
 function evaluateMaintenance() {
  const vLogs = maintenanceLogs.filter(l => l.vehicle === selectedVehicle).sort((a,b) => b.timestamp - a.timestamp);
- const lastCheckEl = document.getElementById('maint-last-checked');
- const alertEl = document.getElementById('maint-alert');
- 
+ const lastCheckEl = document.getElementById('maint-last-checked'), alertEl = document.getElementById('maint-alert');
  if (vLogs.length > 0) {
  const lastLog = vLogs[0];
  const daysSince = Math.floor((Date.now() - lastLog.timestamp) / (1000 * 60 * 60 * 24));
- const dateStr = new Date(lastLog.timestamp).toLocaleDateString('en-AU');
- 
- lastCheckEl.textContent = `Last checked: ${dateStr} (${lastLog.psiFront}F / ${lastLog.psiRear}R) — ${daysSince} days ago`;
- 
- if (daysSince >= 14) {
- alertEl.style.display = 'block';
+ lastCheckEl.textContent = `Last checked: ${new Date(lastLog.timestamp).toLocaleDateString('en-AU')} (${lastLog.psiFront}F / ${lastLog.psiRear}R) — ${daysSince} days ago`;
+ alertEl.style.display = daysSince >= 14 ? 'block' : 'none';
  } else {
- alertEl.style.display = 'none';
- }
- } else {
- lastCheckEl.textContent = 'Last checked: Never';
- alertEl.style.display = 'block'; 
+ lastCheckEl.textContent = 'Last checked: Never'; alertEl.style.display = 'block'; 
  }
 }
 
 function logRoutine(type) {
  routineLogs.unshift({ id: Date.now(), vehicle: selectedVehicle, type: type, timestamp: Date.now() });
- saveGarageDataLocally();
- evaluateRoutines();
+ saveGarageDataLocally(); evaluateRoutines();
  showToast(type.charAt(0).toUpperCase() + type.slice(1) + ' check logged');
 }
 
 function evaluateRoutines() {
  const vLogs = routineLogs.filter(l => l.vehicle === selectedVehicle);
- const weekly = vLogs.find(l => l.type === 'weekly');
- const monthly = vLogs.find(l => l.type === 'monthly');
- 
- updateRoutineUI('weekly', weekly, 7);
- updateRoutineUI('monthly', monthly, 30);
+ updateRoutineUI('weekly', vLogs.find(l => l.type === 'weekly'), 7);
+ updateRoutineUI('monthly', vLogs.find(l => l.type === 'monthly'), 30);
 }
 
 function updateRoutineUI(type, log, daysDue) {
  const el = document.getElementById(`maint-${type}-date`);
  if (!el) return;
- if (!log) {
- el.textContent = 'Never done — Due now';
- el.style.color = 'var(--warn)';
- return;
- }
+ if (!log) { el.textContent = 'Never done — Due now'; el.style.color = 'var(--warn)'; return; }
  const daysSince = Math.floor((Date.now() - log.timestamp) / (1000 * 60 * 60 * 24));
- if (daysSince >= daysDue) {
- el.textContent = `Done ${daysSince} days ago — Overdue`;
- el.style.color = 'var(--danger)';
- } else {
- el.textContent = `Done ${daysSince} days ago`;
- el.style.color = 'var(--success)';
- }
+ if (daysSince >= daysDue) { el.textContent = `Done ${daysSince} days ago — Overdue`; el.style.color = 'var(--danger)'; }
+ else { el.textContent = `Done ${daysSince} days ago`; el.style.color = 'var(--success)'; }
 }
 
 function saveGarageDataLocally() {
@@ -1033,7 +1055,7 @@ function saveGarageDataLocally() {
  localStorage.setItem('g3_charge_logs', JSON.stringify(chargeLogs));
  localStorage.setItem('g3_maint_logs', JSON.stringify(maintenanceLogs));
  localStorage.setItem('g3_routine_logs', JSON.stringify(routineLogs));
- } catch(e) { console.warn('Failed to save garage data locally', e); }
+ } catch(e) {}
 }
 
 function loadGarageDataLocally() {
@@ -1042,22 +1064,16 @@ function loadGarageDataLocally() {
  try { routineLogs = JSON.parse(localStorage.getItem('g3_routine_logs') || '[]'); } catch(e) { routineLogs = []; }
 }
 
-
 /* ══════════════════════════════════════════════════════
  RECORDING
 ══════════════════════════════════════════════════════ */
-function toggleRecording() {
- if (!isRecording) startRecording(); else stopRecording();
-}
+function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
 
 async function startRecording() {
- if (!navigator.geolocation) { alert('Geolocation not available.'); return; }
- isRecording = true;
- currentRoutePoints = []; currentMaxSpeed = 0; currentDist = 0;
- window._speedBuffer = []; window._movingSecs = 0;
- lastPos = null; elapsedSecs = 0; mediaFiles = [];
- currentMaxGforce = 0; elevations = []; currentWeather = null;
- gforceSamples = [];
+ if (!navigator.geolocation) return alert('Geolocation not available.');
+ isRecording = true; currentRoutePoints = []; currentMaxSpeed = 0; currentDist = 0;
+ window._speedBuffer = []; window._movingSecs = 0; lastPos = null; elapsedSecs = 0; mediaFiles = [];
+ currentMaxGforce = 0; elevations = []; currentWeather = null; gforceSamples = [];
 
  document.getElementById('ride-notes').value = '';
  document.getElementById('record-btn').classList.add('recording');
@@ -1071,104 +1087,64 @@ async function startRecording() {
  document.getElementById('stat-gforce').textContent = '0.00';
  document.getElementById('stat-weather-live').textContent = '…';
 
- // Reset media strip
- const strip = document.getElementById('media-strip');
- strip.innerHTML = '';
- strip.appendChild(makeAddMediaBtn());
+ const strip = document.getElementById('media-strip'); strip.innerHTML = ''; strip.appendChild(makeAddMediaBtn());
 
- // Timer
  timerInterval = setInterval(() => {
  elapsedSecs++;
  document.getElementById('rec-timer').textContent = formatDur(elapsedSecs);
  document.getElementById('stat-dur').textContent = formatDur(elapsedSecs);
- // Avg speed from distance / elapsed time
- if (elapsedSecs > 0 && currentDist > 0) {
- document.getElementById('stat-avg').textContent = ((currentDist/1000)/(elapsedSecs/3600)).toFixed(1);
- }
+ if (elapsedSecs > 0 && currentDist > 0) document.getElementById('stat-avg').textContent = ((currentDist/1000)/(elapsedSecs/3600)).toFixed(1);
  }, 1000);
 
- // GPS
- watchId = navigator.geolocation.watchPosition(onPosition, e => console.warn('GPS:',e.message), {
- enableHighAccuracy:true, maximumAge:1000, timeout:15000
- });
+ watchId = navigator.geolocation.watchPosition(onPosition, e => console.warn('GPS:',e.message), { enableHighAccuracy:true, maximumAge:1000, timeout:15000 });
 
- // G-force
  if (window.DeviceMotionEvent) {
  window.addEventListener('devicemotion', onMotion);
- // Request permission on iOS
- if (typeof DeviceMotionEvent.requestPermission === 'function') {
- try { await DeviceMotionEvent.requestPermission(); } catch(e) {}
- }
+ if (typeof DeviceMotionEvent.requestPermission === 'function') { try { await DeviceMotionEvent.requestPermission(); } catch(e) {} }
  }
 
- // Weather fetch at ride start
  navigator.geolocation.getCurrentPosition(async pos => {
  try {
- const { latitude: lat, longitude: lng } = pos.coords;
- const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&timezone=auto`;
- const r = await fetch(url);
+ const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current=temperature_2m,weather_code&timezone=auto`);
  const d = await r.json();
- const temp = Math.round(d.current.temperature_2m);
- const desc = weatherDesc(d.current.weather_code);
- currentWeather = `${weatherEmoji(d.current.weather_code)} ${temp}°C ${desc}`;
- document.getElementById('stat-weather-live').textContent = `${temp}°C`;
- } catch(e) { currentWeather = null; document.getElementById('stat-weather-live').textContent = '—'; }
- }, () => { currentWeather = null; }, { timeout: 8000 });
+ currentWeather = `${weatherEmoji(d.current.weather_code)} ${Math.round(d.current.temperature_2m)}°C ${weatherDesc(d.current.weather_code)}`;
+ document.getElementById('stat-weather-live').textContent = `${Math.round(d.current.temperature_2m)}°C`;
+ } catch(e) { document.getElementById('stat-weather-live').textContent = '—'; }
+ }, ()=>{}, { timeout: 8000 });
 
- // Keep screen on using video trick (works across all Android browsers)
- startNoSleep();
-
- initLiveMap();
+ startNoSleep(); initLiveMap();
 }
 
 function onPosition(pos) {
  const { latitude:lat, longitude:lng, altitude, accuracy } = pos.coords;
  const now = Date.now();
-
- // Ignore poor accuracy readings (> 50m)
  if (accuracy && accuracy > 50) return;
 
  let speedKmh = 0;
  if (lastPos && lastPos.ts) {
- const dist = haversine(lastPos.lat, lastPos.lng, lat, lng);
- const timeDiff = (now - lastPos.ts) / 1000; // seconds
- if (dist > 1 && timeDiff > 0) {
- const rawSpeed = Math.max(0, (dist / timeDiff) * 3.6);
- // Ignore anything over 60km/h as a GPS glitch
- speedKmh = rawSpeed > 60 ? 0 : rawSpeed;
- }
+ const dist = haversine(lastPos.lat, lastPos.lng, lat, lng), timeDiff = (now - lastPos.ts) / 1000;
+ if (dist > 1 && timeDiff > 0) speedKmh = Math.max(0, (dist / timeDiff) * 3.6) > 60 ? 0 : Math.max(0, (dist / timeDiff) * 3.6);
  if (dist > 2) currentDist += dist;
  }
+ currentRoutePoints.push({ lat, lng, speedKmh, altitude:altitude||0, ts:now }); lastPos = { lat, lng, ts: now };
 
- currentRoutePoints.push({ lat, lng, speedKmh, altitude:altitude||0, ts:now });
- lastPos = { lat, lng, ts: now };
-
- // Max speed: only update if 3 consecutive readings all agree speed is higher
- // Store last 3 speed readings for consensus check
  if (!window._speedBuffer) window._speedBuffer = [];
- window._speedBuffer.push(speedKmh);
- if (window._speedBuffer.length > 3) window._speedBuffer.shift();
+ window._speedBuffer.push(speedKmh); if (window._speedBuffer.length > 3) window._speedBuffer.shift();
  if (window._speedBuffer.length === 3) {
  const minOfLast3 = Math.min(...window._speedBuffer);
- if (minOfLast3 > currentMaxSpeed && minOfLast3 > 0) {
- currentMaxSpeed = minOfLast3; // use minimum of 3 to be conservative
- }
+ if (minOfLast3 > currentMaxSpeed && minOfLast3 > 0) currentMaxSpeed = minOfLast3;
  }
 
- // Moving time average: only count seconds where speed is between 2 and 60 km/h
  if (speedKmh >= 2 && speedKmh <= 60) {
  if (!window._movingSecs) window._movingSecs = 0;
  window._movingSecs += (lastPos && lastPos.ts) ? Math.min((now - (lastPos.prevTs||now)) / 1000, 5) : 0;
  }
-
  if (altitude != null) elevations.push(altitude);
 
- // Display current speed
  document.getElementById('stat-speed').textContent = speedKmh.toFixed(1);
  document.getElementById('stat-max').textContent = currentMaxSpeed.toFixed(1);
  document.getElementById('stat-dist').textContent = (currentDist/1000).toFixed(2);
 
- // Moving average speed
  const movingSecs = window._movingSecs || 0;
  if (movingSecs > 0 && currentDist > 0) {
  const movingAvg = (currentDist / 1000) / (movingSecs / 3600);
@@ -1183,60 +1159,33 @@ function onPosition(pos) {
 }
 
 function onMotion(e) {
- const a = e.accelerationIncludingGravity;
- if (!a) return;
+ const a = e.accelerationIncludingGravity; if (!a) return;
  const raw = Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2)/9.81;
-
- // Rolling average of last 15 samples (~300ms at 50Hz)
- gforceSamples.push(raw);
- if (gforceSamples.length > 15) gforceSamples.shift();
+ gforceSamples.push(raw); if (gforceSamples.length > 15) gforceSamples.shift();
  const smoothed = gforceSamples.reduce((s,v) => s+v, 0) / gforceSamples.length;
-
- // Only count if ALL of the last 15 samples are above threshold (truly sustained)
- const minSustained = Math.min(...gforceSamples);
- const threshold = 1.8; // 1.8g — catches real braking/bumps, filters vibration
-
- if (gforceSamples.length === 15 && minSustained > threshold && smoothed > currentMaxGforce) {
- currentMaxGforce = smoothed;
- document.getElementById('stat-gforce').textContent = smoothed.toFixed(2);
+ if (gforceSamples.length === 15 && Math.min(...gforceSamples) > 1.8 && smoothed > currentMaxGforce) {
+ currentMaxGforce = smoothed; document.getElementById('stat-gforce').textContent = smoothed.toFixed(2);
  }
 }
 
 async function stopRecording() {
  if (!isRecording) return;
- isRecording = false;
- clearInterval(timerInterval);
+ isRecording = false; clearInterval(timerInterval);
  if (watchId != null) navigator.geolocation.clearWatch(watchId);
- window.removeEventListener('devicemotion', onMotion);
- // Stop no-sleep
- stopNoSleep();
+ window.removeEventListener('devicemotion', onMotion); stopNoSleep();
 
  document.getElementById('record-btn').classList.remove('recording');
  document.getElementById('btn-icon-play').style.display = '';
  document.getElementById('btn-icon-stop').style.display = 'none';
  document.getElementById('rec-badge').classList.remove('visible');
 
- const now = Date.now();
- const movingSecs = window._movingSecs || elapsedSecs;
- const avgKmh = movingSecs > 0 ? (currentDist/1000)/(movingSecs/3600) : 0;
+ const now = Date.now(), movingSecs = window._movingSecs || elapsedSecs;
  const ride = {
- id: now,
- startTime: now - elapsedSecs*1000,
- endTime: now,
- durationSecs: elapsedSecs,
- distanceM: currentDist,
- maxSpeedKmh: currentMaxSpeed,
- movingTimeSecs: window._movingSecs || elapsedSecs,
- avgSpeedKmh: avgKmh,
- maxGforce: currentMaxGforce,
- elevMax: elevations.length ? Math.max(...elevations) : null,
- elevMin: elevations.length ? Math.min(...elevations) : null,
- routePoints: currentRoutePoints,
- notes: document.getElementById('ride-notes').value.trim(),
- media: [...mediaFiles],
- title: autoTitle(),
- vehicle: selectedVehicle,
- weather: currentWeather
+ id: now, startTime: now - elapsedSecs*1000, endTime: now, durationSecs: elapsedSecs, distanceM: currentDist,
+ maxSpeedKmh: currentMaxSpeed, movingTimeSecs: movingSecs, avgSpeedKmh: movingSecs > 0 ? (currentDist/1000)/(movingSecs/3600) : 0,
+ maxGforce: currentMaxGforce, elevMax: elevations.length ? Math.max(...elevations) : null, elevMin: elevations.length ? Math.min(...elevations) : null,
+ routePoints: currentRoutePoints, notes: document.getElementById('ride-notes').value.trim(), media: [...mediaFiles],
+ title: autoTitle(), vehicle: selectedVehicle, weather: currentWeather
  };
 
  try {
@@ -1245,1110 +1194,338 @@ async function stopRecording() {
  } catch(e) { console.error('Save failed',e); }
 
  rides.unshift(ride);
- document.getElementById('live-stats-section').style.display = 'none';
- document.getElementById('idle-msg').style.display = '';
- document.getElementById('map-placeholder').style.display = 'flex';
- document.getElementById('map').innerHTML = '';
- map = null; polyline = null;
- showToast('✓ Ride saved');
- updateStorageInfo();
- driveSaveRide(ride);
- // Auto-post to Strava if enabled
- if (stravaAutopost && stravaToken) {
- setTimeout(() => autoPostToStrava(ride), 1500);
- }
+ document.getElementById('live-stats-section').style.display = 'none'; document.getElementById('idle-msg').style.display = '';
+ document.getElementById('map-placeholder').style.display = 'flex'; document.getElementById('map').innerHTML = '';
+ map = null; polyline = null; showToast('✓ Ride saved'); updateStorageInfo(); driveSaveRide(ride);
+ if (stravaAutopost && stravaToken) setTimeout(() => autoPostToStrava(ride), 1500);
 }
 
 function autoTitle() {
  const h = new Date().getHours();
- if (h<6) return 'Night ride'; if (h<12) return 'Morning ride';
- if (h<17) return 'Afternoon ride'; if (h<21) return 'Evening ride';
- return 'Night ride';
+ if (h<6) return 'Night ride'; if (h<12) return 'Morning ride'; if (h<17) return 'Afternoon ride'; if (h<21) return 'Evening ride'; return 'Night ride';
 }
 
 /* ══════════════════════════════════════════════════════
- VOICE COMMANDS
+ VOICE, MEDIA & MISC UTILS
 ══════════════════════════════════════════════════════ */
-function toggleVoice() {
- if (voiceEnabled) disableVoice(); else enableVoice(false);
-}
-
+function toggleVoice() { if (voiceEnabled) disableVoice(); else enableVoice(false); }
 function enableVoice(silent) {
  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
- if (!SR) { showToast('Voice not supported in this browser'); return; }
+ if (!SR) return showToast('Voice not supported in this browser');
  try {
- recognition = new SR();
- recognition.continuous = true;
- recognition.interimResults = false;
- recognition.lang = 'en-AU';
+ recognition = new SR(); recognition.continuous = true; recognition.interimResults = false; recognition.lang = 'en-AU';
  recognition.onresult = e => {
  const t = e.results[e.results.length-1][0].transcript.trim().toLowerCase();
- if (t.includes('start record') || t.includes('start riding')) {
- if (!isRecording) { showVoiceToast('🎤 Starting…'); startRecording(); }
- } else if (t.includes('stop record') || t.includes('stop riding') || t.includes('save ride')) {
- if (isRecording) { showVoiceToast('🎤 Stopping…'); stopRecording(); }
- }
+ if (t.includes('start record') || t.includes('start riding')) { if (!isRecording) { showVoiceToast('🎤 Starting…'); startRecording(); } }
+ else if (t.includes('stop record') || t.includes('stop riding') || t.includes('save ride')) { if (isRecording) { showVoiceToast('🎤 Stopping…'); stopRecording(); } }
  };
  recognition.onerror = e => { if (e.error !== 'no-speech') console.warn('Voice error',e.error); };
  recognition.onend = () => { if (voiceEnabled) recognition.start(); };
- recognition.start();
- voiceEnabled = true;
- setSetting('g3_voice','1');
- document.getElementById('voice-status').classList.add('visible');
- document.getElementById('voice-text').textContent = 'Voice on';
- if (!silent) showToast('🎤 Voice commands enabled');
- updateVoiceBtn();
+ recognition.start(); voiceEnabled = true; setSetting('g3_voice','1');
+ document.getElementById('voice-status').classList.add('visible'); document.getElementById('voice-text').textContent = 'Voice on';
+ if (!silent) showToast('🎤 Voice commands enabled'); updateVoiceBtn();
  } catch(e) { showToast('Could not start voice recognition'); }
 }
-
 function disableVoice() {
- voiceEnabled = false;
- setSetting('g3_voice','0');
+ voiceEnabled = false; setSetting('g3_voice','0');
  if (recognition) { recognition.onend = null; recognition.stop(); recognition = null; }
- document.getElementById('voice-status').classList.remove('visible');
- showToast('Voice commands disabled');
- updateVoiceBtn();
+ document.getElementById('voice-status').classList.remove('visible'); showToast('Voice commands disabled'); updateVoiceBtn();
 }
-
 function updateVoiceBtn() {
- const btn = document.getElementById('voice-toggle-btn');
- const st = document.getElementById('voice-status-text');
- if (voiceEnabled) {
- btn.textContent = 'Disable voice commands';
- btn.style.background = 'rgba(231,76,60,0.15)';
- btn.style.color = 'var(--danger)';
- st.textContent = '✓ Active — say "Start recording" or "Stop recording"';
- } else {
- btn.textContent = 'Enable voice commands';
- btn.style.background = 'var(--accent)';
- btn.style.color = '#000';
- st.textContent = 'Tap to enable. Microphone permission required.';
- }
+ const btn = document.getElementById('voice-toggle-btn'), st = document.getElementById('voice-status-text');
+ if (voiceEnabled) { btn.textContent = 'Disable voice commands'; btn.style.background = 'rgba(231,76,60,0.15)'; btn.style.color = 'var(--danger)'; st.textContent = '✓ Active — say "Start recording" or "Stop recording"'; }
+ else { btn.textContent = 'Enable voice commands'; btn.style.background = 'var(--accent)'; btn.style.color = '#000'; st.textContent = 'Tap to enable. Microphone permission required.'; }
 }
+function showVoiceToast(msg) { const t = document.getElementById('voice-toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
 
-function showVoiceToast(msg) {
- const t = document.getElementById('voice-toast');
- t.textContent = msg; t.classList.add('show');
- setTimeout(() => t.classList.remove('show'), 2000);
-}
-
-/* ══════════════════════════════════════════════════════
- MEDIA
-══════════════════════════════════════════════════════ */
 function makeAddMediaBtn() {
- const btn = document.createElement('button');
- btn.className = 'add-media-btn';
- btn.onclick = () => document.getElementById('media-input').click();
- btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add`;
- return btn;
+ const btn = document.createElement('button'); btn.className = 'add-media-btn'; btn.onclick = () => document.getElementById('media-input').click();
+ btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add`; return btn;
 }
-
 function handleMedia(input) {
  Array.from(input.files).forEach(file => {
  const reader = new FileReader();
- reader.onload = e => {
- const data = { src:e.target.result, type:file.type.startsWith('video')?'video':'image' };
- mediaFiles.push(data);
- addMediaThumb(data, mediaFiles.length-1);
- };
+ reader.onload = e => { const data = { src:e.target.result, type:file.type.startsWith('video')?'video':'image' }; mediaFiles.push(data); addMediaThumb(data, mediaFiles.length-1); };
  reader.readAsDataURL(file);
- });
- input.value = '';
+ }); input.value = '';
 }
-
 function addMediaThumb(data, idx) {
- const strip = document.getElementById('media-strip');
- const wrap = document.createElement('div');
- wrap.className = 'media-thumb-wrap';
+ const strip = document.getElementById('media-strip'), wrap = document.createElement('div'); wrap.className = 'media-thumb-wrap';
  let el = data.type==='video' ? Object.assign(document.createElement('video'),{controls:true}) : document.createElement('img');
- el.src = data.src;
- if (data.type==='video') el.style.cssText='width:72px;height:72px;border-radius:10px;object-fit:cover';
- const del = document.createElement('button');
- del.className = 'del-btn'; del.innerHTML = '×';
+ el.src = data.src; if (data.type==='video') el.style.cssText='width:72px;height:72px;border-radius:10px;object-fit:cover';
+ const del = document.createElement('button'); del.className = 'del-btn'; del.innerHTML = '×';
  del.onclick = () => { mediaFiles.splice(idx,1); wrap.remove(); };
- wrap.appendChild(el); wrap.appendChild(del);
- strip.insertBefore(wrap, strip.lastElementChild);
+ wrap.appendChild(el); wrap.appendChild(del); strip.insertBefore(wrap, strip.lastElementChild);
 }
-
-/* Post-ride media editing */
-function addMediaToRide() {
- document.getElementById('edit-media-input').click();
-}
-
+function addMediaToRide() { document.getElementById('edit-media-input').click(); }
 function handleEditMedia(input) {
- const ride = rides.find(r => r.id === currentDetailId);
- if (!ride) return;
- if (!ride.media) ride.media = [];
+ const ride = rides.find(r => r.id === currentDetailId); if (!ride) return; if (!ride.media) ride.media = [];
  let pending = input.files.length;
  Array.from(input.files).forEach(file => {
  const reader = new FileReader();
  reader.onload = e => {
- ride.media.push({ src:e.target.result, type:file.type.startsWith('video')?'video':'image' });
- pending--;
- if (pending === 0) {
- dbPut(ride).catch(()=>{});
- openDetail(ride.id); // refresh modal
- showToast('Media added');
- }
- };
- reader.readAsDataURL(file);
- });
- input.value = '';
+ ride.media.push({ src:e.target.result, type:file.type.startsWith('video')?'video':'image' }); pending--;
+ if (pending === 0) { dbPut(ride).catch(()=>{}); openDetail(ride.id); showToast('Media added'); }
+ }; reader.readAsDataURL(file);
+ }); input.value = '';
 }
 
-/* ══════════════════════════════════════════════════════
- MAPS
-══════════════════════════════════════════════════════ */
 function initLiveMap() {
  if (!window.google || !window.google.maps) {
  const key = getSetting('g3_maps_key');
- if (key) {
- showToast('Loading map…');
- loadMapsIfKey();
- // Retry after 3 seconds if Maps still not loaded
- setTimeout(() => {
- if (isRecording && window.google && window.google.maps && !map) initLiveMap();
- }, 3000);
- } else {
- showToast('Add Maps API key in Settings for route map');
- }
+ if (key) { showToast('Loading map…'); loadMapsIfKey(); setTimeout(() => { if (isRecording && window.google && window.google.maps && !map) initLiveMap(); }, 3000); }
  return;
  }
  try {
- const mapEl = document.getElementById('map');
- const placeholder = document.getElementById('map-placeholder');
- if (!mapEl) return;
- if (placeholder) placeholder.style.display = 'none';
- 
-// Clear any previous map instance
- mapEl.innerHTML = '';
- 
-map = new google.maps.Map(mapEl, {
- center:{lat:-27.57,lng:152.95}, zoom:15, 
-mapTypeId:'roadmap', 
-disableDefaultUI:true,
- gestureHandling:'greedy'
- });
- polyline = new google.maps.Polyline({
- path:[], strokeColor:'#00c8ff', strokeOpacity:0.9, strokeWeight:4, map
- });
- // Centre on actual position
- navigator.geolocation.getCurrentPosition(pos => {
- if (map) map.setCenter({lat:pos.coords.latitude, lng:pos.coords.longitude});
- }, () => {}, { timeout:5000, enableHighAccuracy:true });
- 
-console.log('Map initialised successfully');
- } catch(e) {
- console.error('Map init error:', e.message);
- showToast('Map error — check API key in Settings');
- }
+ const mapEl = document.getElementById('map'); if (!mapEl) return;
+ document.getElementById('map-placeholder').style.display = 'none'; mapEl.innerHTML = '';
+ map = new google.maps.Map(mapEl, { center:{lat:-27.57,lng:152.95}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true, gestureHandling:'greedy' });
+ polyline = new google.maps.Polyline({ path:[], strokeColor:'#00c8ff', strokeOpacity:0.9, strokeWeight:4, map });
+ navigator.geolocation.getCurrentPosition(pos => { if (map) map.setCenter({lat:pos.coords.latitude, lng:pos.coords.longitude}); }, ()=>{}, { timeout:5000, enableHighAccuracy:true });
+ } catch(e) { showToast('Map error — check API key in Settings'); }
 }
-
 function renderDetailMap(ride) {
  if (!window.google || !ride.routePoints || !ride.routePoints.length) return;
  const pts = ride.routePoints.map(p => ({lat:p.lat,lng:p.lng}));
- detailMap = new google.maps.Map(document.getElementById('detail-map'), {
- center:pts[Math.floor(pts.length/2)], zoom:14, mapTypeId:'roadmap', disableDefaultUI:true
- });
+ detailMap = new google.maps.Map(document.getElementById('detail-map'), { center:pts[Math.floor(pts.length/2)], zoom:14, mapTypeId:'roadmap', disableDefaultUI:true });
  new google.maps.Polyline({path:pts,strokeColor:'#00c8ff',strokeOpacity:0.9,strokeWeight:4,map:detailMap});
- new google.maps.Marker({position:pts[0],map:detailMap,label:{text:'S',color:'#fff'}});
- new google.maps.Marker({position:pts[pts.length-1],map:detailMap,label:{text:'E',color:'#fff'}});
- const bounds = new google.maps.LatLngBounds();
- pts.forEach(p => bounds.extend(p));
- detailMap.fitBounds(bounds,20);
+ new google.maps.Marker({position:pts[0],map:detailMap,label:{text:'S',color:'#fff'}}); new google.maps.Marker({position:pts[pts.length-1],map:detailMap,label:{text:'E',color:'#fff'}});
+ const bounds = new google.maps.LatLngBounds(); pts.forEach(p => bounds.extend(p)); detailMap.fitBounds(bounds,20);
 }
 
-/* ══════════════════════════════════════════════════════
- HISTORY
-══════════════════════════════════════════════════════ */
 function renderHistory() {
- const list = document.getElementById('ride-list');
- const empty = document.getElementById('empty-history');
- list.innerHTML = '';
+ const list = document.getElementById('ride-list'), empty = document.getElementById('empty-history'); list.innerHTML = '';
  if (!rides.length) { empty.style.display='flex'; list.style.display='none'; return; }
  empty.style.display='none'; list.style.display='flex';
  rides.forEach(ride => {
- const div = document.createElement('div');
- div.className = 'ride-item';
- div.onclick = () => openDetail(ride.id);
- const distKm = (ride.distanceM/1000).toFixed(2);
- const hasMedia = ride.media && ride.media.length;
+ const div = document.createElement('div'); div.className = 'ride-item'; div.onclick = () => openDetail(ride.id);
+ const distKm = (ride.distanceM/1000).toFixed(2), hasMedia = ride.media && ride.media.length;
  div.innerHTML = `
  <div class="ride-item-top">
  <div class="ride-title-row">
- <div class="ride-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5.5" cy="17.5" r="2.5"/><circle cx="18.5" cy="17.5" r="2.5"/><path d="M8 17.5H16"/><path d="M13 17.5L11 10H8.5"/><path d="M11 10L15.5 8V6"/><path d="M13.5 6H17.5"/></svg></div>
- <div>
- <div class="ride-name">${escHtml(ride.title||'Unnamed ride')}</div>
- <div class="ride-date">${formatDate(ride.startTime)}</div>
- ${ride.vehicle?`<div class="ride-vehicle-tag">${escHtml(ride.vehicle)}</div>`:''}
+ <div class="ride-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="2.5"/><circle cx="18.5" cy="17.5" r="2.5"/><path d="M8 17.5H16"/><path d="M13 17.5L11 10H8.5"/><path d="M11 10L15.5 8V6"/><path d="M13.5 6H17.5"/></svg></div>
+ <div><div class="ride-name">${escHtml(ride.title||'Unnamed ride')}</div><div class="ride-date">${formatDate(ride.startTime)}</div>${ride.vehicle?`<div class="ride-vehicle-tag">${escHtml(ride.vehicle)}</div>`:''}</div>
  </div>
- </div>
- <div>
- <div class="ride-dist-big">${distKm}<span> km</span></div>
- ${hasMedia?`<div class="has-media-badge">📷 ${ride.media.length}</div>`:''}
- </div>
+ <div><div class="ride-dist-big">${distKm}<span> km</span></div>${hasMedia?`<div class="has-media-badge">📷 ${ride.media.length}</div>`:''}</div>
  </div>
  <div class="ride-pills">
- <div class="pill">${formatDur(ride.durationSecs)}</div>
- <div class="pill">⚡ Max ${ride.maxSpeedKmh.toFixed(1)} km/h</div>
- <div class="pill">~ ${ride.avgSpeedKmh.toFixed(1)} km/h avg</div>
- ${ride.weather?`<div class="pill">${ride.weather}</div>`:''}
- ${ride.notes?'<div class="pill">📝 Notes</div>':''}
+ <div class="pill">${formatDur(ride.durationSecs)}</div><div class="pill">⚡ Max ${ride.maxSpeedKmh.toFixed(1)} km/h</div><div class="pill">~ ${ride.avgSpeedKmh.toFixed(1)} km/h avg</div>
+ ${ride.weather?`<div class="pill">${ride.weather}</div>`:''} ${ride.notes?'<div class="pill">📝 Notes</div>':''}
  </div>`;
  list.appendChild(div);
  });
 }
 
-/* ══════════════════════════════════════════════════════
- DETAIL MODAL
-══════════════════════════════════════════════════════ */
 function openDetail(id) {
- const ride = rides.find(r => r.id===id);
- if (!ride) return;
- currentDetailId = id;
- editingNotes = false;
- document.getElementById('d-notes').style.display = '';
- document.getElementById('d-notes-edit').style.display = 'none';
-
+ const ride = rides.find(r => r.id===id); if (!ride) return; currentDetailId = id; editingNotes = false;
+ document.getElementById('d-notes').style.display = ''; document.getElementById('d-notes-edit').style.display = 'none';
  document.getElementById('detail-title').textContent = ride.title||'Unnamed ride';
  document.getElementById('detail-date').textContent = formatDate(ride.startTime)+' · '+formatTime(ride.startTime);
- const vtag = document.getElementById('d-vehicle-tag');
- vtag.textContent = ride.vehicle || ''; vtag.style.display = ride.vehicle?'':'none';
- const wEl = document.getElementById('d-weather');
- wEl.textContent = ride.weather || ''; wEl.style.display = ride.weather?'':'none';
+ const vtag = document.getElementById('d-vehicle-tag'); vtag.textContent = ride.vehicle || ''; vtag.style.display = ride.vehicle?'':'none';
+ const wEl = document.getElementById('d-weather'); wEl.textContent = ride.weather || ''; wEl.style.display = ride.weather?'':'none';
  document.getElementById('d-dist').textContent = (ride.distanceM/1000).toFixed(2)+' km';
  document.getElementById('d-dur').textContent = formatDur(ride.durationSecs);
  document.getElementById('d-max').textContent = ride.maxSpeedKmh.toFixed(1)+' km/h';
  document.getElementById('d-avg').textContent = ride.avgSpeedKmh.toFixed(1)+' km/h';
  document.getElementById('d-gforce').textContent = ride.maxGforce!=null ? ride.maxGforce.toFixed(2)+'g' : '—';
  document.getElementById('d-elev').textContent = ride.elevMax!=null ? `${ride.elevMax.toFixed(0)}m / ${ride.elevMin.toFixed(0)}m` : '—';
- document.getElementById('d-notes').textContent = ride.notes||'No notes added.';
- document.getElementById('d-notes-edit').value = ride.notes||'';
+ document.getElementById('d-notes').textContent = ride.notes||'No notes added.'; document.getElementById('d-notes-edit').value = ride.notes||'';
 
- // Media
  const mc = document.getElementById('d-media'); mc.innerHTML = '';
  if (ride.media && ride.media.length) {
  ride.media.forEach((m, idx) => {
  let el;
- if (m.type==='video') {
- el = document.createElement('video');
- el.src = m.src; el.controls = true; el.playsInline = true;
- el.style.cssText = 'width:88px;height:88px;border-radius:10px;object-fit:cover';
- if (idx===0) el.style.marginTop='8px';
- } else {
- el = document.createElement('img');
- el.src = m.src;
- el.onclick = () => openMediaViewer(m);
- }
+ if (m.type==='video') { el = document.createElement('video'); el.src = m.src; el.controls = true; el.playsInline = true; el.style.cssText = 'width:88px;height:88px;border-radius:10px;object-fit:cover'; if (idx===0) el.style.marginTop='8px'; }
+ else { el = document.createElement('img'); el.src = m.src; el.onclick = () => openMediaViewer(m); }
  mc.appendChild(el);
  });
  }
 
  document.getElementById('delete-ride-btn').onclick = () => deleteRide(id);
-
- // Strava button
  const stravaBtn = document.getElementById('strava-post-btn');
- if (stravaToken) {
- stravaBtn.style.display = '';
- if (ride.stravaId) {
- stravaBtn.textContent = '✓ Posted to Strava';
- stravaBtn.style.opacity = '0.6';
- } else {
- stravaBtn.textContent = '🟠 Post to Strava';
- stravaBtn.style.opacity = '1';
- }
- } else {
- stravaBtn.style.display = 'none';
- }
-
- document.getElementById('detail-map').innerHTML = '';
- document.getElementById('detail-modal').classList.add('open');
- setTimeout(() => renderDetailMap(ride), 100);
+ if (stravaToken) { stravaBtn.style.display = ''; stravaBtn.textContent = ride.stravaId ? '✓ Posted to Strava' : '🟠 Post to Strava'; stravaBtn.style.opacity = ride.stravaId ? '0.6' : '1'; } else { stravaBtn.style.display = 'none'; }
+ document.getElementById('detail-map').innerHTML = ''; document.getElementById('detail-modal').classList.add('open'); setTimeout(() => renderDetailMap(ride), 100);
 }
-
 function toggleEditNotes() {
- const ride = rides.find(r => r.id===currentDetailId);
- if (!ride) return;
- editingNotes = !editingNotes;
- const display = document.getElementById('d-notes');
- const edit = document.getElementById('d-notes-edit');
- const btn = document.querySelector('.action-btn.accent');
- if (editingNotes) {
- display.style.display = 'none'; edit.style.display = 'block'; edit.focus();
- btn.textContent = '💾 Save notes';
- } else {
- const newNotes = edit.value.trim();
- ride.notes = newNotes;
- display.textContent = newNotes||'No notes added.';
- display.style.display = ''; edit.style.display = 'none';
- btn.textContent = '✏️ Edit notes';
- dbPut(ride).catch(()=>{});
- renderHistory();
- showToast('Notes saved');
- }
+ const ride = rides.find(r => r.id===currentDetailId); if (!ride) return; editingNotes = !editingNotes;
+ const display = document.getElementById('d-notes'), edit = document.getElementById('d-notes-edit'), btn = document.querySelector('.action-btn.accent');
+ if (editingNotes) { display.style.display = 'none'; edit.style.display = 'block'; edit.focus(); btn.textContent = '💾 Save notes'; }
+ else { const newNotes = edit.value.trim(); ride.notes = newNotes; display.textContent = newNotes||'No notes added.'; display.style.display = ''; edit.style.display = 'none'; btn.textContent = '✏️ Edit notes'; dbPut(ride).catch(()=>{}); renderHistory(); showToast('Notes saved'); }
 }
-
 function closeDetailModal() { document.getElementById('detail-modal').classList.remove('open'); detailMap=null; }
 function closeModal(e) { if (e.target===document.getElementById('detail-modal')) closeDetailModal(); }
-
 async function deleteRide(id) {
  if (!confirm('Delete this ride? Cannot be undone.')) return;
  rides = rides.filter(r=>r.id!==id);
  try { if(db) await dbDelete(id); } catch(e) {}
- // Mark as deleted in Supabase so other devices remove it too
- if (syncEnabled && supabaseClient) {
- try {
- await supabaseClient.from('rides').upsert({
- ride_id: String(id),
- device_id: DEVICE_ID,
- deleted: true,
- data: null,
- start_time: new Date().toISOString(),
- updated_at: new Date().toISOString()
- }, { onConflict: 'ride_id' });
- } catch(e) { console.warn('Delete sync failed', e); }
- }
+ if (syncEnabled && supabaseClient) supabaseClient.from('rides').upsert({ ride_id: String(id), device_id: DEVICE_ID, deleted: true, data: null, start_time: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'ride_id' }).catch(()=>{});
  closeDetailModal(); renderHistory(); renderStats();
 }
-
 function renameRide() {
- const ride = rides.find(r=>r.id===currentDetailId);
- if (!ride) return;
- const n = prompt('Rename ride:', ride.title||'');
- if (n===null) return;
- ride.title = n.trim()||ride.title;
- dbPut(ride).catch(()=>{});
- document.getElementById('detail-title').textContent = ride.title;
- renderHistory();
+ const ride = rides.find(r=>r.id===currentDetailId); if (!ride) return;
+ const n = prompt('Rename ride:', ride.title||''); if (n===null) return;
+ ride.title = n.trim()||ride.title; dbPut(ride).catch(()=>{}); document.getElementById('detail-title').textContent = ride.title; renderHistory();
 }
 
-/* ══════════════════════════════════════════════════════
- STATS + CHARTS
-══════════════════════════════════════════════════════ */
 let chartSpeed=null, chartDist=null, chartDur=null;
-
 function renderStats() {
- // Build filter chips
- const filterRow = document.getElementById('stats-filter-row');
- const allVehicles = [...new Set(rides.map(r=>r.vehicle||'Unknown'))];
- filterRow.innerHTML = `<button class="filter-chip ${statsFilter==='all'?'active':''}" onclick="setStatsFilter('all')">All vehicles</button>`
- + allVehicles.map(v=>`<button class="filter-chip ${statsFilter===v?'active':''}" onclick="setStatsFilter('${escHtml(v)}')">${escHtml(v)}</button>`).join('');
-
+ const filterRow = document.getElementById('stats-filter-row'), allVehicles = [...new Set(rides.map(r=>r.vehicle||'Unknown'))];
+ filterRow.innerHTML = `<button class="filter-chip ${statsFilter==='all'?'active':''}" onclick="setStatsFilter('all')">All vehicles</button>` + allVehicles.map(v=>`<button class="filter-chip ${statsFilter===v?'active':''}" onclick="setStatsFilter('${escHtml(v)}')">${escHtml(v)}</button>`).join('');
  const filtered = statsFilter==='all' ? rides : rides.filter(r=>(r.vehicle||'Unknown')===statsFilter);
- const totalDist = filtered.reduce((s,r)=>s+r.distanceM,0)/1000;
- const totalSecs = filtered.reduce((s,r)=>s+r.durationSecs,0);
- const maxSpeed = filtered.reduce((m,r)=>Math.max(m,r.maxSpeedKmh),0);
- const avgDist = filtered.length ? totalDist/filtered.length : 0;
- const avgSpeed = filtered.length ? filtered.reduce((s,r)=>s+r.avgSpeedKmh,0)/filtered.length : 0;
- const maxGforce = filtered.reduce((m,r)=>Math.max(m,r.maxGforce||0),0);
- const elevMaxAll = filtered.reduce((m,r)=>r.elevMax!=null?Math.max(m,r.elevMax):m, -Infinity);
- const now = new Date();
- const monthRides = filtered.filter(r=>{const d=new Date(r.startTime);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;
-
+ const totalDist = filtered.reduce((s,r)=>s+r.distanceM,0)/1000, totalSecs = filtered.reduce((s,r)=>s+r.durationSecs,0), maxSpeed = filtered.reduce((m,r)=>Math.max(m,r.maxSpeedKmh),0), avgDist = filtered.length ? totalDist/filtered.length : 0, avgSpeed = filtered.length ? filtered.reduce((s,r)=>s+r.avgSpeedKmh,0)/filtered.length : 0, maxGforce = filtered.reduce((m,r)=>Math.max(m,r.maxGforce||0),0), elevMaxAll = filtered.reduce((m,r)=>r.elevMax!=null?Math.max(m,r.elevMax):m, -Infinity), now = new Date();
  document.getElementById('st-total-dist').textContent = totalDist.toFixed(1);
  document.getElementById('st-total-rides').textContent = filtered.length+' ride'+(filtered.length!==1?'s':'');
- document.getElementById('st-month-rides-lbl').textContent = monthRides+' this month';
- document.getElementById('st-max-speed').textContent = maxSpeed.toFixed(1);
- document.getElementById('st-total-time').textContent = formatTotalTime(totalSecs);
- document.getElementById('st-avg-dist').textContent = avgDist.toFixed(1);
- document.getElementById('st-avg-speed').textContent = avgSpeed.toFixed(1);
- document.getElementById('st-max-gforce').textContent = maxGforce.toFixed(2);
- document.getElementById('st-max-elev').textContent = elevMaxAll > -Infinity ? elevMaxAll.toFixed(0)+'m' : '—';
-
- drawCharts(filtered);
+ document.getElementById('st-month-rides-lbl').textContent = filtered.filter(r=>{const d=new Date(r.startTime);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length+' this month';
+ document.getElementById('st-max-speed').textContent = maxSpeed.toFixed(1); document.getElementById('st-total-time').textContent = formatTotalTime(totalSecs); document.getElementById('st-avg-dist').textContent = avgDist.toFixed(1); document.getElementById('st-avg-speed').textContent = avgSpeed.toFixed(1); document.getElementById('st-max-gforce').textContent = maxGforce.toFixed(2); document.getElementById('st-max-elev').textContent = elevMaxAll > -Infinity ? elevMaxAll.toFixed(0)+'m' : '—';
+ const recent = [...filtered].reverse().slice(-20), labels = recent.map(r => formatShortDate(r.startTime));
+ chartSpeed = drawChart('chart-speed', chartSpeed, labels, recent.map(r => +r.maxSpeedKmh.toFixed(1)), '#00c8ff', 'km/h'); chartDist = drawChart('chart-dist', chartDist, labels, recent.map(r => +(r.distanceM/1000).toFixed(2)), '#2ecc71', 'km'); chartDur = drawChart('chart-dur', chartDur, labels, recent.map(r => +(r.durationSecs/60).toFixed(1)), '#f39c12', 'min');
 }
-
 function setStatsFilter(v) { statsFilter=v; renderStats(); }
-
-function drawCharts(filtered) {
- const recent = [...filtered].reverse().slice(-20); // last 20 rides oldest-first
- const labels = recent.map(r => formatShortDate(r.startTime));
- const speedData = recent.map(r => +r.maxSpeedKmh.toFixed(1));
- const distData = recent.map(r => +(r.distanceM/1000).toFixed(2));
- const durData = recent.map(r => +(r.durationSecs/60).toFixed(1));
-
- chartSpeed = drawChart('chart-speed', chartSpeed, labels, speedData, '#00c8ff', 'km/h');
- chartDist = drawChart('chart-dist', chartDist, labels, distData, '#2ecc71', 'km');
- chartDur = drawChart('chart-dur', chartDur, labels, durData, '#f39c12', 'min');
-}
-
 function drawChart(id, existing, labels, data, color, unit) {
- const canvas = document.getElementById(id);
- if (!canvas) return existing;
- if (existing) { existing.destroy(); }
+ const canvas = document.getElementById(id); if (!canvas) return existing; if (existing) existing.destroy();
  if (!data.length) { const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); return null; }
-
- // Simple canvas chart — no external library needed
- const ctx = canvas.getContext('2d');
- const dpr = window.devicePixelRatio||1;
- const W = canvas.offsetWidth||300, H = 140;
- canvas.width = W*dpr; canvas.height = H*dpr;
- canvas.style.height = H+'px';
- ctx.scale(dpr, dpr);
-
- const pad = {top:16,right:16,bottom:36,left:40};
- const cW = W-pad.left-pad.right, cH = H-pad.top-pad.bottom;
- const max = Math.max(...data)*1.1||1, min = 0;
- const xStep = data.length>1 ? cW/(data.length-1) : cW;
-
- ctx.clearRect(0,0,W,H);
-
- // Grid lines
- ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
- [0,0.25,0.5,0.75,1].forEach(t=>{
- const y=pad.top+cH*(1-t);
- ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cW,y); ctx.stroke();
- ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='9px sans-serif'; ctx.textAlign='right';
- ctx.fillText((min+(max-min)*t).toFixed(1), pad.left-4, y+3);
- });
-
- // Area fill
- ctx.beginPath();
- data.forEach((v,i)=>{ const x=pad.left+i*xStep, y=pad.top+cH*(1-(v-min)/(max-min)); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
- ctx.lineTo(pad.left+(data.length-1)*xStep, pad.top+cH);
- ctx.lineTo(pad.left, pad.top+cH); ctx.closePath();
- ctx.fillStyle=color+'22'; ctx.fill();
-
- // Line
- ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round';
- data.forEach((v,i)=>{ const x=pad.left+i*xStep, y=pad.top+cH*(1-(v-min)/(max-min)); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
- ctx.stroke();
-
- // Dots
+ const ctx = canvas.getContext('2d'), dpr = window.devicePixelRatio||1, W = canvas.offsetWidth||300, H = 140;
+ canvas.width = W*dpr; canvas.height = H*dpr; canvas.style.height = H+'px'; ctx.scale(dpr, dpr);
+ const pad = {top:16,right:16,bottom:36,left:40}, cW = W-pad.left-pad.right, cH = H-pad.top-pad.bottom, max = Math.max(...data)*1.1||1, min = 0, xStep = data.length>1 ? cW/(data.length-1) : cW;
+ ctx.clearRect(0,0,W,H); ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+ [0,0.25,0.5,0.75,1].forEach(t=>{ const y=pad.top+cH*(1-t); ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cW,y); ctx.stroke(); ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='9px sans-serif'; ctx.textAlign='right'; ctx.fillText((min+(max-min)*t).toFixed(1), pad.left-4, y+3); });
+ ctx.beginPath(); data.forEach((v,i)=>{ const x=pad.left+i*xStep, y=pad.top+cH*(1-(v-min)/(max-min)); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.lineTo(pad.left+(data.length-1)*xStep, pad.top+cH); ctx.lineTo(pad.left, pad.top+cH); ctx.closePath(); ctx.fillStyle=color+'22'; ctx.fill();
+ ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round'; data.forEach((v,i)=>{ const x=pad.left+i*xStep, y=pad.top+cH*(1-(v-min)/(max-min)); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.stroke();
  data.forEach((v,i)=>{ const x=pad.left+i*xStep, y=pad.top+cH*(1-(v-min)/(max-min)); ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fillStyle=color; ctx.fill(); });
-
- // X labels — only show a subset
- ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='9px sans-serif'; ctx.textAlign='center';
- const step = data.length>8 ? Math.ceil(data.length/6) : 1;
- labels.forEach((l,i)=>{ if(i%step===0||i===labels.length-1) ctx.fillText(l, pad.left+i*xStep, H-8); });
-
+ ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='9px sans-serif'; ctx.textAlign='center'; const step = data.length>8 ? Math.ceil(data.length/6) : 1; labels.forEach((l,i)=>{ if(i%step===0||i===labels.length-1) ctx.fillText(l, pad.left+i*xStep, H-8); });
  return { destroy: ()=>{ ctx.clearRect(0,0,W*dpr,H*dpr); } };
 }
 
-/* ══════════════════════════════════════════════════════
- WEATHER HELPERS
-══════════════════════════════════════════════════════ */
-function weatherDesc(code) {
- if (code===0) return 'Clear'; if (code<=2) return 'Partly cloudy'; if (code<=3) return 'Overcast';
- if (code<=9) return 'Foggy'; if (code<=19) return 'Drizzle'; if (code<=29) return 'Rain';
- if (code<=39) return 'Snow'; if (code<=49) return 'Fog'; if (code<=59) return 'Drizzle';
- if (code<=69) return 'Rain'; if (code<=79) return 'Snow'; if (code<=84) return 'Showers';
- if (code<=94) return 'Thunderstorm'; return 'Stormy';
-}
-function weatherEmoji(code) {
- if (code===0) return '☀️'; if (code<=2) return '⛅'; if (code<=3) return '☁️';
- if (code<=9) return '🌫️'; if (code<=39) return '🌧️'; if (code<=49) return '🌫️';
- if (code<=69) return '🌧️'; if (code<=79) return '❄️'; if (code<=84) return '🌦️';
- return '⛈️';
-}
-
-/* ══════════════════════════════════════════════════════
- SETTINGS
-══════════════════════════════════════════════════════ */
-function loadMapsIfKey() {
- const key = getSetting('g3_maps_key');
- if (!key) return;
- if (window.google && window.google.maps) {
- if (isRecording) initLiveMap();
- return;
- }
- // Load Maps script
- window.mapsReady = () => {
- console.log('Google Maps ready');
- if (isRecording) initLiveMap();
- };
- // Remove any existing Maps script first to avoid duplicates
- const existing = document.querySelector('script[src*="maps.googleapis"]');
- if (existing) existing.remove();
- 
-const s = document.createElement('script');
- s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=mapsReady`;
- s.async = false; // Load synchronously so it's ready when needed
- s.onerror = (e) => console.error('Maps failed:', e);
- document.head.appendChild(s);
-}
-function saveApiKey() {
- const key = document.getElementById('settings-key-input').value.trim();
- if (!key) { alert('Please paste a key first.'); return; }
- setSetting('g3_maps_key', key);
- document.getElementById('settings-key-input').value = '';
- updateSettingsKeyDisplay();
- showToast('API key saved — restart app to activate maps');
-}
-function clearApiKey() {
- if (!confirm('Remove the Maps API key?')) return;
- removeSetting('g3_maps_key'); updateSettingsKeyDisplay(); showToast('API key removed');
-}
-function updateSettingsKeyDisplay() {
- const key = getSetting('g3_maps_key'), el = document.getElementById('key-status');
- if (key) { el.className='key-status ok'; el.textContent='\u2713 Key saved: '+key.substring(0,8)+'\u2026'; }
- else { el.className='key-status none'; el.textContent='No key set \u2014 maps disabled'; }
-}
-async function deleteAllRides() {
- if (!confirm('Delete ALL rides permanently? Cannot be undone.')) return;
- // Mark all as deleted in Supabase before clearing local
- if (syncEnabled && supabaseClient) {
- try {
- const { data } = await supabaseClient.from('rides').select('ride_id').eq('deleted', false);
- if (data && data.length) {
- for (const row of data) {
- await supabaseClient.from('rides').upsert({
- ride_id: row.ride_id,
- device_id: DEVICE_ID,
- deleted: true,
- data: null,
- start_time: new Date().toISOString(),
- updated_at: new Date().toISOString()
- }, { onConflict: 'ride_id' });
- }
- }
- } catch(e) { console.warn('Delete all sync failed', e); }
- }
- rides=[];
- try { if(db) await dbClear(); } catch(e) {}
- renderHistory(); renderStats(); updateStorageInfo(); showToast('All rides deleted');
-}
-function updateStorageInfo() {
- const el = document.getElementById('storage-info');
- if (el) el.textContent = rides.length + ' ride' + (rides.length!==1?'s':'') + ' stored \u00b7 IndexedDB (persistent)';
-}
-
-/* ══════════════════════════════════════════════════════
- MEDIA VIEWER
-══════════════════════════════════════════════════════ */
-function openMediaViewer(m) {
- const inner = document.getElementById('media-viewer-inner');
- inner.innerHTML = '';
- const el = document.createElement('img');
- el.src = m.src; el.onclick = e => e.stopPropagation();
- inner.appendChild(el);
- document.getElementById('media-viewer').classList.add('open');
-}
+function weatherDesc(c) { if(c===0)return'Clear';if(c<=2)return'Partly cloudy';if(c<=3)return'Overcast';if(c<=9)return'Foggy';if(c<=19)return'Drizzle';if(c<=29)return'Rain';if(c<=39)return'Snow';if(c<=49)return'Fog';if(c<=59)return'Drizzle';if(c<=69)return'Rain';if(c<=79)return'Snow';if(c<=84)return'Showers';if(c<=94)return'Thunderstorm';return'Stormy'; }
+function weatherEmoji(c) { if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=9)return'🌫️';if(c<=39)return'🌧️';if(c<=49)return'🌫️';if(c<=69)return'🌧️';if(c<=79)return'❄️';if(c<=84)return'🌦️';return'⛈️'; }
+function loadMapsIfKey() { const key = getSetting('g3_maps_key'); if (!key) return; if (window.google && window.google.maps) { if (isRecording) initLiveMap(); return; } window.mapsReady = () => { if (isRecording) initLiveMap(); }; const existing = document.querySelector('script[src*="maps.googleapis"]'); if (existing) existing.remove(); const s = document.createElement('script'); s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=mapsReady`; s.async = false; document.head.appendChild(s); }
+function saveApiKey() { const key = document.getElementById('settings-key-input').value.trim(); if (!key) return alert('Please paste a key first.'); setSetting('g3_maps_key', key); document.getElementById('settings-key-input').value = ''; updateSettingsKeyDisplay(); showToast('API key saved — restart app to activate maps'); }
+function clearApiKey() { if (!confirm('Remove the Maps API key?')) return; removeSetting('g3_maps_key'); updateSettingsKeyDisplay(); showToast('API key removed'); }
+function updateSettingsKeyDisplay() { const key = getSetting('g3_maps_key'), el = document.getElementById('key-status'); if (key) { el.className='key-status ok'; el.textContent='\u2713 Key saved: '+key.substring(0,8)+'\u2026'; } else { el.className='key-status none'; el.textContent='No key set \u2014 maps disabled'; } }
+async function deleteAllRides() { if (!confirm('Delete ALL rides permanently? Cannot be undone.')) return; if (syncEnabled && supabaseClient) { try { const { data } = await supabaseClient.from('rides').select('ride_id').eq('deleted', false); if (data && data.length) { for (const row of data) { await supabaseClient.from('rides').upsert({ ride_id: row.ride_id, device_id: DEVICE_ID, deleted: true, data: null, start_time: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'ride_id' }); } } } catch(e) {} } rides=[]; try { if(db) await dbClear(); } catch(e) {} renderHistory(); renderStats(); updateStorageInfo(); showToast('All rides deleted'); }
+function updateStorageInfo() { const el = document.getElementById('storage-info'); if (el) el.textContent = rides.length + ' ride' + (rides.length!==1?'s':'') + ' stored \u00b7 IndexedDB (persistent)'; }
+function openMediaViewer(m) { const inner = document.getElementById('media-viewer-inner'); inner.innerHTML = ''; const el = document.createElement('img'); el.src = m.src; el.onclick = e => e.stopPropagation(); inner.appendChild(el); document.getElementById('media-viewer').classList.add('open'); }
 function closeMediaViewer() { document.getElementById('media-viewer').classList.remove('open'); }
-
-/* ══════════════════════════════════════════════════════
- UTILS
-══════════════════════════════════════════════════════ */
-function formatDur(secs) {
- const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60;
- return h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`;
-}
+function formatDur(secs) { const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60; return h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`; }
 function formatTotalTime(secs) { const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60); return h>0?`${h}h ${m}m`:`${m}m`; }
 function formatDate(ts) { return new Date(ts).toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
 function formatShortDate(ts) { return new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
 function formatTime(ts) { return new Date(ts).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}); }
-function haversine(la1,lo1,la2,lo2) {
- const R=6371000,dL=(la2-la1)*Math.PI/180,dl=(lo2-lo1)*Math.PI/180;
- const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dl/2)**2;
- return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
+function haversine(la1,lo1,la2,lo2) { const R=6371000,dL=(la2-la1)*Math.PI/180,dl=(lo2-lo1)*Math.PI/180,a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dl/2)**2; return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function showToast(msg) {
- const t=document.createElement('div');
- t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2ecc71;color:white;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:999;white-space:nowrap';
- t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2500);
-}
+function showToast(msg) { const t=document.createElement('div'); t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2ecc71;color:white;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:999;white-space:nowrap'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2500); }
 
-
-/* ══════════════════════════════════════════════════════
- SUPABASE SYNC
-══════════════════════════════════════════════════════ */
-function initSupabase() {
- try {
- supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
- syncEnabled = getSetting('g3_sync_enabled') === '1';
- if (syncEnabled) {
- updateSyncStatus('connected', 'Sync enabled');
- document.getElementById('supabase-enable-btn').style.display = 'none';
- document.getElementById('supabase-disable-btn').style.display = '';
- document.getElementById('supabase-sync-btn').style.display = '';
- document.getElementById('sync-badge').classList.add('visible');
- supabaseSync();
- } else {
- updateSyncStatus('disconnected', 'Not enabled');
- }
- } catch(e) {
- console.error('Supabase init error', e);
- updateSyncStatus('error', 'Sync unavailable');
- }
-}
-
-function enableSupabaseSync() {
- syncEnabled = true;
- setSetting('g3_sync_enabled', '1');
- document.getElementById('supabase-enable-btn').style.display = 'none';
- document.getElementById('supabase-disable-btn').style.display = '';
- document.getElementById('supabase-sync-btn').style.display = '';
- document.getElementById('sync-badge').classList.add('visible');
- updateSyncStatus('connected', 'Sync enabled');
- showToast('✓ Cloud sync enabled');
- supabaseSync();
-}
-
-function disableSupabaseSync() {
- if (!confirm('Disable cloud sync? Your local rides will not be deleted.')) return;
- syncEnabled = false;
- setSetting('g3_sync_enabled', '0');
- document.getElementById('supabase-enable-btn').style.display = '';
- document.getElementById('supabase-disable-btn').style.display = 'none';
- document.getElementById('supabase-sync-btn').style.display = 'none';
- document.getElementById('sync-badge').classList.remove('visible');
- updateSyncStatus('disconnected', 'Not enabled');
- showToast('Cloud sync disabled');
-}
-
-function updateSyncStatus(state, msg) {
- const el = document.getElementById('drive-status-el');
- const txt = document.getElementById('drive-status-txt');
- if (!el || !txt) return;
- el.className = 'drive-status ' + state;
- txt.textContent = msg;
-}
-
+function initSupabase() { try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); syncEnabled = getSetting('g3_sync_enabled') === '1'; if (syncEnabled) { updateSyncStatus('connected', 'Sync enabled'); document.getElementById('supabase-enable-btn').style.display = 'none'; document.getElementById('supabase-disable-btn').style.display = ''; document.getElementById('supabase-sync-btn').style.display = ''; document.getElementById('sync-badge').classList.add('visible'); supabaseSync(); } else { updateSyncStatus('disconnected', 'Not enabled'); } } catch(e) { updateSyncStatus('error', 'Sync unavailable'); } }
+function enableSupabaseSync() { syncEnabled = true; setSetting('g3_sync_enabled', '1'); document.getElementById('supabase-enable-btn').style.display = 'none'; document.getElementById('supabase-disable-btn').style.display = ''; document.getElementById('supabase-sync-btn').style.display = ''; document.getElementById('sync-badge').classList.add('visible'); updateSyncStatus('connected', 'Sync enabled'); showToast('✓ Cloud sync enabled'); supabaseSync(); }
+function disableSupabaseSync() { if (!confirm('Disable cloud sync? Your local rides will not be deleted.')) return; syncEnabled = false; setSetting('g3_sync_enabled', '0'); document.getElementById('supabase-enable-btn').style.display = ''; document.getElementById('supabase-disable-btn').style.display = 'none'; document.getElementById('supabase-sync-btn').style.display = 'none'; document.getElementById('sync-badge').classList.remove('visible'); updateSyncStatus('disconnected', 'Not enabled'); showToast('Cloud sync disabled'); }
+function updateSyncStatus(state, msg) { const el = document.getElementById('drive-status-el'), txt = document.getElementById('drive-status-txt'); if (!el || !txt) return; el.className = 'drive-status ' + state; txt.textContent = msg; }
 async function supabaseSync() {
- if (!syncEnabled || !supabaseClient) return;
- updateSyncStatus('syncing', 'Syncing…');
+ if (!syncEnabled || !supabaseClient) return; updateSyncStatus('syncing', 'Syncing…');
  try {
- // Step 1: Download ALL rides from Supabase first (including tombstones)
- const { data: remoteData, error: fetchError } = await supabaseClient
- .from('rides')
- .select('ride_id, data, deleted')
- .order('start_time', { ascending: false });
- if (fetchError) throw fetchError;
-
- // Build set of remotely deleted ride IDs
- const remoteDeleted = new Set(
- (remoteData || []).filter(r => r.deleted).map(r => r.ride_id)
- );
-
- // Step 2: Remove locally any rides deleted on another device
- if (remoteDeleted.size > 0) {
- const before = rides.length;
- rides = rides.filter(r => !remoteDeleted.has(String(r.id)));
- if (rides.length !== before) {
- if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
- }
- }
-
- // Step 3: Upload local rides (that aren't deleted remotely)
+ const { data: remoteData } = await supabaseClient.from('rides').select('ride_id, data, deleted').order('start_time', { ascending: false });
+ const remoteDeleted = new Set((remoteData || []).filter(r => r.deleted).map(r => r.ride_id));
+ if (remoteDeleted.size > 0) { const before = rides.length; rides = rides.filter(r => !remoteDeleted.has(String(r.id))); if (rides.length !== before) { if (db) { await dbClear(); for (const r of rides) await dbPut(r); } } }
  for (const ride of rides) {
- if (remoteDeleted.has(String(ride.id))) continue; // don't re-upload deleted rides
- const rideToStore = {
- ride_id: String(ride.id),
- device_id: DEVICE_ID,
- deleted: false,
- data: JSON.stringify({...ride, media: ride.media ? ride.media.map(m => ({...m, src: m.src && m.src.length > 500000 ? '' : (m.src||'')})) : []}),
- start_time: new Date(ride.startTime).toISOString(),
- updated_at: new Date().toISOString()
- };
- await supabaseClient.from('rides').upsert(rideToStore, { onConflict: 'ride_id' });
+ if (remoteDeleted.has(String(ride.id))) continue;
+ await supabaseClient.from('rides').upsert({ ride_id: String(ride.id), device_id: DEVICE_ID, deleted: false, data: JSON.stringify({...ride, media: ride.media ? ride.media.map(m => ({...m, src: m.src && m.src.length > 500000 ? '' : (m.src||'')})) : []}), start_time: new Date(ride.startTime).toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'ride_id' });
  }
-
- // Step 4: Merge remote non-deleted rides into local
- const remoteRides = (remoteData || [])
- .filter(r => !r.deleted && r.data)
- .map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } })
- .filter(Boolean);
-
+ const remoteRides = (remoteData || []).filter(r => !r.deleted && r.data).map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
  if (remoteRides.length > 0) {
- const merged = Object.values(
- [...rides, ...remoteRides].reduce((acc, r) => {
- if (!r || !r.id) return acc;
- if (!acc[r.id] || (r.endTime||0) > (acc[r.id].endTime||0)) acc[r.id] = r;
- return acc;
- }, {})
- ).sort((a,b) => b.startTime - a.startTime);
-
- rides = merged;
+ rides = Object.values([...rides, ...remoteRides].reduce((acc, r) => { if (!acc[r.id] || (r.endTime||0) > (acc[r.id].endTime||0)) acc[r.id] = r; return acc; }, {})).sort((a,b) => b.startTime - a.startTime);
  if (db) { await dbClear(); for (const r of rides) await dbPut(r); }
  }
-
- renderHistory(); renderStats();
- updateSyncStatus('connected', 'Synced · ' + formatTime(Date.now()));
- document.getElementById('sync-badge').classList.add('visible');
- updateStorageInfo();
- } catch(e) {
- console.error('Supabase sync error', e);
- updateSyncStatus('error', 'Sync failed — will retry');
- }
+ renderHistory(); renderStats(); updateSyncStatus('connected', 'Synced · ' + formatTime(Date.now())); document.getElementById('sync-badge').classList.add('visible'); updateStorageInfo();
+ } catch(e) { updateSyncStatus('error', 'Sync failed — will retry'); }
 }
+async function driveSaveRide(ride) { if (!syncEnabled || !supabaseClient) return; try { await supabaseSync(); } catch(e) {} }
 
-async function driveSaveRide(ride) {
- // Auto-sync after each ride save
- if (!syncEnabled || !supabaseClient) return;
- try { await supabaseSync(); } catch(e) { console.warn('Sync failed silently', e); }
-}
-
-
-/* ══════════════════════════════════════════════════════
- STRAVA INTEGRATION
-══════════════════════════════════════════════════════ */
 function initStrava() {
- // Check for OAuth callback code in URL
- const params = new URLSearchParams(window.location.search);
- const code = params.get('code');
- const state = params.get('state');
-
- if (code && state === 'strava_auth') {
- // Exchange code for token
- exchangeStravaCode(code);
- // Clean up URL
- window.history.replaceState({}, document.title, window.location.pathname);
- return;
- }
-
- // Restore saved token
+ const params = new URLSearchParams(window.location.search), code = params.get('code'), state = params.get('state');
+ if (code && state === 'strava_auth') { exchangeStravaCode(code); window.history.replaceState({}, document.title, window.location.pathname); return; }
  const saved = getSetting('g3_strava_token');
  if (saved) {
  try {
  stravaToken = JSON.parse(saved);
- // Check if token is expired
- if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) {
- refreshStravaToken();
- } else {
- updateStravaStatus('connected', 'Connected as ' + (stravaToken.athlete_name || 'athlete'));
- document.getElementById('strava-connect-btn').style.display = 'none';
- document.getElementById('strava-disconnect-btn').style.display = '';
- showStravaAutopostRow();
- }
+ if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) refreshStravaToken();
+ else { updateStravaStatus('connected', 'Connected as ' + (stravaToken.athlete_name || 'athlete')); document.getElementById('strava-connect-btn').style.display = 'none'; document.getElementById('strava-disconnect-btn').style.display = ''; showStravaAutopostRow(); }
  } catch(e) { stravaToken = null; }
  }
 }
-
-function stravaAuth() {
- const authUrl = 'https://www.strava.com/oauth/authorize' +
- '?client_id=' + STRAVA_CLIENT_ID +
- '&redirect_uri=' + encodeURIComponent('https://stephenmmcgrath.github.io/g3tracker/G3RideTracker.html') +
- '&response_type=code' +
- '&approval_prompt=auto' +
- '&scope=activity:write' +
- '&state=strava_auth';
- window.location.href = authUrl;
-}
-
+function stravaAuth() { window.location.href = 'https://www.strava.com/oauth/authorize?client_id=' + STRAVA_CLIENT_ID + '&redirect_uri=' + encodeURIComponent('https://stephenmmcgrath.github.io/g3tracker/G3RideTracker.html') + '&response_type=code&approval_prompt=auto&scope=activity:write&state=strava_auth'; }
 async function exchangeStravaCode(code) {
  updateStravaStatus('syncing', 'Connecting to Strava…');
  try {
- const resp = await fetch('https://www.strava.com/oauth/token', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({
- client_id: STRAVA_CLIENT_ID,
- client_secret: STRAVA_CLIENT_SECRET,
- code: code,
- grant_type: 'authorization_code'
- })
- });
- const data = await resp.json();
- if (data.access_token) {
- stravaToken = {
- access_token: data.access_token,
- refresh_token: data.refresh_token,
- expires_at: data.expires_at,
- athlete_name: data.athlete ? data.athlete.firstname : 'athlete'
- };
- setSetting('g3_strava_token', JSON.stringify(stravaToken));
- updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name);
- document.getElementById('strava-connect-btn').style.display = 'none';
- document.getElementById('strava-disconnect-btn').style.display = '';
- showStravaAutopostRow();
- showToast('✓ Strava connected!');
- } else {
- updateStravaStatus('error', 'Connection failed — try again');
- showToast('Strava connection failed');
- }
- } catch(e) {
- console.error('Strava auth error', e);
- updateStravaStatus('error', 'Connection failed');
- }
+ const resp = await fetch('https://www.strava.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' }) }), data = await resp.json();
+ if (data.access_token) { stravaToken = { access_token: data.access_token, refresh_token: data.refresh_token, expires_at: data.expires_at, athlete_name: data.athlete ? data.athlete.firstname : 'athlete' }; setSetting('g3_strava_token', JSON.stringify(stravaToken)); updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name); document.getElementById('strava-connect-btn').style.display = 'none'; document.getElementById('strava-disconnect-btn').style.display = ''; showStravaAutopostRow(); showToast('✓ Strava connected!'); } else { updateStravaStatus('error', 'Connection failed — try again'); showToast('Strava connection failed'); }
+ } catch(e) { updateStravaStatus('error', 'Connection failed'); }
 }
-
 async function refreshStravaToken() {
  if (!stravaToken || !stravaToken.refresh_token) return;
  try {
- const resp = await fetch('https://www.strava.com/oauth/token', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({
- client_id: STRAVA_CLIENT_ID,
- client_secret: STRAVA_CLIENT_SECRET,
- refresh_token: stravaToken.refresh_token,
- grant_type: 'refresh_token'
- })
- });
- const data = await resp.json();
- if (data.access_token) {
- stravaToken.access_token = data.access_token;
- stravaToken.refresh_token = data.refresh_token;
- stravaToken.expires_at = data.expires_at;
- setSetting('g3_strava_token', JSON.stringify(stravaToken));
- updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name);
- document.getElementById('strava-connect-btn').style.display = 'none';
- document.getElementById('strava-disconnect-btn').style.display = '';
- }
- } catch(e) { console.error('Token refresh failed', e); }
+ const resp = await fetch('https://www.strava.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, refresh_token: stravaToken.refresh_token, grant_type: 'refresh_token' }) }), data = await resp.json();
+ if (data.access_token) { stravaToken.access_token = data.access_token; stravaToken.refresh_token = data.refresh_token; stravaToken.expires_at = data.expires_at; setSetting('g3_strava_token', JSON.stringify(stravaToken)); updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name); document.getElementById('strava-connect-btn').style.display = 'none'; document.getElementById('strava-disconnect-btn').style.display = ''; }
+ } catch(e) {}
 }
-
-function stravaDisconnect() {
- if (!confirm('Disconnect Strava? You can reconnect any time.')) return;
- stravaToken = null;
- removeSetting('g3_strava_token');
- updateStravaStatus('disconnected', 'Not connected');
- document.getElementById('strava-connect-btn').style.display = '';
- document.getElementById('strava-disconnect-btn').style.display = 'none';
- document.getElementById('strava-autopost-row').style.display = 'none';
- stravaAutopost = false;
- setSetting('g3_strava_autopost', '0');
- showToast('Strava disconnected');
-}
-
-function updateStravaStatus(state, msg) {
- const el = document.getElementById('strava-status-el');
- const txt = document.getElementById('strava-status-txt');
- if (!el || !txt) return;
- el.className = 'drive-status ' + state;
- txt.textContent = msg;
-}
-
+function stravaDisconnect() { if (!confirm('Disconnect Strava? You can reconnect any time.')) return; stravaToken = null; removeSetting('g3_strava_token'); updateStravaStatus('disconnected', 'Not connected'); document.getElementById('strava-connect-btn').style.display = ''; document.getElementById('strava-disconnect-btn').style.display = 'none'; document.getElementById('strava-autopost-row').style.display = 'none'; stravaAutopost = false; setSetting('g3_strava_autopost', '0'); showToast('Strava disconnected'); }
+function updateStravaStatus(state, msg) { const el = document.getElementById('strava-status-el'), txt = document.getElementById('strava-status-txt'); if (!el || !txt) return; el.className = 'drive-status ' + state; txt.textContent = msg; }
 async function postToStrava() {
- if (!stravaToken) { showToast('Connect Strava first in Settings'); return; }
- const ride = rides.find(r => r.id === currentDetailId);
- if (!ride) return;
-
- // Refresh token if expired
- if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) {
- await refreshStravaToken();
- }
-
+ if (!stravaToken) return showToast('Connect Strava first in Settings');
+ const ride = rides.find(r => r.id === currentDetailId); if (!ride) return;
+ if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) await refreshStravaToken();
  showToast('Posting to Strava…');
-
  try {
- // Build GPX data from route points
- let gpxData = null;
- if (ride.routePoints && ride.routePoints.length > 1) {
- gpxData = buildGPX(ride);
- }
-
- let activityId = null;
-
+ let activityId = null, gpxData = (ride.routePoints && ride.routePoints.length > 1) ? buildGPX(ride) : null;
  if (gpxData) {
- // Upload GPX file
- const formData = new FormData();
- const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
- formData.append('file', blob, 'ride.gpx');
- formData.append('data_type', 'gpx');
- formData.append('name', ride.title || 'G3 Ride');
- formData.append('description', ride.notes || 'Recorded with G3 Ride Tracker');
- formData.append('sport_type', 'EBikeRide');
- formData.append('commute', '0');
-
- const uploadResp = await fetch('https://www.strava.com/api/v3/uploads', {
- method: 'POST',
- headers: { Authorization: 'Bearer ' + stravaToken.access_token },
- body: formData
- });
- const uploadData = await uploadResp.json();
-
+ const formData = new FormData(); formData.append('file', new Blob([gpxData], { type: 'application/gpx+xml' }), 'ride.gpx'); formData.append('data_type', 'gpx'); formData.append('name', ride.title || 'G3 Ride'); formData.append('description', ride.notes || 'Recorded with G3 Ride Tracker'); formData.append('sport_type', 'EBikeRide'); formData.append('commute', '0');
+ const uploadResp = await fetch('https://www.strava.com/api/v3/uploads', { method: 'POST', headers: { Authorization: 'Bearer ' + stravaToken.access_token }, body: formData }), uploadData = await uploadResp.json();
  if (uploadData.error) throw new Error(uploadData.error);
-
- // Poll for upload completion
  activityId = await pollStravaUpload(uploadData.id);
  } else {
- // No GPS data — create manual activity
- const startDate = new Date(ride.startTime).toISOString();
- const resp = await fetch('https://www.strava.com/api/v3/activities', {
- method: 'POST',
- headers: {
- Authorization: 'Bearer ' + stravaToken.access_token,
- 'Content-Type': 'application/json'
- },
- body: JSON.stringify({
- name: ride.title || 'G3 Ride',
- sport_type: 'EBikeRide',
- start_date_local: startDate,
- elapsed_time: ride.durationSecs,
- description: ride.notes || 'Recorded with G3 Ride Tracker',
- distance: ride.distanceM,
- commute: false
- })
- });
- const data = await resp.json();
- activityId = data.id;
+ const resp = await fetch('https://www.strava.com/api/v3/activities', { method: 'POST', headers: { Authorization: 'Bearer ' + stravaToken.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: ride.title || 'G3 Ride', sport_type: 'EBikeRide', start_date_local: new Date(ride.startTime).toISOString(), elapsed_time: ride.durationSecs, description: ride.notes || 'Recorded with G3 Ride Tracker', distance: ride.distanceM, commute: false }) }), data = await resp.json(); activityId = data.id;
  }
-
- if (activityId) {
- // Mark ride as posted to Strava
- ride.stravaId = activityId;
- dbPut(ride).catch(() => {});
- if (syncEnabled && supabaseClient) driveSaveRide(ride);
- document.getElementById('strava-post-btn').textContent = '✓ Posted to Strava';
- document.getElementById('strava-post-btn').style.opacity = '0.6';
- showToast('✓ Posted to Strava!');
- }
- } catch(e) {
- console.error('Strava post error', e);
- showToast('Failed to post to Strava — try again');
- }
+ if (activityId) { ride.stravaId = activityId; dbPut(ride).catch(() => {}); if (syncEnabled && supabaseClient) driveSaveRide(ride); document.getElementById('strava-post-btn').textContent = '✓ Posted to Strava'; document.getElementById('strava-post-btn').style.opacity = '0.6'; showToast('✓ Posted to Strava!'); }
+ } catch(e) { showToast('Failed to post to Strava — try again'); }
 }
-
 async function pollStravaUpload(uploadId) {
  for (let i = 0; i < 20; i++) {
  await new Promise(r => setTimeout(r, 2000));
- const resp = await fetch('https://www.strava.com/api/v3/uploads/' + uploadId, {
- headers: { Authorization: 'Bearer ' + stravaToken.access_token }
- });
- const data = await resp.json();
- if (data.activity_id) return data.activity_id;
- if (data.error) throw new Error(data.error);
- }
- throw new Error('Upload timed out');
+ const resp = await fetch('https://www.strava.com/api/v3/uploads/' + uploadId, { headers: { Authorization: 'Bearer ' + stravaToken.access_token } }), data = await resp.json();
+ if (data.activity_id) return data.activity_id; if (data.error) throw new Error(data.error);
+ } throw new Error('Upload timed out');
 }
-
 function buildGPX(ride) {
- const pts = ride.routePoints.map(p => {
- const time = new Date(p.ts || ride.startTime).toISOString();
- return ` <trkpt lat="${p.lat}" lon="${p.lng}">
- <ele>${(p.altitude || 0).toFixed(1)}</ele>
- <time>${time}</time>
- <extensions><gpxtpx:TrackPointExtension><gpxtpx:speed>${((p.speedKmh || 0) / 3.6).toFixed(2)}</gpxtpx:speed></gpxtpx:TrackPointExtension></extensions>
- </trkpt>`;
- }).join('\n');
-
- return `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="G3 Ride Tracker"
- xmlns="http://www.topografix.com/GPX/1/1"
- xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">
- <trk>
- <name>${(ride.title || 'G3 Ride').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</name>
- <trkseg>
-${pts}
- </trkseg>
- </trk>
-</gpx>`;
+ const pts = ride.routePoints.map(p => ` <trkpt lat="${p.lat}" lon="${p.lng}"><ele>${(p.altitude || 0).toFixed(1)}</ele><time>${new Date(p.ts || ride.startTime).toISOString()}</time><extensions><gpxtpx:TrackPointExtension><gpxtpx:speed>${((p.speedKmh || 0) / 3.6).toFixed(2)}</gpxtpx:speed></gpxtpx:TrackPointExtension></extensions></trkpt>`).join('\n');
+ return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="G3 Ride Tracker" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">\n <trk>\n <name>${(ride.title || 'G3 Ride').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</name>\n <trkseg>\n${pts}\n </trkseg>\n </trk>\n</gpx>`;
 }
-
-
 function showStravaAutopostRow() {
  const row = document.getElementById('strava-autopost-row');
- if (row) {
- row.style.display = 'flex';
- stravaAutopost = getSetting('g3_strava_autopost') === '1';
- const toggle = document.getElementById('strava-autopost-toggle');
- const slider = document.getElementById('strava-autopost-slider');
- const knob = document.getElementById('strava-autopost-knob');
- if (toggle) toggle.checked = stravaAutopost;
- if (slider) slider.style.background = stravaAutopost ? 'var(--success)' : 'var(--text3)';
- if (knob) knob.style.transform = stravaAutopost ? 'translateX(20px)' : 'translateX(0)';
- }
+ if (row) { row.style.display = 'flex'; stravaAutopost = getSetting('g3_strava_autopost') === '1'; const toggle = document.getElementById('strava-autopost-toggle'), slider = document.getElementById('strava-autopost-slider'), knob = document.getElementById('strava-autopost-knob'); if (toggle) toggle.checked = stravaAutopost; if (slider) slider.style.background = stravaAutopost ? 'var(--success)' : 'var(--text3)'; if (knob) knob.style.transform = stravaAutopost ? 'translateX(20px)' : 'translateX(0)'; }
 }
-
 function toggleStravaAutopost() {
- const toggle = document.getElementById('strava-autopost-toggle');
- const slider = document.getElementById('strava-autopost-slider');
- const knob = document.getElementById('strava-autopost-knob');
- stravaAutopost = toggle.checked;
- setSetting('g3_strava_autopost', stravaAutopost ? '1' : '0');
- if (slider) slider.style.background = stravaAutopost ? 'var(--success)' : 'var(--text3)';
- if (knob) knob.style.transform = stravaAutopost ? 'translateX(20px)' : 'translateX(0)';
- showToast(stravaAutopost ? '✓ Auto-post enabled' : 'Auto-post disabled');
+ stravaAutopost = document.getElementById('strava-autopost-toggle').checked; setSetting('g3_strava_autopost', stravaAutopost ? '1' : '0'); const slider = document.getElementById('strava-autopost-slider'), knob = document.getElementById('strava-autopost-knob'); if (slider) slider.style.background = stravaAutopost ? 'var(--success)' : 'var(--text3)'; if (knob) knob.style.transform = stravaAutopost ? 'translateX(20px)' : 'translateX(0)'; showToast(stravaAutopost ? '✓ Auto-post enabled' : 'Auto-post disabled');
 }
-
 async function autoPostToStrava(ride) {
- if (!stravaToken || !ride) return;
- // Refresh token if expired
- if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) {
- await refreshStravaToken();
- }
+ if (!stravaToken || !ride) return; if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) await refreshStravaToken();
  try {
  let activityId = null;
  if (ride.routePoints && ride.routePoints.length > 1) {
- const gpxData = buildGPX(ride);
- const formData = new FormData();
- const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
- formData.append('file', blob, 'ride.gpx');
- formData.append('data_type', 'gpx');
- formData.append('name', ride.title || 'G3 Ride');
- formData.append('description', ride.notes || 'Recorded with G3 Ride Tracker');
- formData.append('sport_type', 'EBikeRide');
- formData.append('commute', '0');
- const uploadResp = await fetch('https://www.strava.com/api/v3/uploads', {
- method: 'POST',
- headers: { Authorization: 'Bearer ' + stravaToken.access_token },
- body: formData
- });
- const uploadData = await uploadResp.json();
- if (uploadData.error) throw new Error(uploadData.error);
- activityId = await pollStravaUpload(uploadData.id);
+ const formData = new FormData(); formData.append('file', new Blob([buildGPX(ride)], { type: 'application/gpx+xml' }), 'ride.gpx'); formData.append('data_type', 'gpx'); formData.append('name', ride.title || 'G3 Ride'); formData.append('description', ride.notes || 'Recorded with G3 Ride Tracker'); formData.append('sport_type', 'EBikeRide'); formData.append('commute', '0');
+ const uploadResp = await fetch('https://www.strava.com/api/v3/uploads', { method: 'POST', headers: { Authorization: 'Bearer ' + stravaToken.access_token }, body: formData }), uploadData = await uploadResp.json();
+ if (uploadData.error) throw new Error(uploadData.error); activityId = await pollStravaUpload(uploadData.id);
  } else {
- const resp = await fetch('https://www.strava.com/api/v3/activities', {
- method: 'POST',
- headers: { Authorization: 'Bearer ' + stravaToken.access_token, 'Content-Type': 'application/json' },
- body: JSON.stringify({
- name: ride.title || 'G3 Ride',
- sport_type: 'EBikeRide',
- start_date_local: new Date(ride.startTime).toISOString(),
- elapsed_time: ride.durationSecs,
- description: ride.notes || 'Recorded with G3 Ride Tracker',
- distance: ride.distanceM,
- commute: false
- })
- });
- const data = await resp.json();
- activityId = data.id;
+ const resp = await fetch('https://www.strava.com/api/v3/activities', { method: 'POST', headers: { Authorization: 'Bearer ' + stravaToken.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: ride.title || 'G3 Ride', sport_type: 'EBikeRide', start_date_local: new Date(ride.startTime).toISOString(), elapsed_time: ride.durationSecs, description: ride.notes || 'Recorded with G3 Ride Tracker', distance: ride.distanceM, commute: false }) }), data = await resp.json(); activityId = data.id;
  }
- if (activityId) {
- ride.stravaId = activityId;
- dbPut(ride).catch(() => {});
- showToast('🟠 Posted to Strava!');
- }
- } catch(e) {
- console.error('Auto-post to Strava failed', e);
- showToast('Strava post failed — try manually from ride detail');
- }
+ if (activityId) { ride.stravaId = activityId; dbPut(ride).catch(() => {}); showToast('🟠 Posted to Strava!'); }
+ } catch(e) {}
 }
 
-
-/* ══════════════════════════════════════════════════════
- NO SLEEP (keep screen on during recording)
-══════════════════════════════════════════════════════ */
 function startNoSleep() {
- // Use Wake Lock API — works in both Chrome and Samsung Internet on Android
- if ('wakeLock' in navigator) {
- navigator.wakeLock.request('screen')
- .then(lock => {
- noSleepVideo = lock;
- lock.addEventListener('release', () => { noSleepVideo = null; });
- console.log('Wake lock acquired');
- })
- .catch(e => {
- console.warn('Wake lock failed:', e.message);
- showToast('⚠️ Keep screen on during ride for GPS accuracy');
- });
- } else {
- showToast('⚠️ Keep screen on during ride for GPS accuracy');
- }
-
- // Re-acquire wake lock if page becomes visible again (e.g. after notification)
+ if ('wakeLock' in navigator) { navigator.wakeLock.request('screen').then(lock => { noSleepVideo = lock; lock.addEventListener('release', () => { noSleepVideo = null; }); }).catch(e => { showToast('⚠️ Keep screen on during ride for GPS accuracy'); }); }
+ else { showToast('⚠️ Keep screen on during ride for GPS accuracy'); }
  document.addEventListener('visibilitychange', reacquireWakeLock);
 }
-
-async function reacquireWakeLock() {
- if (isRecording && document.visibilityState === 'visible' && !noSleepVideo) {
- try {
- noSleepVideo = await navigator.wakeLock.request('screen');
- noSleepVideo.addEventListener('release', () => { noSleepVideo = null; });
- } catch(e) {}
- }
-}
-
-function stopNoSleep() {
- document.removeEventListener('visibilitychange', reacquireWakeLock);
- if (!noSleepVideo) return;
- if (noSleepVideo.release) {
- noSleepVideo.release().catch(() => {});
- }
- noSleepVideo = null;
-}
+async function reacquireWakeLock() { if (isRecording && document.visibilityState === 'visible' && !noSleepVideo) { try { noSleepVideo = await navigator.wakeLock.request('screen'); noSleepVideo.addEventListener('release', () => { noSleepVideo = null; }); } catch(e) {} } }
+function stopNoSleep() { document.removeEventListener('visibilitychange', reacquireWakeLock); if (!noSleepVideo) return; if (noSleepVideo.release) { noSleepVideo.release().catch(() => {}); } noSleepVideo = null; }
 
 init();
 </script>
