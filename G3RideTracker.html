@@ -52,7 +52,7 @@ nav button.active{color:var(--accent);border-bottom-color:var(--accent)}
 @keyframes pulse-btn{0%,100%{box-shadow:0 0 0 5px var(--bg),0 0 0 7px rgba(231,76,60,0.5),0 0 20px rgba(231,76,60,0.3)}50%{box-shadow:0 0 0 5px var(--bg),0 0 0 12px rgba(231,76,60,0.15),0 0 30px rgba(231,76,60,0.2)}}
 .record-btn svg{width:28px;height:28px}
 
-/* VEHICLE SELECTOR on ride page */
+/* VEHICLE SELECTOR */
 .vehicle-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
 .vehicle-bar label{font-size:11px;color:var(--text2);white-space:nowrap}
 .vehicle-select{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;outline:none}
@@ -168,7 +168,7 @@ textarea.notes-input::placeholder{color:var(--text3)}
 .chart-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;overflow:hidden}
 canvas.ride-chart{width:100%!important;max-height:160px}
 
-/* SETTINGS PAGE */
+/* SETTINGS / GARAGE */
 .settings-inner{padding:16px 14px 80px}
 .settings-title{font-size:20px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px}
 .settings-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5}
@@ -182,7 +182,6 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 .key-status{margin-top:8px;font-size:12px;padding:8px 12px;border-radius:8px;display:none}
 .key-status.ok{background:rgba(46,204,113,0.1);color:var(--success);display:block}
 .key-status.none{background:var(--bg4);color:var(--text2);display:block}
-/* VEHICLE MANAGEMENT */
 .vehicle-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .vehicle-row{display:flex;align-items:center;gap:8px;background:var(--bg4);border-radius:10px;padding:10px 12px}
 .vehicle-row-name{flex:1;font-size:14px}
@@ -192,7 +191,6 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 .vehicle-add-input{flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;padding:9px 12px;outline:none}
 .vehicle-add-btn{padding:9px 16px;background:var(--accent);color:#000;border-radius:var(--r);font-size:13px;font-weight:600}
 
-
 /* FIREBASE SYNC */
 .drive-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-top:8px;padding:8px 10px;background:var(--bg4);border-radius:8px}
 .drive-status .dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
@@ -201,9 +199,6 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 .drive-status.error .dot{background:var(--danger)}
 .sync-badge{position:absolute;top:8px;right:8px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:var(--success);font-size:10px;padding:2px 7px;border-radius:10px;display:none}
 .sync-badge.visible{display:block}
-
-/* STRAVA */
-.strava-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(252,76,2,0.1);color:#fc4c02;font-size:10px;border-radius:6px;padding:2px 7px;margin-top:4px}
 
 /* DB BANNER */
 #db-banner{background:rgba(231,76,60,0.1);border-bottom:1px solid rgba(231,76,60,0.2);padding:8px 16px;font-size:12px;color:var(--danger);display:none;text-align:center}
@@ -394,6 +389,19 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </div>
  </div>
 
+ <!-- Battery Health Trends -->
+ <div class="settings-card">
+ <h3>🔋 Battery Health & Range</h3>
+ <div class="stats-grid">
+ <div class="stat-block"><div class="val" id="g-projected-range">—</div><div class="lbl">100% Est. Range</div></div>
+ <div class="stat-block"><div class="val" id="g-degradation">—</div><div class="lbl">Health Status</div></div>
+ </div>
+ <div class="chart-section" style="margin-top:12px; margin-bottom:0;">
+ <div class="chart-title">Estimated 100% Range Over Time (km)</div>
+ <div class="chart-wrap"><canvas id="chart-health" class="ride-chart"></canvas></div>
+ </div>
+ </div>
+
  <!-- Charge Logger -->
  <div class="settings-card">
  <h3>🔌 Log Charge Session</h3>
@@ -414,10 +422,38 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </div>
  </div>
 
- <!-- Maintenance Logger -->
+ <!-- Routine Maintenance Checklists -->
+ <div class="settings-card">
+ <h3>📋 Routine Checklists</h3>
+ <p style="margin-bottom:8px;">Regular checks prevent expensive failures and keep you safe.</p>
+ 
+ <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:10px; background:var(--bg4); border-radius:8px;">
+ <div>
+ <div style="font-size:13px; font-weight:600;">Weekly Check</div>
+ <div style="font-size:11px; color:var(--text2);">Brake feel, stem fasteners, visible damage.</div>
+ <div id="maint-weekly-date" style="font-size:10px; color:var(--warn); margin-top:2px;">Due now</div>
+ </div>
+ <button class="settings-btn" style="margin-top:0; padding:8px 12px; font-size:12px;" onclick="logRoutine('weekly')">Log Done</button>
+ </div>
+
+ <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg4); border-radius:8px;">
+ <div>
+ <div style="font-size:13px; font-weight:600;">Monthly Check</div>
+ <div style="font-size:11px; color:var(--text2);">Lubricate hinges, check brake pads, deep clean.</div>
+ <div id="maint-monthly-date" style="font-size:10px; color:var(--warn); margin-top:2px;">Due now</div>
+ </div>
+ <button class="settings-btn" style="margin-top:0; padding:8px 12px; font-size:12px;" onclick="logRoutine('monthly')">Log Done</button>
+ </div>
+ </div>
+
+ <!-- Maintenance Logger (Tyres) -->
  <div class="settings-card">
  <h3>🔧 Tyre Pressure (PSI/kPa)</h3>
  <p>Factory specs: Front <span id="g-factory-psi-f">--</span> | Rear <span id="g-factory-psi-r">--</span></p>
+ <div id="maint-last-checked" style="font-size:12px; color:var(--text2); margin-bottom:12px;">Last checked: Never</div>
+ <div id="maint-alert" style="margin-bottom:12px; padding:10px; background:rgba(243,156,18,0.1); color:var(--warn); border-radius:8px; font-size:12px; display:none;">
+ <strong>⚠️ Tyre Check Due:</strong> It has been over 14 days since your last pressure check.
+ </div>
  <div style="display:flex; gap:8px; margin-bottom:8px;">
  <input type="number" id="maint-psi-f" class="settings-input" placeholder="Front PSI">
  <input type="number" id="maint-psi-r" class="settings-input" placeholder="Rear PSI">
@@ -585,7 +621,9 @@ const VEHICLE_SPECS = {
 
 let chargeLogs = [];
 let maintenanceLogs = [];
+let routineLogs = [];
 let activeChargeSession = null;
+let chartHealth = null;
 
 /* ══════════════════════════════════════════════════════
  INDEXEDDB
@@ -771,6 +809,9 @@ function renderGarage() {
  document.getElementById('g-factory-psi-r').textContent = specs.factoryPsiRear;
  
  evaluateBalanceRequirement(specs);
+ evaluateMaintenance();
+ evaluateBatteryHealth();
+ evaluateRoutines();
 }
 
 function evaluateBalanceRequirement(specs) {
@@ -797,6 +838,55 @@ function evaluateBalanceRequirement(specs) {
  document.getElementById('g-dwell-time').textContent = specs.dwellHours;
  } else {
  alertEl.style.display = 'none';
+ }
+}
+
+function evaluateBatteryHealth() {
+ const vLogs = chargeLogs.filter(l => l.vehicle === selectedVehicle).sort((a,b) => a.endTime - b.endTime);
+ const ranges = [];
+ const labels = [];
+ 
+ for (let i = 1; i < vLogs.length; i++) {
+ const prev = vLogs[i-1];
+ const curr = vLogs[i];
+ const dist = curr.odoKm - prev.odoKm;
+ const energy = prev.endPct - curr.startPct;
+ 
+ if (dist > 0 && energy > 0 && energy <= 100) {
+ const r = (dist / energy) * 100;
+ if (r > 5 && r < 200) { 
+ ranges.push(+r.toFixed(1));
+ labels.push(formatShortDate(curr.endTime));
+ }
+ }
+ }
+
+ const rangeEl = document.getElementById('g-projected-range');
+ const degEl = document.getElementById('g-degradation');
+
+ if (ranges.length > 0) {
+ const currentRange = ranges[ranges.length - 1];
+ const maxRange = Math.max(...ranges);
+ rangeEl.textContent = currentRange.toFixed(1) + ' km';
+ 
+ const degradationPct = ((maxRange - currentRange) / maxRange) * 100;
+ if (degradationPct < 10) {
+ degEl.textContent = 'Good';
+ degEl.style.color = 'var(--success)';
+ } else if (degradationPct < 20) {
+ degEl.textContent = 'Moderate Wear';
+ degEl.style.color = 'var(--warn)';
+ } else {
+ degEl.textContent = 'High Wear (>20%)';
+ degEl.style.color = 'var(--danger)';
+ }
+ 
+ chartHealth = drawChart('chart-health', chartHealth, labels.slice(-20), ranges.slice(-20), '#9b59b6', 'km');
+ } else {
+ rangeEl.textContent = '—';
+ degEl.textContent = 'Need more data';
+ degEl.style.color = 'var(--text2)';
+ chartHealth = drawChart('chart-health', chartHealth, [], [], '#9b59b6', 'km');
  }
 }
 
@@ -841,27 +931,16 @@ function endChargeSession() {
  };
 
  chargeLogs.unshift(completedSession);
- 
- const vLogs = chargeLogs.filter(l => l.vehicle === selectedVehicle);
- if (vLogs.length >= 2) {
- const previousCharge = vLogs[1];
- const distanceTravelled = completedSession.odoKm - previousCharge.odoKm;
- const energyUsed = previousCharge.endPct - completedSession.startPct;
- 
- if (energyUsed > 0 && distanceTravelled > 0) {
- const projectedTotalRange = (distanceTravelled / energyUsed) * 100;
- showToast(`Total Projected Range: ${projectedTotalRange.toFixed(1)} km`);
- }
- }
-
  activeChargeSession = null;
  document.getElementById('charge-prediction').style.display = 'none';
+ 
  renderGarage(); 
  saveGarageDataLocally();
  
  if (syncEnabled && supabaseClient) {
  supabaseClient.from('charge_logs').upsert(completedSession).then(() => console.log('Charge logged'));
  }
+ showToast('Charge saved');
 }
 
 function logMaintenance() {
@@ -885,8 +964,67 @@ function logMaintenance() {
  document.getElementById('maint-psi-f').value = '';
  document.getElementById('maint-psi-r').value = '';
 
+ evaluateMaintenance();
+
  if (syncEnabled && supabaseClient) {
  supabaseClient.from('maintenance_logs').upsert(log).catch(e => console.warn('Maintenance sync failed', e));
+ }
+}
+
+function evaluateMaintenance() {
+ const vLogs = maintenanceLogs.filter(l => l.vehicle === selectedVehicle).sort((a,b) => b.timestamp - a.timestamp);
+ const lastCheckEl = document.getElementById('maint-last-checked');
+ const alertEl = document.getElementById('maint-alert');
+ 
+ if (vLogs.length > 0) {
+ const lastLog = vLogs[0];
+ const daysSince = Math.floor((Date.now() - lastLog.timestamp) / (1000 * 60 * 60 * 24));
+ const dateStr = new Date(lastLog.timestamp).toLocaleDateString('en-AU');
+ 
+ lastCheckEl.textContent = `Last checked: ${dateStr} (${lastLog.psiFront}F / ${lastLog.psiRear}R) — ${daysSince} days ago`;
+ 
+ if (daysSince >= 14) {
+ alertEl.style.display = 'block';
+ } else {
+ alertEl.style.display = 'none';
+ }
+ } else {
+ lastCheckEl.textContent = 'Last checked: Never';
+ alertEl.style.display = 'block'; 
+ }
+}
+
+function logRoutine(type) {
+ routineLogs.unshift({ id: Date.now(), vehicle: selectedVehicle, type: type, timestamp: Date.now() });
+ saveGarageDataLocally();
+ evaluateRoutines();
+ showToast(type.charAt(0).toUpperCase() + type.slice(1) + ' check logged');
+}
+
+function evaluateRoutines() {
+ const vLogs = routineLogs.filter(l => l.vehicle === selectedVehicle);
+ const weekly = vLogs.find(l => l.type === 'weekly');
+ const monthly = vLogs.find(l => l.type === 'monthly');
+ 
+ updateRoutineUI('weekly', weekly, 7);
+ updateRoutineUI('monthly', monthly, 30);
+}
+
+function updateRoutineUI(type, log, daysDue) {
+ const el = document.getElementById(`maint-${type}-date`);
+ if (!el) return;
+ if (!log) {
+ el.textContent = 'Never done — Due now';
+ el.style.color = 'var(--warn)';
+ return;
+ }
+ const daysSince = Math.floor((Date.now() - log.timestamp) / (1000 * 60 * 60 * 24));
+ if (daysSince >= daysDue) {
+ el.textContent = `Done ${daysSince} days ago — Overdue`;
+ el.style.color = 'var(--danger)';
+ } else {
+ el.textContent = `Done ${daysSince} days ago`;
+ el.style.color = 'var(--success)';
  }
 }
 
@@ -894,12 +1032,14 @@ function saveGarageDataLocally() {
  try {
  localStorage.setItem('g3_charge_logs', JSON.stringify(chargeLogs));
  localStorage.setItem('g3_maint_logs', JSON.stringify(maintenanceLogs));
+ localStorage.setItem('g3_routine_logs', JSON.stringify(routineLogs));
  } catch(e) { console.warn('Failed to save garage data locally', e); }
 }
 
 function loadGarageDataLocally() {
  try { chargeLogs = JSON.parse(localStorage.getItem('g3_charge_logs') || '[]'); } catch(e) { chargeLogs = []; }
  try { maintenanceLogs = JSON.parse(localStorage.getItem('g3_maint_logs') || '[]'); } catch(e) { maintenanceLogs = []; }
+ try { routineLogs = JSON.parse(localStorage.getItem('g3_routine_logs') || '[]'); } catch(e) { routineLogs = []; }
 }
 
 
