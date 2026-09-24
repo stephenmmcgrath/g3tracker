@@ -245,7 +245,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Garage
  </button>
  <button onclick="showPage('settings',this)">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings
  </button>
  </nav>
 
@@ -444,6 +444,13 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </div>
  </div>
 
+ <!-- Charge Log History -->
+ <div class="settings-card">
+ <h3>📜 Charge Log History</h3>
+ <p style="margin-bottom:8px;">View, edit, or delete previous charge entries for this vehicle.</p>
+ <div id="charge-history-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+ </div>
+
  <!-- Routine Maintenance Checklists -->
  <div class="settings-card">
  <h3>📋 Routine Checklists</h3>
@@ -467,7 +474,6 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <button class="settings-btn" style="margin-top:0; padding:8px 12px; font-size:12px;" onclick="logRoutine('monthly')">Log Done</button>
  </div>
  </div>
-
  <!-- Maintenance Logger (Tyres) -->
  <div class="settings-card">
  <h3>🔧 Tyre Pressure (PSI/kPa)</h3>
@@ -609,6 +615,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 </div>
 
 <div class="voice-cmd-toast" id="voice-toast"></div>
+
 <script>
 /* ══════════════════════════════════════════════════════
  GARAGE & MAINTENANCE STATE (WITH 65-VEHICLE DB)
@@ -880,6 +887,25 @@ function renderGarage() {
  evaluateMaintenance();
  evaluateBatteryHealth();
  evaluateRoutines();
+ renderChargeHistory();
+
+ // Restore active charge session if the browser was closed
+ if (!activeChargeSession) {
+ try {
+ const savedCharge = localStorage.getItem('g3_active_charge');
+ if (savedCharge) activeChargeSession = JSON.parse(savedCharge);
+ } catch(e) {}
+ }
+ 
+ if (activeChargeSession && activeChargeSession.vehicle === selectedVehicle) {
+ document.getElementById('charge-start-pct').value = activeChargeSession.startPct;
+ document.getElementById('charge-target-pct').value = activeChargeSession.targetPct;
+ document.getElementById('charge-odo').value = activeChargeSession.odo;
+ document.getElementById('charge-prediction').style.display = 'block';
+ document.getElementById('charge-eta').textContent = 'In Progress';
+ } else {
+ document.getElementById('charge-prediction').style.display = 'none';
+ }
 }
 
 function populateSpecsUI(specs) {
@@ -975,7 +1001,9 @@ function startChargeSession() {
  const odo = parseFloat(document.getElementById('charge-odo').value);
  if (isNaN(startPct) || isNaN(targetPct)) return showToast('Enter valid percentages');
 
- activeChargeSession = { startTime: Date.now(), startPct, targetPct, odo };
+ activeChargeSession = { vehicle: selectedVehicle, startTime: Date.now(), startPct, targetPct, odo };
+ localStorage.setItem('g3_active_charge', JSON.stringify(activeChargeSession)); 
+ 
  const vLogs = chargeLogs.filter(l => l.vehicle === selectedVehicle && l.endPct > l.startPct);
  let avgRate = 0.35; 
  if (vLogs.length >= 3) {
@@ -993,15 +1021,86 @@ function startChargeSession() {
 function endChargeSession() {
  if (!activeChargeSession) return;
  const endPct = parseFloat(document.getElementById('charge-target-pct').value); 
+ if (isNaN(endPct)) return showToast('Enter valid end percentage');
+ 
  const log = {
- id: Date.now(), vehicle: selectedVehicle, startTime: activeChargeSession.startTime,
+ id: Date.now(), vehicle: activeChargeSession.vehicle || selectedVehicle, startTime: activeChargeSession.startTime,
  endTime: Date.now(), startPct: activeChargeSession.startPct, endPct: endPct, odoKm: activeChargeSession.odo
  };
- chargeLogs.unshift(log); activeChargeSession = null;
+ chargeLogs.unshift(log); 
+ activeChargeSession = null;
+ localStorage.removeItem('g3_active_charge');
+ 
  document.getElementById('charge-prediction').style.display = 'none';
+ document.getElementById('charge-start-pct').value = '';
+ document.getElementById('charge-target-pct').value = '';
+ 
  renderGarage(); saveGarageDataLocally();
  if (syncEnabled && supabaseClient) supabaseClient.from('charge_logs').upsert(log).catch(e=>{});
  showToast('Charge saved');
+}
+
+function renderChargeHistory() {
+ const container = document.getElementById('charge-history-list');
+ if (!container) return;
+ const vLogs = chargeLogs.filter(l => l.vehicle === selectedVehicle).sort((a,b) => b.endTime - a.endTime);
+ 
+ if (vLogs.length === 0) {
+ container.innerHTML = '<div style="font-size:12px; color:var(--text2);">No charge logs recorded for this vehicle.</div>';
+ return;
+ }
+ 
+ container.innerHTML = vLogs.map(log => {
+ const dateStr = new Date(log.endTime).toLocaleDateString('en-AU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+ return `
+ <div style="background:var(--bg4); border-radius:10px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+ <div>
+ <div style="font-size:13px; font-weight:600; color:var(--accent);">${log.startPct}% ➔ ${log.endPct}%</div>
+ <div style="font-size:11px; color:var(--text2);">${dateStr} · Odo: ${log.odoKm || '--'} km</div>
+ </div>
+ <div style="display:flex; gap:6px;">
+ <button onclick="editChargeLog(${log.id})" style="background:rgba(0,200,255,0.15); color:var(--accent); border-radius:6px; padding:5px 10px; font-size:11px; font-weight:600;">Edit</button>
+ <button onclick="deleteChargeLog(${log.id})" style="background:rgba(231,76,60,0.15); color:var(--danger); border-radius:6px; padding:5px 10px; font-size:11px; font-weight:600;">Delete</button>
+ </div>
+ </div>
+ `;
+ }).join('');
+}
+
+function editChargeLog(id) {
+ const log = chargeLogs.find(l => l.id === id);
+ if (!log) return;
+ 
+ const newStart = prompt('Edit Start %:', log.startPct);
+ if (newStart === null) return;
+ const newEnd = prompt('Edit Finish/Target %:', log.endPct);
+ if (newEnd === null) return;
+ const newOdo = prompt('Edit Odometer (km):', log.odoKm || '');
+ if (newOdo === null) return;
+ 
+ log.startPct = parseFloat(newStart) || log.startPct;
+ log.endPct = parseFloat(newEnd) || log.endPct;
+ log.odoKm = parseFloat(newOdo) || log.odoKm;
+ 
+ saveGarageDataLocally();
+ renderGarage();
+ 
+ if (syncEnabled && supabaseClient) {
+ supabaseClient.from('charge_logs').upsert(log).catch(e => console.warn('Sync edit failed', e));
+ }
+ showToast('Charge log updated');
+}
+
+function deleteChargeLog(id) {
+ if (!confirm('Delete this charge log entry?')) return;
+ chargeLogs = chargeLogs.filter(l => l.id !== id);
+ saveGarageDataLocally();
+ renderGarage();
+ 
+ if (syncEnabled && supabaseClient) {
+ supabaseClient.from('charge_logs').delete().eq('id', id).catch(e => console.warn('Sync delete failed', e));
+ }
+ showToast('Charge log deleted');
 }
 
 function logMaintenance() {
