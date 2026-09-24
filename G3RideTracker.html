@@ -382,7 +382,6 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </div>
  </div>
  </div>
-
  <!-- GARAGE PAGE -->
  <div class="page" id="page-garage">
  <div class="settings-inner">
@@ -405,7 +404,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <!-- Vehicle Specifications -->
  <div class="settings-card">
  <h3>📊 Vehicle Specifications</h3>
- <p style="margin-bottom:8px;">Autopopulates for top 65 models. Edit to save custom overrides.</p>
+ <p style="margin-bottom:8px;">Autopopulates for database models. Edit to save custom overrides.</p>
  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
  <div><label class="specs-lbl">Type</label><input type="text" id="spec-type" class="settings-input" placeholder="e.g. Scooter"></div>
  <div><label class="specs-lbl">Weight</label><input type="text" id="spec-wt" class="settings-input" placeholder="e.g. 24.6kg"></div>
@@ -503,6 +502,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </div>
  </div>
  </div>
+
  <!-- SHOWROOM PAGE -->
  <div class="page" id="page-showroom">
  <div class="settings-inner">
@@ -642,121 +642,354 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
 <script>
 /* ══════════════════════════════════════════════════════
- GARAGE & MAINTENANCE STATE (WITH 65-VEHICLE DB)
+ GARAGE & MAINTENANCE STATE (EXPANDED VEHICLE DB - PART 1)
 ══════════════════════════════════════════════════════ */
 const DEFAULT_SPECS = {
- // HIGHLY DETAILED MODELS
  "Segway Max G3 (2026 model)": { 
  type:"Scooter", wt:"24.6kg", motor:"900W Max", volt:"48V", cap:"597Wh", cells:"21700", bms:"Smart Active BMS", tyre:"10-inch Tubeless Self-healing", frame:"Carbon Steel", url:"segway.com", unf:"120 x 47 x 122 cm", fold:"120 x 47 x 53 cm", factoryPsiFront:42, factoryPsiRear:42, balanceCycles:15, balanceMonths:3, dwellHours:"1-2 hours",
  desc: "The next generation of the legendary Max series, built for ultimate reliability, extended range, and smart connectivity.",
- features: [
- "Traction Control System (TCS) for slippery surfaces",
- "Native Apple Find My integration built-in",
- "Smart Active Battery Management System",
- "Self-healing tubeless tyres with jelly layer",
- "Upgraded 900W max brushless direct current (BLDC) motor"
- ]
+ features: ["Traction Control System (TCS) for slippery surfaces", "Native Apple Find My integration built-in", "Smart Active Battery Management System", "Self-healing tubeless tyres with jelly layer", "Upgraded 900W max brushless direct current (BLDC) motor"]
  },
  "Segway ZT3 Pro": { 
  type:"Scooter", wt:"29.7kg", motor:"1600W Max", volt:"48V", cap:"597Wh", cells:"18650", bms:"Smart BMS", tyre:"11-inch Tubeless Off-Road", frame:"High-strength Alloy", url:"segway.com", unf:"124 x 63 x 130 cm", fold:"124 x 63 x 60 cm", factoryPsiFront:38, factoryPsiRear:38, balanceCycles:15, balanceMonths:3, dwellHours:"1-2 hours",
  desc: "An all-terrain urban crossover scooter featuring dual suspension and intelligent rider assist tech.",
- features: [
- "Dual telescopic front suspension and rear spring suspension",
- "Automotive-grade Traction Control System (TCS)",
- "Native Apple Find My integration",
- "AirLock automatic Bluetooth proximity unlocking",
- "11-inch all-terrain tubeless tyres for maximum grip"
- ]
+ features: ["Dual telescopic front suspension and rear spring suspension", "Automotive-grade Traction Control System (TCS)", "Native Apple Find My integration", "AirLock automatic Bluetooth proximity unlocking", "11-inch all-terrain tubeless tyres for maximum grip"]
  },
  "Pure Advance Flex": { 
  type:"Scooter", wt:"16.2kg", motor:"710W Peak", volt:"36V", cap:"345Wh", cells:"18650", bms:"Top-End Passive", tyre:"10-inch Tubeless", frame:"Alloy", url:"pureelectric.com", unf:"104 x 60 x 108 cm", fold:"62 x 30 x 57 cm", factoryPsiFront:36, factoryPsiRear:36, balanceCycles:10, balanceMonths:2, dwellHours:"2-3 hours",
  desc: "A revolutionary ultra-compact scooter featuring a unique forward-facing riding stance for superior balance.",
- features: [
- "Unique forward-facing riding design (feet side-by-side)",
- "Ultra-compact 5-step folding chassis fits in a car boot or under a desk",
- "Pure Control™ steering stabilization system",
- "IP65 water resistance rating for all-weather riding",
- "710W peak power motor for tackling steep urban hills"
- ]
+ features: ["Unique forward-facing riding design (feet side-by-side)", "Ultra-compact 5-step folding chassis fits in a car boot or under a desk", "Pure Control™ steering stabilization system", "IP65 water resistance rating for all-weather riding", "710W peak power motor for tackling steep urban hills"]
  },
  "Pure Escape+ Ultra Suspension": { 
  type:"Scooter", wt:"22kg", motor:"600W Peak", volt:"48V", cap:"650Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"pureelectric.com", unf:"115 x 50 x 115 cm", fold:"115 x 50 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
  desc: "Designed for premium ride comfort over rough urban environments while maintaining the signature Pure stance.",
- features: [
- "Plush hydraulic suspension system for maximum comfort",
- "Ergonomic forward-facing riding stance",
- "High-torque 600W motor for rapid acceleration",
- "All-weather IP65 rating with fully enclosed wiring",
- "Integrated high-visibility halo lighting system"
- ]
+ features: ["Plush hydraulic suspension system for maximum comfort", "Ergonomic forward-facing riding stance", "High-torque 600W motor for rapid acceleration", "All-weather IP65 rating with fully enclosed wiring", "Integrated high-visibility halo lighting system"]
  },
-
- // STANDARD DATABASE (Top 50+)
- "Samebike LO26": { type:"E-Bike", wt:"25.5kg", motor:"500W", volt:"48V", cap:"499Wh", cells:"18650", bms:"Daly Smart Active BMS", tyre:"26x1.95-inch MTB", frame:"Aluminum Alloy", url:"samebike.com", unf:"177 x 65 x 104 cm", fold:"103 x 37 x 104 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:10, balanceMonths:3, dwellHours:"2-4 hours" },
- "Segway Max G30P": { type:"Scooter", wt:"19.1kg", motor:"350W", volt:"36V", cap:"551Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"segway.com", unf:"116 x 47 x 120 cm", fold:"116 x 47 x 53 cm" },
- "Ninebot Max G2": { type:"Scooter", wt:"24.3kg", motor:"450W", volt:"36V", cap:"551Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"segway.com", unf:"121 x 57 x 126 cm", fold:"121 x 57 x 60 cm" },
- "Segway GT2": { type:"Scooter", wt:"52.6kg", motor:"3000W Dual", volt:"50.4V", cap:"1512Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"segway.com", unf:"148 x 65 x 130 cm", fold:"148 x 65 x 86 cm" },
- "Segway GT1": { type:"Scooter", wt:"47.6kg", motor:"1400W", volt:"50.4V", cap:"1008Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"segway.com", unf:"148 x 65 x 130 cm", fold:"148 x 65 x 86 cm" },
- "Apollo City Pro 2023": { type:"Scooter", wt:"29.5kg", motor:"500W Dual", volt:"48V", cap:"864Wh", cells:"21700", bms:"Apollo Smart", tyre:"10-inch Tubeless", frame:"Alloy", url:"apolloscooters.co", unf:"119 x 60 x 124 cm", fold:"119 x 60 x 53 cm" },
- "Apollo Phantom V3": { type:"Scooter", wt:"35kg", motor:"1200W Dual", volt:"52V", cap:"1216Wh", cells:"18650", bms:"Apollo Smart", tyre:"10-inch Tube", frame:"Alloy", url:"apolloscooters.co", unf:"129 x 68 x 124 cm", fold:"129 x 68 x 53 cm" },
- "Apollo Pro": { type:"Scooter", wt:"42.5kg", motor:"3000W Dual", volt:"52V", cap:"1560Wh", cells:"21700 Samsung", bms:"Apollo Smart", tyre:"12-inch Tubeless", frame:"Aircraft Alloy", url:"apolloscooters.co", unf:"132 x 78 x 132 cm", fold:"132 x 78 x 60 cm" },
- "Nami Burn-E 2 Max": { type:"Scooter", wt:"47kg", motor:"1500W Dual", volt:"72V", cap:"2520Wh", cells:"Panasonic/LG", bms:"Smart Active", tyre:"11-inch Tubeless", frame:"Carbon/Alloy", url:"namiscooters.com", unf:"134 x 70 x 134 cm", fold:"134 x 70 x 63 cm" },
- "Nami Klima": { type:"Scooter", wt:"36kg", motor:"1000W Dual", volt:"60V", cap:"1500Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"namiscooters.com", unf:"128 x 68 x 122 cm", fold:"128 x 68 x 53 cm" },
- "Kaabo Mantis King GT": { type:"Scooter", wt:"33kg", motor:"1100W Dual", volt:"60V", cap:"1440Wh", cells:"Samsung 21700", bms:"Smart BMS", tyre:"10-inch Tube", frame:"Alloy", url:"kaabo.com", unf:"127 x 66 x 125 cm", fold:"127 x 66 x 56 cm" },
- "Kaabo Wolf King GTR": { type:"Scooter", wt:"62kg", motor:"2000W Dual", volt:"72V", cap:"2520Wh", cells:"LG 50S 21700", bms:"Removable Smart", tyre:"12-inch Tubeless", frame:"Alloy", url:"kaabo.com", unf:"162 x 74 x 130 cm", fold:"162 x 74 x 50 cm" },
- "Kaabo Wolf Warrior X": { type:"Scooter", wt:"33kg", motor:"1100W Dual", volt:"60V", cap:"1260Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"kaabo.com", unf:"121 x 65 x 121 cm", fold:"121 x 65 x 57 cm" },
- "Vsett 10+": { type:"Scooter", wt:"35.5kg", motor:"1400W Dual", volt:"60V", cap:"1680Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Aviation Alloy", url:"vsett.com", unf:"129 x 68 x 127 cm", fold:"129 x 68 x 58 cm" },
- "Vsett 9+": { type:"Scooter", wt:"25kg", motor:"650W Dual", volt:"48V", cap:"1008Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"vsett.com", unf:"122 x 63 x 121 cm", fold:"122 x 63 x 48 cm" },
- "Dualtron Thunder 2": { type:"Scooter", wt:"47kg", motor:"5040W Peak Dual", volt:"72V", cap:"2880Wh", cells:"LG 21700", bms:"Standard BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"minimotors.com", unf:"120 x 60 x 121 cm", fold:"120 x 60 x 51 cm" },
- "Dualtron Victor": { type:"Scooter", wt:"32.9kg", motor:"2000W Dual", volt:"60V", cap:"1440Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"111 x 60 x 122 cm", fold:"111 x 60 x 56 cm" },
- "Dualtron Mini": { type:"Scooter", wt:"22kg", motor:"1450W Peak", volt:"52V", cap:"910Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"114 x 52 x 106 cm", fold:"114 x 52 x 40 cm" },
- "Inokim OXO": { type:"Scooter", wt:"33.5kg", motor:"1000W Dual", volt:"60V", cap:"1536Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Aviation Alloy", url:"inokim.com", unf:"122 x 58 x 127 cm", fold:"122 x 58 x 53 cm" },
- "Inokim Light 2": { type:"Scooter", wt:"13.7kg", motor:"350W", volt:"36V", cap:"374Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"inokim.com", unf:"105 x 46 x 108 cm", fold:"95 x 36 x 17 cm" },
- "Xiaomi Mi Pro 2": { type:"Scooter", wt:"14.2kg", motor:"300W", volt:"36V", cap:"474Wh", cells:"18650", bms:"Smart BMS", tyre:"8.5-inch Tube", frame:"Aerospace Alloy", url:"mi.com", unf:"113 x 43 x 118 cm", fold:"113 x 43 x 49 cm" },
- "Xiaomi 4 Pro": { type:"Scooter", wt:"16.5kg", motor:"350W", volt:"36V", cap:"446Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"mi.com", unf:"119 x 48 x 124 cm", fold:"119 x 48 x 51 cm" },
- "Fluid Mosquito": { type:"Scooter", wt:"13kg", motor:"500W", volt:"48V", cap:"460Wh", cells:"18650", bms:"Standard BMS", tyre:"8-inch Solid", frame:"Alloy", url:"fluidfreeride.com", unf:"106 x 43 x 114 cm", fold:"106 x 14 x 33 cm" },
- "Fluid CityRider": { type:"Scooter", wt:"12.9kg", motor:"350W", volt:"36V", cap:"360Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Solid", frame:"Alloy", url:"fluidfreeride.com", unf:"109 x 43 x 114 cm", fold:"109 x 43 x 40 cm" },
- "Varla Eagle One": { type:"Scooter", wt:"30.8kg", motor:"1000W Dual", volt:"52V", cap:"946Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"varlascooter.com", unf:"127 x 66 x 127 cm", fold:"127 x 66 x 50 cm" },
- "Varla Pegasus": { type:"Scooter", wt:"30kg", motor:"500W Dual", volt:"48V", cap:"750Wh", cells:"18650", bms:"Standard BMS", tyre:"8-inch Solid", frame:"Alloy", url:"varlascooter.com", unf:"119 x 59 x 119 cm", fold:"119 x 59 x 48 cm" },
- "EMOVE Cruiser S": { type:"Scooter", wt:"23.5kg", motor:"1000W", volt:"52V", cap:"1560Wh", cells:"LG 21700", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"voromotors.com", unf:"121 x 57 x 118 cm", fold:"121 x 25 x 40 cm" },
- "EMOVE Roadrunner": { type:"Scooter", wt:"24.9kg", motor:"350W F / 500W R", volt:"48V", cap:"1252Wh", cells:"18650", bms:"Removable BMS", tyre:"14-inch Tube", frame:"Alloy", url:"voromotors.com", unf:"129 x 63 x 96 cm", fold:"Non-folding" },
- "Unagi Model One Voyager": { type:"Scooter", wt:"13.4kg", motor:"250W Dual", volt:"36V", cap:"360Wh", cells:"18650", bms:"Smart BMS", tyre:"7.5-inch Solid", frame:"Carbon Fiber/Magnesium", url:"unagiscooters.com", unf:"96 x 42 x 110 cm", fold:"96 x 42 x 38 cm" },
- "Hiboy S2 Pro": { type:"Scooter", wt:"16.5kg", motor:"500W", volt:"36V", cap:"410Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Solid", frame:"Alloy", url:"hiboy.com", unf:"115 x 42 x 119 cm", fold:"115 x 42 x 49 cm" },
- "Hiboy Titan Pro": { type:"Scooter", wt:"28.1kg", motor:"1200W Dual", volt:"48V", cap:"840Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"hiboy.com", unf:"120 x 60 x 119 cm", fold:"120 x 60 x 50 cm" },
- "Gotrax G4": { type:"Scooter", wt:"16.3kg", motor:"350W", volt:"36V", cap:"374Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"gotrax.com", unf:"113 x 43 x 121 cm", fold:"113 x 43 x 48 cm" },
- "Gotrax GX2": { type:"Scooter", wt:"34.5kg", motor:"800W Dual", volt:"48V", cap:"960Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"gotrax.com", unf:"127 x 66 x 127 cm", fold:"127 x 66 x 53 cm" },
- "Turboant X7 Pro": { type:"Scooter", wt:"15kg", motor:"350W", volt:"36V", cap:"360Wh", cells:"Removable 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"turboant.com", unf:"108 x 42 x 118 cm", fold:"108 x 42 x 46 cm" },
- "InMotion RS": { type:"Scooter", wt:"58kg", motor:"2000W Dual", volt:"72V", cap:"2880Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Alloy", url:"inmotionworld.com", unf:"147 x 71 x 134 cm", fold:"147 x 71 x 68 cm" },
- "InMotion Climber": { type:"Scooter", wt:"20.8kg", motor:"450W Dual", volt:"36V", cap:"533Wh", cells:"18650", bms:"Smart BMS", tyre:"8-inch Tube", frame:"Alloy", url:"inmotionworld.com", unf:"116 x 51 x 119 cm", fold:"116 x 51 x 54 cm" },
- "Mukuta 10 Plus": { type:"Scooter", wt:"36kg", motor:"1400W Dual", volt:"60V", cap:"1536Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"mukutariding.com", unf:"129 x 68 x 127 cm", fold:"129 x 68 x 55 cm" },
- "Teverun Fighter Supreme": { type:"Scooter", wt:"45kg", motor:"2000W Dual", volt:"72V", cap:"2520Wh", cells:"LG 21700", bms:"Smart Active BMS", tyre:"11-inch Tubeless", frame:"Alloy/Steel", url:"teverun.com", unf:"131 x 64 x 132 cm", fold:"131 x 32 x 57 cm" },
- "Teverun Blade Mini Pro": { type:"Scooter", wt:"29kg", motor:"500W Dual", volt:"48V", cap:"748Wh", cells:"18650", bms:"Smart BMS", tyre:"9-inch Tube", frame:"Alloy", url:"teverun.com", unf:"118 x 60 x 121 cm", fold:"118 x 60 x 53 cm" },
- "YUME X11": { type:"Scooter", wt:"53kg", motor:"3000W Dual", volt:"60V", cap:"2100Wh", cells:"18650 Panasonic", bms:"Standard BMS", tyre:"11-inch Off-road", frame:"Alloy", url:"yumeway.com", unf:"139 x 68 x 139 cm", fold:"139 x 68 x 60 cm" },
- "RoadRunner RS5+": { type:"Scooter", wt:"40kg", motor:"1400W Dual", volt:"52V", cap:"1456Wh", cells:"Removable LG 21700", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"roadrunnerscooters.com", unf:"127 x 68 x 132 cm", fold:"127 x 68 x 55 cm" },
- "MiniMotors Speedway Leger": { type:"Scooter", wt:"20.6kg", motor:"500W", volt:"48V", cap:"748Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"110 x 53 x 117 cm", fold:"110 x 53 x 38 cm" },
- "Weped SST": { type:"Scooter", wt:"52kg", motor:"5000W Peak Dual", volt:"72V", cap:"3240Wh", cells:"Samsung SDI 21700", bms:"Smart BMS", tyre:"11-inch Tubeless Ultra-Wide", frame:"Aviation Alloy", url:"weped.co.kr", unf:"134 x 63 x 121 cm", fold:"134 x 27 x 53 cm" },
- "Solar P1 2.0": { type:"Scooter", wt:"27kg", motor:"1200W Dual", volt:"52V", cap:"936Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"solarscooters.com", unf:"121 x 63 x 121 cm", fold:"121 x 63 x 48 cm" },
- "Solar FF Lite": { type:"Scooter", wt:"34kg", motor:"1600W Dual", volt:"60V", cap:"1080Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"solarscooters.com", unf:"129 x 65 x 129 cm", fold:"129 x 65 x 50 cm" },
- "NIU KQi3 Max": { type:"Scooter", wt:"21.1kg", motor:"450W", volt:"48V", cap:"608Wh", cells:"18650", bms:"NIU Smart BMS", tyre:"9.5-inch Tubeless", frame:"Alloy", url:"niu.com", unf:"117 x 54 x 120 cm", fold:"117 x 54 x 50 cm" },
- "NIU KQi2 Pro": { type:"Scooter", wt:"18.4kg", motor:"300W", volt:"48V", cap:"365Wh", cells:"18650", bms:"NIU Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"niu.com", unf:"112 x 52 x 120 cm", fold:"112 x 52 x 52 cm" },
- "Joyor S10-S": { type:"Scooter", wt:"27.1kg", motor:"1000W Dual", volt:"60V", cap:"1080Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"joyorscooter.com", unf:"121 x 60 x 121 cm", fold:"121 x 60 x 53 cm" },
- "Kugoo Kirin G3": { type:"Scooter", wt:"25kg", motor:"1200W", volt:"52V", cap:"936Wh", cells:"18650", bms:"Standard BMS", tyre:"10.5-inch Tubeless", frame:"Alloy", url:"kugoo.com", unf:"120 x 66 x 129 cm", fold:"120 x 66 x 55 cm" },
- "Superpedestrian Link": { type:"Scooter", wt:"27kg", motor:"500W", volt:"48V", cap:"980Wh", cells:"18650", bms:"Vehicle Intelligence System", tyre:"10-inch Solid", frame:"Alloy", url:"superpedestrian.com", unf:"119 x 50 x 119 cm", fold:"Non-folding" },
- "Rad Power RadRunner 3 Plus": { type:"E-Bike", wt:"34.2kg", motor:"750W Rear Hub", volt:"48V", cap:"672Wh", cells:"18650", bms:"Smart BMS", tyre:"20x3.3-inch Kenda", frame:"6061 Alloy", url:"radpowerbikes.com", unf:"175 x 71 x 116 cm", fold:"Non-folding" },
- "Aventon Level.2": { type:"E-Bike", wt:"28.1kg", motor:"500W Rear Hub", volt:"48V", cap:"672Wh", cells:"18650 LG", bms:"Smart BMS", tyre:"27.5x2.1-inch", frame:"Double-Butted Alloy", url:"aventon.com", unf:"180 x 68 x 106 cm", fold:"Non-folding" },
- "Aventon Aventure.2": { type:"E-Bike", wt:"34.9kg", motor:"750W Rear Hub", volt:"48V", cap:"720Wh", cells:"18650 LG", bms:"Smart BMS", tyre:"26x4.0-inch Fat", frame:"Alloy", url:"aventon.com", unf:"190 x 71 x 114 cm", fold:"Non-folding" },
- "Lectric XP 3.0": { type:"E-Bike", wt:"29kg", motor:"500W Rear Hub", volt:"48V", cap:"500Wh", cells:"18650", bms:"Standard BMS", tyre:"20x3.0-inch Fat", frame:"Alloy", url:"lectricebikes.com", unf:"167 x 63 x 119 cm", fold:"94 x 45 x 71 cm" },
- "Ride1Up Core-5": { type:"E-Bike", wt:"22.2kg", motor:"750W Rear Hub", volt:"48V", cap:"500Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"27.5x2.2-inch Kenda", frame:"Alloy", url:"ride1up.com", unf:"177 x 68 x 101 cm", fold:"Non-folding" },
- "Ride1Up LMT'D": { type:"E-Bike", wt:"24kg", motor:"750W Rear Hub", volt:"48V", cap:"672Wh", cells:"Samsung", bms:"Smart BMS", tyre:"27.5x2.4-inch Schwalbe", frame:"Alloy", url:"ride1up.com", unf:"177 x 68 x 101 cm", fold:"Non-folding" },
- "Trek Allant+ 7": { type:"E-Bike", wt:"24.9kg", motor:"Bosch CX 250W Mid", volt:"36V", cap:"500Wh", cells:"Bosch PowerTube", bms:"Bosch Smart BMS", tyre:"27.5x2.4-inch", frame:"Hydroformed Alloy", url:"trekbikes.com", unf:"185 x 68 x 109 cm", fold:"Non-folding" },
- "Specialized Turbo Vado 4.0": { type:"E-Bike", wt:"25.8kg", motor:"Specialized 2.0 250W Mid", volt:"36V", cap:"710Wh", cells:"Integrated", bms:"Specialized Smart", tyre:"27.5x2.35-inch Pathfinder", frame:"E5 Aluminum", url:"specialized.com", unf:"188 x 68 x 111 cm", fold:"Non-folding" },
- "Juiced CrossCurrent X": { type:"E-Bike", wt:"29.4kg", motor:"750W Bafang Rear Hub", volt:"52V", cap:"998Wh", cells:"LG 18650", bms:"Smart BMS", tyre:"28x1.75-inch Schwalbe", frame:"Alloy", url:"juicedbikes.com", unf:"182 x 63 x 109 cm", fold:"Non-folding" },
- "Juiced RipCurrent S": { type:"E-Bike", wt:"34.4kg", motor:"1000W Bafang Rear", volt:"52V", cap:"998Wh", cells:"LG 18650", bms:"Smart BMS", tyre:"26x4.0-inch Fat", frame:"Alloy", url:"juicedbikes.com", unf:"190 x 71 x 114 cm", fold:"Non-folding" },
- "Himiway Cruiser": { type:"E-Bike", wt:"32.6kg", motor:"750W Rear Hub", volt:"48V", cap:"840Wh", cells:"Samsung/LG 18650", bms:"Standard BMS", tyre:"26x4.0-inch Kenda Fat", frame:"6061 Alloy", url:"himiwaybike.com", unf:"190 x 71 x 116 cm", fold:"Non-folding" },
- "VanMoof S3": { type:"E-Bike", wt:"21kg", motor:"250W Front Hub", volt:"36V", cap:"504Wh", cells:"Integrated LG", bms:"VanMoof Smart", tyre:"28-inch Schwalbe", frame:"Coated Alloy", url:"vanmoof.com", unf:"177 x 66 x 106 cm", fold:"Non-folding" },
- "Cowboy 4": { type:"E-Bike", wt:"18.9kg", motor:"250W Rear Hub", volt:"36V", cap:"360Wh", cells:"18650", bms:"Cowboy Smart", tyre:"27.5x1.8-inch", frame:"6061 Alloy", url:"cowboy.com", unf:"170 x 57 x 102 cm", fold:"Non-folding" },
- "Gazelle Ultimate C8": { type:"E-Bike", wt:"24.4kg", motor:"Bosch Active Line Plus Mid", volt:"36V", cap:"500Wh", cells:"Bosch", bms:"Bosch Smart", tyre:"28x1.75-inch Schwalbe", frame:"Alloy", url:"gazellebikes.com", unf:"185 x 65 x 110 cm", fold:"Non-folding" },
- "Engwe Engine Pro": { type:"E-Bike", wt:"31.7kg", motor:"750W Rear Hub", volt:"48V", cap:"768Wh", cells:"18650", bms:"Standard BMS", tyre:"20x4.0-inch Fat", frame:"Alloy", url:"engwe-bikes.com", unf:"170 x 68 x 124 cm", fold:"104 x 55 x 84 cm" }
+ "Samebike LO26": { 
+ type:"E-Bike", wt:"25.5kg", motor:"500W", volt:"48V", cap:"499Wh", cells:"18650", bms:"Daly Smart Active BMS", tyre:"26x1.95-inch MTB", frame:"Aluminum Alloy", url:"samebike.com", unf:"177 x 65 x 104 cm", fold:"103 x 37 x 104 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:10, balanceMonths:3, dwellHours:"2-4 hours",
+ desc: "A versatile folding electric mountain bike capable of handling both daily commutes and moderate off-road trails.",
+ features: ["Folding aluminum alloy frame for easier transport", "26-inch mountain bike tires for rough terrain", "Dual mechanical disc brakes for reliable stopping power", "Shimano 21-speed gear system", "LCD dashboard with real-time telemetry"]
+ },
+ "Segway Max G30P": { 
+ type:"Scooter", wt:"19.1kg", motor:"350W", volt:"36V", cap:"551Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"segway.com", unf:"116 x 47 x 120 cm", fold:"116 x 47 x 53 cm", factoryPsiFront:38, factoryPsiRear:38, balanceCycles:12, balanceMonths:3, dwellHours:"1-2 hours",
+ desc: "The original long-range urban commuter that set the standard for reliability and build quality.",
+ features: ["Industry-leading 551Wh battery for 65km claimed range", "10-inch tubeless pneumatic tires for a smoother ride", "Built-in 3A fast charger (requires only a figure-8 cable)", "Rear-wheel drive for better acceleration and hill climbing", "IPX5 overall water resistance rating"]
+ },
+ "Ninebot Max G2": { 
+ type:"Scooter", wt:"24.3kg", motor:"450W", volt:"36V", cap:"551Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"segway.com", unf:"121 x 57 x 126 cm", fold:"121 x 57 x 60 cm", factoryPsiFront:42, factoryPsiRear:42, balanceCycles:15, balanceMonths:3, dwellHours:"1.5 hours",
+ desc: "The direct successor to the G30P, adding suspension and modern smart features to the classic commuter design.",
+ features: ["Front hydraulic and rear double-spring suspension", "Apple Find My integration built directly into the controller", "Traction Control System (TCS) via firmware", "Self-healing tubeless tires", "Integrated electronic horn and turn signals"]
+ },
+ "Segway GT2": { 
+ type:"Scooter", wt:"52.6kg", motor:"3000W Dual", volt:"50.4V", cap:"1512Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"segway.com", unf:"148 x 65 x 130 cm", fold:"148 x 65 x 86 cm", factoryPsiFront:32, factoryPsiRear:32, balanceCycles:20, balanceMonths:4, dwellHours:"3 hours",
+ desc: "A hyper-scooter pushing the boundaries of performance, featuring massive dual motors and a striking transparent OLED dash.",
+ features: ["Transparent OLED dashboard display", "Massive dual 1500W nominal motors (3000W peak each)", "Adjustable hydraulic damping suspension (15 levels)", "Dynamic Traction Control System (SDTC)", "11-inch ultra-wide self-healing tubeless tires"]
+ },
+ "Segway GT1": { 
+ type:"Scooter", wt:"47.6kg", motor:"1400W", volt:"50.4V", cap:"1008Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"segway.com", unf:"148 x 65 x 130 cm", fold:"148 x 65 x 86 cm", factoryPsiFront:32, factoryPsiRear:32, balanceCycles:20, balanceMonths:4, dwellHours:"3 hours",
+ desc: "The single-motor sibling to the GT2, offering premium build quality, aggressive styling, and high-end suspension.",
+ features: ["Single rear 1400W motor with 60km/h top speed", "Adjustable hydraulic damping suspension (15 levels)", "Aviation-grade aluminum alloy frame", "High-performance hydraulic disc brakes", "11-inch self-healing tubeless tires"]
+ },
+ "Apollo City Pro 2023": { 
+ type:"Scooter", wt:"29.5kg", motor:"500W Dual", volt:"48V", cap:"864Wh", cells:"21700", bms:"Apollo Smart", tyre:"10-inch Tubeless", frame:"Alloy", url:"apolloscooters.co", unf:"119 x 60 x 124 cm", fold:"119 x 60 x 53 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A highly refined dual-motor urban commuter focused on low maintenance and exceptional ride quality.",
+ features: ["Dual 500W motors for effortless hill climbing", "Dedicated regenerative braking throttle for ultra-smooth stops", "Self-healing tubeless tires", "Integrated turn signals in the handlebars and deck", "Advanced app integration via Apollo Smart BMS"]
+ },
+ "Apollo Phantom V3": { 
+ type:"Scooter", wt:"35kg", motor:"1200W Dual", volt:"52V", cap:"1216Wh", cells:"18650", bms:"Apollo Smart", tyre:"10-inch Tube", frame:"Alloy", url:"apolloscooters.co", unf:"129 x 68 x 124 cm", fold:"129 x 68 x 53 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A high-performance enthusiast scooter featuring quadruple suspension and the upgraded V3 MACH 1 controller.",
+ features: ["MACH 1 Controller for incredibly smooth acceleration", "Quadruple spring suspension system", "Dual 1200W motors delivering rapid acceleration", "Hex display with real-time range estimation", "Dedicated regenerative braking throttle"]
+ },
+ "Apollo Pro": { 
+ type:"Scooter", wt:"42.5kg", motor:"3000W Dual", volt:"52V", cap:"1560Wh", cells:"21700 Samsung", bms:"Apollo Smart", tyre:"12-inch Tubeless", frame:"Aircraft Alloy", url:"apolloscooters.co", unf:"132 x 78 x 132 cm", fold:"132 x 78 x 60 cm", factoryPsiFront:35, factoryPsiRear:35, balanceCycles:20, balanceMonths:3, dwellHours:"3 hours",
+ desc: "Apollo's flagship hyper-scooter, featuring IoT connectivity, phone-as-display, and massive 12-inch tires.",
+ features: ["360-degree lighting system with built-in turn signals", "Phone-as-display capability with integrated wireless charging", "Massive 12-inch self-healing tubeless tires", "MACH 2 Controller with advanced regenerative braking", "Built-in IoT module for GPS tracking and anti-theft"]
+ },
+ "Nami Burn-E 2 Max": { 
+ type:"Scooter", wt:"47kg", motor:"1500W Dual", volt:"72V", cap:"2520Wh", cells:"Panasonic/LG", bms:"Smart Active", tyre:"11-inch Tubeless", frame:"Carbon/Alloy", url:"namiscooters.com", unf:"134 x 70 x 134 cm", fold:"134 x 70 x 63 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:20, balanceMonths:4, dwellHours:"4 hours",
+ desc: "A legendary enthusiast hyper-scooter with a hand-welded tubular frame and class-leading hydraulic suspension.",
+ features: ["Hand-welded tubular aluminum frame with carbon fiber stem", "Adjustable 165mm hydraulic coil-shock suspension", "Fully customizable sine-wave controllers (independent motor tuning)", "Massive 72V 35Ah battery for extreme range", "Logan 4-piston hydraulic brakes"]
+ },
+ "Nami Klima": { 
+ type:"Scooter", wt:"36kg", motor:"1000W Dual", volt:"60V", cap:"1500Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"namiscooters.com", unf:"128 x 68 x 122 cm", fold:"128 x 68 x 53 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "Nami's compact powerhouse, delivering the ultra-plush Burn-E suspension feel in a smaller 10-inch tire chassis.",
+ features: ["Adjustable hydraulic coil-shock suspension", "Dual 1000W motors with punchy sine-wave controllers", "Logan fully hydraulic disc brakes", "Customizable ride modes and independent motor power delivery", "IP55 water resistance rating"]
+ },
+ "Kaabo Mantis King GT": { 
+ type:"Scooter", wt:"33kg", motor:"1100W Dual", volt:"60V", cap:"1440Wh", cells:"Samsung 21700", bms:"Smart BMS", tyre:"10-inch Tube", frame:"Alloy", url:"kaabo.com", unf:"127 x 66 x 125 cm", fold:"127 x 66 x 56 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
+ desc: "The ultimate evolution of the Mantis series, featuring adjustable hydraulic suspension and a vivid TFT display.",
+ features: ["Dual 1100W motors with dual 30A sine-wave controllers", "Adjustable hydraulic shock absorbers front and rear", "Vivid 4.2-inch TFT full-color display", "Samsung 21700 cells for reliable power delivery", "Thumb throttle for ergonomic speed control"]
+ },
+ "Kaabo Wolf King GTR": { 
+ type:"Scooter", wt:"62kg", motor:"2000W Dual", volt:"72V", cap:"2520Wh", cells:"LG 50S 21700", bms:"Removable Smart", tyre:"12-inch Tubeless", frame:"Alloy", url:"kaabo.com", unf:"162 x 74 x 130 cm", fold:"162 x 74 x 50 cm", factoryPsiFront:35, factoryPsiRear:35, balanceCycles:20, balanceMonths:4, dwellHours:"4 hours",
+ desc: "A massive, ultra-rugged hyper-scooter featuring a motorcycle-style front fork, 12-inch tires, and a removable battery.",
+ features: ["Removable 72V 35Ah battery pack", "Motorcycle-style dual front fork suspension", "Traction Control System (TCS) and pedestrian mode", "12-inch hybrid tubeless tires for mixed terrain", "Massive dual 2000W motors"]
+ },
+ "Kaabo Wolf Warrior X": { 
+ type:"Scooter", wt:"33kg", motor:"1100W Dual", volt:"60V", cap:"1260Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"kaabo.com", unf:"121 x 65 x 121 cm", fold:"121 x 65 x 57 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A lighter, more nimble version of the Wolf series, retaining the iconic dual front fork design in a 60V package.",
+ features: ["Iconic dual front fork suspension design", "Dual 1100W motors for strong off-road capability", "Full hydraulic brakes with ABS", "RGB deck lighting controlled via smartphone app", "Relatively portable 33kg weight for its class"]
+ },
+ "Vsett 10+": { 
+ type:"Scooter", wt:"35.5kg", motor:"1400W Dual", volt:"60V", cap:"1680Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Aviation Alloy", url:"vsett.com", unf:"129 x 68 x 127 cm", fold:"129 x 68 x 58 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A hugely popular high-performance scooter known for its aggressive styling, 'Sport Mode' boost button, and reliability.",
+ features: ["Sport Mode button for a temporary 5Ah power boost", "NFC key card immobilizer system", "Hydraulic spring suspension front and rear", "Nutt hydraulic brakes for superior stopping power", "Integrated turn signals (button operated)"]
+ },
+ "Vsett 9+": { 
+ type:"Scooter", wt:"25kg", motor:"650W Dual", volt:"48V", cap:"1008Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"vsett.com", unf:"122 x 63 x 121 cm", fold:"122 x 63 x 48 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:12, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A highly capable dual-motor mid-weight commuter that strikes a perfect balance between portability and power.",
+ features: ["Dual 650W motors for steep urban hills", "NFC key card immobilizer system", "Front and rear spring suspension", "Compact folding mechanism with folding handlebars", "Integrated turn signals"]
+ },
+ "Dualtron Thunder 2": { 
+ type:"Scooter", wt:"47kg", motor:"5040W Peak Dual", volt:"72V", cap:"2880Wh", cells:"LG 21700", bms:"Standard BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"minimotors.com", unf:"120 x 60 x 121 cm", fold:"120 x 60 x 51 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:20, balanceMonths:4, dwellHours:"4 hours",
+ desc: "The sequel to the iconic Thunder, featuring a massive 72V LG battery, insane peak power, and signature rubber suspension.",
+ features: ["Over 10,000W combined peak power in 'Ludicrous' mode", "45-step adjustable rubber cartridge suspension", "Massive 72V 40Ah LG 21700 battery pack", "Nutt hydraulic brakes with 160mm disks", "Integrated footrest with built-in taillight"]
+ },
+ "Dualtron Victor": { 
+ type:"Scooter", wt:"32.9kg", motor:"2000W Dual", volt:"60V", cap:"1440Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"111 x 60 x 122 cm", fold:"111 x 60 x 56 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A compact powerhouse blending Thunder-level performance with a smaller, more manageable footprint.",
+ features: ["Dual 2000W peak motors for aggressive acceleration", "9-step adjustable rubber cartridge suspension", "Full Zoom hydraulic disc brakes", "Aviation-grade aluminum frame construction", "EY3 LCD display with deep customization"]
+ },
+ "Dualtron Mini": { 
+ type:"Scooter", wt:"22kg", motor:"1450W Peak", volt:"52V", cap:"910Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"114 x 52 x 106 cm", fold:"114 x 52 x 40 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:12, balanceMonths:3, dwellHours:"2 hours",
+ desc: "Minimotors' entry-level commuter offering signature Dualtron styling and dual suspension in a portable package.",
+ features: ["1450W peak rear hub motor", "Dual spring/rubber suspension system", "Rear drum brake with integrated electric ABS", "EY3 trigger throttle dashboard", "Striking stem and deck RGB lighting"]
+ },
+ "Inokim OXO": { 
+ type:"Scooter", wt:"33.5kg", motor:"1000W Dual", volt:"60V", cap:"1536Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Aviation Alloy", url:"inokim.com", unf:"122 x 58 x 127 cm", fold:"122 x 58 x 53 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A beautifully engineered dual-motor scooter with patented single-sided swingarms and a unique floating deck.",
+ features: ["Dual 1000W gearless motors for silent operation", "Patented adjustable rubber suspension (high/low settings)", "Single-sided swingarm design for easy tire changes", "Full hydraulic disc brakes front and rear", "Thumb throttle for precise speed control"]
+ },
+ "Inokim Light 2": { 
+ type:"Scooter", wt:"13.7kg", motor:"350W", volt:"36V", cap:"374Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"inokim.com", unf:"105 x 46 x 108 cm", fold:"95 x 36 x 17 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:10, balanceMonths:2, dwellHours:"1.5 hours",
+ desc: "A premium, ultra-portable commuter scooter known for its low center of gravity and excellent build quality.",
+ features: ["Custom-designed 350W gearless motor", "Low center of gravity teardrop deck", "Dual drum brakes for ultra-low maintenance", "Quick-fold mechanism with folding handlebars", "CST pneumatic tires for vibration dampening"]
+ },
+ "Xiaomi Mi Pro 2": { 
+ type:"Scooter", wt:"14.2kg", motor:"300W", volt:"36V", cap:"474Wh", cells:"18650", bms:"Smart BMS", tyre:"8.5-inch Tube", frame:"Aerospace Alloy", url:"mi.com", unf:"113 x 43 x 118 cm", fold:"113 x 43 x 49 cm", factoryPsiFront:50, factoryPsiRear:50, balanceCycles:12, balanceMonths:3, dwellHours:"1.5 hours",
+ desc: "The quintessential reliable urban commuter, ubiquitous worldwide for its simplicity and incredible durability.",
+ features: ["300W nominal front motor (600W peak)", "Aerospace-grade aluminum frame", "E-ABS front brake and rear disc brake", "KERS regenerative braking system", "Minimalist multi-functional dashboard"]
+ },
+ "Xiaomi 4 Pro": { 
+ type:"Scooter", wt:"16.5kg", motor:"350W", volt:"36V", cap:"446Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"mi.com", unf:"119 x 48 x 124 cm", fold:"119 x 48 x 51 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:12, balanceMonths:3, dwellHours:"1.5 hours",
+ desc: "An upgraded version of the classic Xiaomi, featuring self-sealing tires and slightly larger dimensions for comfort.",
+ features: ["10-inch DuraGel self-sealing tires", "Convenient magnetic charging port", "Upgraded 350W motor for better hill climbing", "Wider deck and taller stem for better ergonomics", "Front E-ABS and rear dual-pad disc brake"]
+ },
+ "Fluid Mosquito": { 
+ type:"Scooter", wt:"13kg", motor:"500W", volt:"48V", cap:"460Wh", cells:"18650", bms:"Standard BMS", tyre:"8-inch Solid", frame:"Alloy", url:"fluidfreeride.com", unf:"106 x 43 x 114 cm", fold:"106 x 14 x 33 cm", factoryPsiFront:0, factoryPsiRear:0, balanceCycles:10, balanceMonths:3, dwellHours:"1-2 hours",
+ desc: "An ultra-lightweight, ultra-compact dual-suspension commuter designed for flawless multi-modal transport.",
+ features: ["Featherweight 13kg design for easy carrying", "Punchy 500W front motor", "Dual spring suspension to offset solid tires", "Solid never-flat tires (zero maintenance)", "Color LCD display with cruise control"]
+ },
+ "Fluid CityRider": { 
+ type:"Scooter", wt:"12.9kg", motor:"350W", volt:"36V", cap:"360Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Solid", frame:"Alloy", url:"fluidfreeride.com", unf:"109 x 43 x 114 cm", fold:"109 x 43 x 40 cm", factoryPsiFront:0, factoryPsiRear:0, balanceCycles:10, balanceMonths:3, dwellHours:"1 hour",
+ desc: "An affordable, solid-built daily commuter with integrated turn signals and a stylish wooden deck.",
+ features: ["Integrated rear turn signals", "Solid honeycomb tires to prevent flats", "350W rear motor", "Dual braking system (rear drum/front electric)", "Wooden deck for style and slight vibration dampening"]
+ },
+ "Varla Eagle One": { 
+ type:"Scooter", wt:"30.8kg", motor:"1000W Dual", volt:"52V", cap:"946Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"varlascooter.com", unf:"127 x 66 x 127 cm", fold:"127 x 66 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A rugged, dual-motor off-road capable scooter that offers immense value for thrill-seekers.",
+ features: ["Dual 1000W hub motors (3200W peak)", "Independent dual spring suspension", "Dual hydraulic disc brakes for stopping power", "10-inch pneumatic tires for mixed terrain", "QS-S4 LCD display with key ignition voltage meter"]
+ },
+ "Varla Pegasus": { 
+ type:"Scooter", wt:"30kg", motor:"500W Dual", volt:"48V", cap:"750Wh", cells:"18650", bms:"Standard BMS", tyre:"8-inch Solid", frame:"Alloy", url:"varlascooter.com", unf:"119 x 59 x 119 cm", fold:"119 x 59 x 48 cm", factoryPsiFront:0, factoryPsiRear:0, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A solid-tire dual-motor urban brawler built to eliminate flats while maintaining zippy acceleration.",
+ features: ["Dual 500W motors for strong urban torque", "8-inch solid fat tires (puncture-proof)", "Dual disc brakes", "Independent swingarm suspension system", "Center-mounted smart LCD display"]
+ },
+ "EMOVE Cruiser S": { 
+ type:"Scooter", wt:"23.5kg", motor:"1000W", volt:"52V", cap:"1560Wh", cells:"LG 21700", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"voromotors.com", unf:"121 x 57 x 118 cm", fold:"121 x 25 x 40 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "The undisputed king of commuter range, capable of massive distances on a single charge with car-grade tires.",
+ features: ["Colossal 52V 30Ah LG battery pack", "Up to 100km real-world range per charge", "10-inch car-grade tubeless tires", "Sine-wave controller for smooth acceleration", "IPX6 overall water resistance rating"]
+ },
+ "EMOVE Roadrunner": { 
+ type:"Scooter", wt:"24.9kg", motor:"350W F / 500W R", volt:"48V", cap:"1252Wh", cells:"18650", bms:"Removable BMS", tyre:"14-inch Tube", frame:"Alloy", url:"voromotors.com", unf:"129 x 63 x 96 cm", fold:"Non-folding", factoryPsiFront:35, factoryPsiRear:35, balanceCycles:15, balanceMonths:3, dwellHours:"2.5 hours",
+ desc: "A seated, dual-motor electric scooter-bike hybrid designed for ultra-comfortable long seated commutes.",
+ features: ["Dual motors (350W front / 500W rear)", "Memory foam seat for extended riding", "Ergonomic thumb throttle", "Adjustable front suspension fork", "Swappable battery design for infinite range"]
+ },
+ "Unagi Model One Voyager": { 
+ type:"Scooter", wt:"13.4kg", motor:"250W Dual", volt:"36V", cap:"360Wh", cells:"18650", bms:"Smart BMS", tyre:"7.5-inch Solid", frame:"Carbon Fiber/Magnesium", url:"unagiscooters.com", unf:"96 x 42 x 110 cm", fold:"96 x 42 x 38 cm", factoryPsiFront:0, factoryPsiRear:0, balanceCycles:10, balanceMonths:2, dwellHours:"1.5 hours",
+ desc: "A stunning, lightweight dual-motor scooter made from exotic materials, perfect for short urban hops.",
+ features: ["Carbon fiber and magnesium chassis construction", "Dual 250W custom motors for punchy torque", "7.5-inch custom solid rubber tires", "Patented one-click folding mechanism", "Integrated smart display with app connectivity"]
+ },
+ "Hiboy S2 Pro": { 
+ type:"Scooter", wt:"16.5kg", motor:"500W", volt:"36V", cap:"410Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Solid", frame:"Alloy", url:"hiboy.com", unf:"115 x 42 x 119 cm", fold:"115 x 42 x 49 cm", factoryPsiFront:0, factoryPsiRear:0, balanceCycles:10, balanceMonths:3, dwellHours:"1-2 hours",
+ desc: "A budget-friendly workhorse with solid tires and a rear suspension, ideal for flat urban environments.",
+ features: ["10-inch solid honeycomb tires to prevent flats", "Rear dual shock absorbers", "500W front hub motor", "App connectivity for custom speed/braking settings", "Dual braking system (E-ABS and disc)"]
+ },
+ "Hiboy Titan Pro": { 
+ type:"Scooter", wt:"28.1kg", motor:"1200W Dual", volt:"48V", cap:"840Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"hiboy.com", unf:"120 x 60 x 119 cm", fold:"120 x 60 x 50 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A heavy-duty dual-motor off-road scooter offering raw power and rugged suspension on a budget.",
+ features: ["Dual 1200W brushless motors", "Dual mechanical disc brakes", "Front and rear spring suspension", "10-inch off-road pneumatic tires", "Wider anti-slip deck for better stance"]
+ },
+ "Gotrax G4": { 
+ type:"Scooter", wt:"16.3kg", motor:"350W", volt:"36V", cap:"374Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"gotrax.com", unf:"113 x 43 x 121 cm", fold:"113 x 43 x 48 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:10, balanceMonths:3, dwellHours:"1.5 hours",
+ desc: "An entry-level commuter featuring 10-inch tires and an integrated cable lock for maximum convenience.",
+ features: ["Integrated combination cable lock in the stem", "10-inch pneumatic tires for ride comfort", "350W front motor", "Digital LED display", "E-ABS and rear disc brake combination"]
+ },
+ "Gotrax GX2": { 
+ type:"Scooter", wt:"34.5kg", motor:"800W Dual", volt:"48V", cap:"960Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"gotrax.com", unf:"127 x 66 x 127 cm", fold:"127 x 66 x 53 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "Gotrax's robust entry into the high-performance dual-motor space, featuring dual suspension.",
+ features: ["Dual 800W motors for high-speed cruising", "Front and rear independent suspension", "10-inch pneumatic tube tires", "Dual disc brakes", "Digital display with multiple speed modes"]
+ },
+ "Turboant X7 Pro": { 
+ type:"Scooter", wt:"15kg", motor:"350W", volt:"36V", cap:"360Wh", cells:"Removable 18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"turboant.com", unf:"108 x 42 x 118 cm", fold:"108 x 42 x 46 cm", factoryPsiFront:35, factoryPsiRear:35, balanceCycles:10, balanceMonths:2, dwellHours:"1-2 hours",
+ desc: "A unique commuter scooter featuring a stem-mounted removable battery for easy indoor charging.",
+ features: ["Removable stem-mounted battery pack", "10-inch pneumatic tires", "350W front motor", "Triple braking system (electronic, disc, foot)", "Cruise control functionality"]
+ },
+ "InMotion RS": { 
+ type:"Scooter", wt:"58kg", motor:"2000W Dual", volt:"72V", cap:"2880Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Alloy", url:"inmotionworld.com", unf:"147 x 71 x 134 cm", fold:"147 x 71 x 68 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:20, balanceMonths:4, dwellHours:"4 hours",
+ desc: "An ultra-premium transforming hyper-scooter with adjustable ground clearance and insane top speeds.",
+ features: ["Transforming chassis with 4 adjustable ride heights", "Massive dual 2000W motors (8400W peak)", "Raptor-p claw dual suspension system", "72V 40Ah battery system for extreme range", "Hydraulic disc brakes with 160mm rotors"]
+ },
+ "InMotion Climber": { 
+ type:"Scooter", wt:"20.8kg", motor:"450W Dual", volt:"36V", cap:"533Wh", cells:"18650", bms:"Smart BMS", tyre:"8-inch Tube", frame:"Alloy", url:"inmotionworld.com", unf:"116 x 51 x 119 cm", fold:"116 x 51 x 54 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:12, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A dual-motor commuter specifically engineered to conquer steep urban hills without breaking a sweat.",
+ features: ["Dual 450W motors optimized for climbing", "Handles up to 36% inclines effortlessly", "Smart BMS with weather protection", "Dual braking (electric/disc)", "App integration with deep ride analytics"]
+ },
+ "Mukuta 10 Plus": { 
+ type:"Scooter", wt:"36kg", motor:"1400W Dual", volt:"60V", cap:"1536Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"mukutariding.com", unf:"129 x 68 x 127 cm", fold:"129 x 68 x 55 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A bold, aggressive high-performance scooter with quad-spring suspension and a removable power bank.",
+ features: ["Dual 1400W motors", "Quad-spring suspension system for ultimate plushness", "Removable power bank in the stem", "Nutt hydraulic brakes", "Striking LED lighting integrated into the swingarms"]
+ },
+ "Teverun Fighter Supreme": { 
+ type:"Scooter", wt:"45kg", motor:"2000W Dual", volt:"72V", cap:"2520Wh", cells:"LG 21700", bms:"Smart Active BMS", tyre:"11-inch Tubeless", frame:"Alloy/Steel", url:"teverun.com", unf:"131 x 64 x 132 cm", fold:"131 x 32 x 57 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:20, balanceMonths:4, dwellHours:"4 hours",
+ desc: "A hyper-scooter born from the Minimotors/Blade partnership, featuring a huge TFT display and extreme power.",
+ features: ["3.5-inch TFT color display with app integration", "Dual 2000W peak motors for hyper-speed", "Adjustable hydraulic suspension", "11-inch tubeless street tires", "Steering damper included standard"]
+ },
+ "Teverun Blade Mini Pro": { 
+ type:"Scooter", wt:"29kg", motor:"500W Dual", volt:"48V", cap:"748Wh", cells:"18650", bms:"Smart BMS", tyre:"9-inch Tube", frame:"Alloy", url:"teverun.com", unf:"118 x 60 x 121 cm", fold:"118 x 60 x 53 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A compact dual-motor scooter packing impressive torque and full suspension into a small footprint.",
+ features: ["Dual 500W motors", "Front and rear spring suspension", "Minimotors EY3 trigger display", "9-inch pneumatic tires", "Full hydraulic disc brakes"]
+ },
+ "YUME X11": { 
+ type:"Scooter", wt:"53kg", motor:"3000W Dual", volt:"60V", cap:"2100Wh", cells:"18650 Panasonic", bms:"Standard BMS", tyre:"11-inch Off-road", frame:"Alloy", url:"yumeway.com", unf:"139 x 68 x 139 cm", fold:"139 x 68 x 60 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:20, balanceMonths:4, dwellHours:"4 hours",
+ desc: "An imposing off-road beast with a massive battery, motorcycle-style forks, and extreme suspension travel.",
+ features: ["Gold-anodized dual front fork suspension", "Dual 3000W peak motors", "11-inch off-road tires", "Hydraulic disc brakes", "Steering damper for high-speed stability"]
+ },
+ "RoadRunner RS5+": { 
+ type:"Scooter", wt:"40kg", motor:"1400W Dual", volt:"52V", cap:"1456Wh", cells:"Removable LG 21700", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"roadrunnerscooters.com", unf:"127 x 68 x 132 cm", fold:"127 x 68 x 55 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A refined high-performance scooter featuring a removable battery and premium hydraulic suspension.",
+ features: ["Removable 52V LG battery pack", "Adjustable hydraulic suspension", "Nutt hydraulic brakes", "10-inch tubeless pneumatic tires", "Sine-wave controllers for smooth power delivery"]
+ },
+ "MiniMotors Speedway Leger": { 
+ type:"Scooter", wt:"20.6kg", motor:"500W", volt:"48V", cap:"748Wh", cells:"18650", bms:"Standard BMS", tyre:"8.5-inch Tube", frame:"Alloy", url:"minimotors.com", unf:"110 x 53 x 117 cm", fold:"110 x 53 x 38 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:12, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A comfortable, reliable single-motor cruiser known for its signature deck design and plush ride.",
+ features: ["Elevated rear footrest for a stable riding stance", "500W rear motor", "Front and rear spring suspension", "8.5-inch tubed tires", "EY3 trigger throttle display"]
+ },
+ "Weped SST": { 
+ type:"Scooter", wt:"52kg", motor:"5000W Peak Dual", volt:"72V", cap:"3240Wh", cells:"Samsung SDI 21700", bms:"Smart BMS", tyre:"11-inch Tubeless Ultra-Wide", frame:"Aviation Alloy", url:"weped.co.kr", unf:"134 x 63 x 121 cm", fold:"134 x 27 x 53 cm", factoryPsiFront:35, factoryPsiRear:35, balanceCycles:20, balanceMonths:4, dwellHours:"4-5 hours",
+ desc: "A boutique, hand-built Korean hyper-scooter renowned for its striking curved frame and drag-racing acceleration.",
+ features: ["Hand-machined aviation aluminum frame", "Insane dual 5000W peak motors", "Curved aesthetic design", "Ultra-wide 11-inch racing tires", "Advanced linkage suspension system"]
+ },
+ "Solar P1 2.0": { 
+ type:"Scooter", wt:"27kg", motor:"1200W Dual", volt:"52V", cap:"936Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"solarscooters.com", unf:"121 x 63 x 121 cm", fold:"121 x 63 x 48 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A striking dual-motor scooter featuring Tron-style lighting and aggressive mid-level performance.",
+ features: ["Dual 1200W motors", "Front and rear spring suspension", "Tron-style laser deck lighting", "Fingerprint display lock", "NUTT hydraulic brakes"]
+ },
+ "Solar FF Lite": { 
+ type:"Scooter", wt:"34kg", motor:"1600W Dual", volt:"60V", cap:"1080Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"solarscooters.com", unf:"129 x 65 x 129 cm", fold:"129 x 65 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A high-speed commuter with a robust frame, bright display, and great all-around specifications.",
+ features: ["Dual 1600W motors", "Color TFT display", "Hydraulic disc brakes", "Front and rear suspension", "Sine wave controllers"]
+ },
+ "NIU KQi3 Max": { 
+ type:"Scooter", wt:"21.1kg", motor:"450W", volt:"48V", cap:"608Wh", cells:"18650", bms:"NIU Smart BMS", tyre:"9.5-inch Tubeless", frame:"Alloy", url:"niu.com", unf:"117 x 54 x 120 cm", fold:"117 x 54 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:12, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A highly refined, automotive-grade commuter scooter with excellent geometry and signature halo lighting.",
+ features: ["Iconic halo front headlight", "450W rear motor for strong hill climbing", "Self-healing tubeless tires", "Wider deck and handlebars for stability", "Dual disc brakes with regenerative braking"]
+ },
+ "NIU KQi2 Pro": { 
+ type:"Scooter", wt:"18.4kg", motor:"300W", volt:"48V", cap:"365Wh", cells:"18650", bms:"NIU Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"niu.com", unf:"112 x 52 x 120 cm", fold:"112 x 52 x 52 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:10, balanceMonths:3, dwellHours:"1.5 hours",
+ desc: "An affordable, exceptionally well-built commuter prioritizing comfort, safety, and modern design.",
+ features: ["10-inch tubeless tires for a smooth ride", "Automotive-grade steel frame", "300W rear motor", "Signature halo headlight", "Customizable grip tape options"]
+ },
+ "Joyor S10-S": { 
+ type:"Scooter", wt:"27.1kg", motor:"1000W Dual", volt:"60V", cap:"1080Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"joyorscooter.com", unf:"121 x 60 x 121 cm", fold:"121 x 60 x 53 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A budget-friendly dual-motor scooter offering surprising speed and full suspension for the price.",
+ features: ["Dual 1000W motors", "Front and rear swingarm suspension", "Hydraulic disc brakes", "Color LCD display", "10-inch pneumatic tires"]
+ },
+ "Kugoo Kirin G3": { 
+ type:"Scooter", wt:"25kg", motor:"1200W", volt:"52V", cap:"936Wh", cells:"18650", bms:"Standard BMS", tyre:"10.5-inch Tubeless", frame:"Alloy", url:"kugoo.com", unf:"120 x 66 x 129 cm", fold:"120 x 66 x 55 cm", factoryPsiFront:38, factoryPsiRear:38, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
+ desc: "An adventurous scooter with a unique TPU suspension system and a large, intuitive touchscreen display.",
+ features: ["Unique TPU (Thermoplastic Polyurethane) suspension", "Large touchscreen LED display", "1200W rear motor", "10.5-inch off-road tires", "Integrated rear kicktail for better stance"]
+ },
+ "Superpedestrian Link": { 
+ type:"Scooter", wt:"27kg", motor:"500W", volt:"48V", cap:"980Wh", cells:"18650", bms:"Vehicle Intelligence System", tyre:"10-inch Solid", frame:"Alloy", url:"superpedestrian.com", unf:"119 x 50 x 119 cm", fold:"Non-folding", factoryPsiFront:0, factoryPsiRear:0, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
+ desc: "Built like a tank, this scooter shares DNA with commercial rental fleets for ultimate durability.",
+ features: ["Vehicle Intelligence System for real-time self-diagnostics", "Ultra-durable commercial-grade frame", "10-inch solid puncture-proof tires", "500W motor", "Fully enclosed weather-resistant electronics"]
+ },
+ "Rad Power RadRunner 3 Plus": { 
+ type:"E-Bike", wt:"34.2kg", motor:"750W Rear Hub", volt:"48V", cap:"672Wh", cells:"18650", bms:"Smart BMS", tyre:"20x3.3-inch Kenda", frame:"6061 Alloy", url:"radpowerbikes.com", unf:"175 x 71 x 116 cm", fold:"Non-folding", factoryPsiFront:30, factoryPsiRear:30, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A highly versatile utility e-bike with a step-thru frame and incredible cargo capacity.",
+ features: ["Redesigned step-thru frame for better ergonomics", "750W rear hub motor optimized for climbing", "Hydraulic disc brakes for superior stopping power", "Integrated rear rack with 350lb payload capacity", "Custom 20x3.3-inch Kenda tires"]
+ },
+ "Aventon Level.2": { 
+ type:"E-Bike", wt:"28.1kg", motor:"500W Rear Hub", volt:"48V", cap:"672Wh", cells:"18650 LG", bms:"Smart BMS", tyre:"27.5x2.1-inch", frame:"Double-Butted Alloy", url:"aventon.com", unf:"180 x 68 x 106 cm", fold:"Non-folding", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A flagship commuter e-bike featuring a torque sensor for a natural, intuitive riding experience.",
+ features: ["Torque sensor for smooth, natural pedal assist", "Fully integrated battery with sleek frame design", "Color LCD display with app connectivity", "Front suspension fork with lockout", "Included fenders and rear rack"]
+ },
+ "Aventon Aventure.2": { 
+ type:"E-Bike", wt:"34.9kg", motor:"750W Rear Hub", volt:"48V", cap:"720Wh", cells:"18650 LG", bms:"Smart BMS", tyre:"26x4.0-inch Fat", frame:"Alloy", url:"aventon.com", unf:"190 x 71 x 114 cm", fold:"Non-folding", factoryPsiFront:20, factoryPsiRear:20, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A powerful, go-anywhere fat tire e-bike equipped with a torque sensor and robust frame.",
+ features: ["750W sustained rear hub motor", "Torque sensor for responsive pedal assist", "4-inch fat tires for sand, snow, and mud", "Integrated turn signals and color display", "Hydraulic disc brakes"]
+ },
+ "Lectric XP 3.0": { 
+ type:"E-Bike", wt:"29kg", motor:"500W Rear Hub", volt:"48V", cap:"500Wh", cells:"18650", bms:"Standard BMS", tyre:"20x3.0-inch Fat", frame:"Alloy", url:"lectricebikes.com", unf:"167 x 63 x 119 cm", fold:"94 x 45 x 71 cm", factoryPsiFront:30, factoryPsiRear:30, balanceCycles:10, balanceMonths:3, dwellHours:"2 hours",
+ desc: "The ultimate value folding e-bike, featuring upgraded brakes, motor, and passenger capabilities.",
+ features: ["Folding frame for easy storage and transport", "500W motor with 1000W peak output", "Hydraulic disc brakes (on newer models)", "150lb capacity rear rack (passenger ready)", "3-inch fat tires for stability"]
+ },
+ "Ride1Up Core-5": { 
+ type:"E-Bike", wt:"22.2kg", motor:"750W Rear Hub", volt:"48V", cap:"500Wh", cells:"LG 18650", bms:"Standard BMS", tyre:"27.5x2.2-inch Kenda", frame:"Alloy", url:"ride1up.com", unf:"177 x 68 x 101 cm", fold:"Non-folding", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:10, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A sleek, lightweight, and stealthy commuter e-bike that punches way above its price point.",
+ features: ["750W sustained geared hub motor", "Fully integrated 48V battery", "Clean, minimalist frame design", "27.5-inch Kenda Kwick Seven.5 tires", "Lightweight 22kg build"]
+ },
+ "Ride1Up LMT'D": { 
+ type:"E-Bike", wt:"24kg", motor:"750W Rear Hub", volt:"48V", cap:"672Wh", cells:"Samsung", bms:"Smart BMS", tyre:"27.5x2.4-inch Schwalbe", frame:"Alloy", url:"ride1up.com", unf:"177 x 68 x 101 cm", fold:"Non-folding", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:15, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A premium commuter e-bike featuring a torque sensor and high-end components without the premium price tag.",
+ features: ["Advanced torque sensor for natural assist", "750W motor with massive 100nm of torque", "RST Asteria air suspension fork", "Dual-piston hydraulic brakes", "Schwalbe Super Moto-X tires"]
+ },
+ "Trek Allant+ 7": { 
+ type:"E-Bike", wt:"24.9kg", motor:"Bosch CX 250W Mid", volt:"36V", cap:"500Wh", cells:"Bosch PowerTube", bms:"Bosch Smart BMS", tyre:"27.5x2.4-inch", frame:"Hydroformed Alloy", url:"trekbikes.com", unf:"185 x 68 x 109 cm", fold:"Non-folding", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:20, balanceMonths:6, dwellHours:"4 hours",
+ desc: "A top-tier commuter featuring the ultra-reliable Bosch mid-drive system and elegant frame integration.",
+ features: ["Bosch Performance Line CX mid-drive motor", "Fully integrated Bosch PowerTube 500Wh battery", "Sleek hydroformed aluminum frame", "Shimano 9-speed drivetrain", "Integrated lighting and custom rear rack"]
+ },
+ "Specialized Turbo Vado 4.0": { 
+ type:"E-Bike", wt:"25.8kg", motor:"Specialized 2.0 250W Mid", volt:"36V", cap:"710Wh", cells:"Integrated", bms:"Specialized Smart", tyre:"27.5x2.35-inch Pathfinder", frame:"E5 Aluminum", url:"specialized.com", unf:"188 x 68 x 111 cm", fold:"Non-folding", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:20, balanceMonths:6, dwellHours:"3-4 hours",
+ desc: "A masterclass in e-bike engineering, offering unparalleled ride feel, app connectivity, and range.",
+ features: ["Specialized 2.0 mid-drive motor (70Nm torque)", "Massive 710Wh integrated battery", "MasterMind display with Mission Control app sync", "Garmin Radar integration compatible", "SRAM 11-speed drivetrain"]
+ },
+ "Juiced CrossCurrent X": { 
+ type:"E-Bike", wt:"29.4kg", motor:"750W Bafang Rear Hub", volt:"52V", cap:"998Wh", cells:"LG 18650", bms:"Smart BMS", tyre:"28x1.75-inch Schwalbe", frame:"Alloy", url:"juicedbikes.com", unf:"182 x 63 x 109 cm", fold:"Non-folding", factoryPsiFront:50, factoryPsiRear:50, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A high-speed, long-range commuter built around a massive 52V battery and advanced sensors.",
+ features: ["Massive 52V 19.2Ah battery for extreme range", "750W Bafang geared hub motor", "Combined torque and cadence sensors", "Suntour NCX suspension fork", "Schwalbe Marathon Plus tires"]
+ },
+ "Juiced RipCurrent S": { 
+ type:"E-Bike", wt:"34.4kg", motor:"1000W Bafang Rear", volt:"52V", cap:"998Wh", cells:"LG 18650", bms:"Smart BMS", tyre:"26x4.0-inch Fat", frame:"Alloy", url:"juicedbikes.com", unf:"190 x 71 x 114 cm", fold:"Non-folding", factoryPsiFront:20, factoryPsiRear:20, balanceCycles:15, balanceMonths:3, dwellHours:"3 hours",
+ desc: "A sport-utility fat tire e-bike designed to conquer any terrain at high speeds.",
+ features: ["1000W Bafang motor (1300W peak)", "52V 19.2Ah battery pack", "Torque and cadence sensor integration", "4-inch puncture-resistant fat tires", "Hydraulic disc brakes and air suspension fork"]
+ },
+ "Himiway Cruiser": { 
+ type:"E-Bike", wt:"32.6kg", motor:"750W Rear Hub", volt:"48V", cap:"840Wh", cells:"Samsung/LG 18650", bms:"Standard BMS", tyre:"26x4.0-inch Kenda Fat", frame:"6061 Alloy", url:"himiwaybike.com", unf:"190 x 71 x 116 cm", fold:"Non-folding", factoryPsiFront:20, factoryPsiRear:20, balanceCycles:12, balanceMonths:3, dwellHours:"2-3 hours",
+ desc: "A classic long-range fat tire cruiser capable of handling beach sand, snow, and rough trails.",
+ features: ["750W geared hub motor (80Nm torque)", "Large 48V 17.5Ah battery", "26x4-inch Kenda fat tires", "Shimano 7-speed gear shift system", "Heavy-duty integrated rear rack"]
+ },
+ "VanMoof S3": { 
+ type:"E-Bike", wt:"21kg", motor:"250W Front Hub", volt:"36V", cap:"504Wh", cells:"Integrated LG", bms:"VanMoof Smart", tyre:"28-inch Schwalbe", frame:"Coated Alloy", url:"vanmoof.com", unf:"177 x 66 x 106 cm", fold:"Non-folding", factoryPsiFront:50, factoryPsiRear:50, balanceCycles:15, balanceMonths:4, dwellHours:"2 hours",
+ desc: "An iconic, minimalist smart bike packed with anti-theft tech and automatic electronic shifting.",
+ features: ["Integrated Kick Lock with built-in alarm", "Automatic 4-speed electronic e-shifter", "Boost button for instant acceleration", "Matrix display embedded in the top tube", "Apple Find My integration"]
+ },
+ "Cowboy 4": { 
+ type:"E-Bike", wt:"18.9kg", motor:"250W Rear Hub", volt:"36V", cap:"360Wh", cells:"18650", bms:"Cowboy Smart", tyre:"27.5x1.8-inch", frame:"6061 Alloy", url:"cowboy.com", unf:"170 x 57 x 102 cm", fold:"Non-folding", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:4, dwellHours:"2 hours",
+ desc: "A sleek, belt-driven connected e-bike focused on simplicity, zero maintenance, and urban agility.",
+ features: ["Gates Carbon Drive belt (no chain maintenance)", "Intuitive automatic motor assistance (no buttons)", "Integrated Quad Lock phone mount with wireless charging", "Removable battery integrated into the seat tube", "Advanced companion app with crash detection"]
+ },
+ "Gazelle Ultimate C8": { 
+ type:"E-Bike", wt:"24.4kg", motor:"Bosch Active Line Plus Mid", volt:"36V", cap:"500Wh", cells:"Bosch", bms:"Bosch Smart", tyre:"28x1.75-inch Schwalbe", frame:"Alloy", url:"gazellebikes.com", unf:"185 x 65 x 110 cm", fold:"Non-folding", factoryPsiFront:50, factoryPsiRear:50, balanceCycles:20, balanceMonths:6, dwellHours:"4 hours",
+ desc: "A luxurious Dutch-style commuter featuring an ultra-smooth Bosch mid-drive and internal gear hub.",
+ features: ["Bosch Active Line Plus mid-drive motor", "Shimano Nexus 8-speed internal gear hub", "Gates Carbon belt drive for silent operation", "Integrated suspension in the front fork", "Upright, ergonomic Dutch riding position"]
+ },
+ "Engwe Engine Pro": { 
+ type:"E-Bike", wt:"31.7kg", motor:"750W Rear Hub", volt:"48V", cap:"768Wh", cells:"18650", bms:"Standard BMS", tyre:"20x4.0-inch Fat", frame:"Alloy", url:"engwe-bikes.com", unf:"170 x 68 x 124 cm", fold:"104 x 55 x 84 cm", factoryPsiFront:25, factoryPsiRear:25, balanceCycles:12, balanceMonths:3, dwellHours:"2 hours",
+ desc: "A dual-suspension folding fat-tire e-bike designed for extreme off-road comfort and portability.",
+ features: ["Full front and rear suspension system", "750W motor with regenerative braking", "Folding frame for compact storage", "20x4-inch fat tires", "Hydraulic disc brakes and color LCD"]
+ }
 };
 
 let customSpecs = {}; 
@@ -825,6 +1058,7 @@ let currentMaxGforce = 0, elevations = [], currentWeather = null;
 let noSleepVideo = null, gforceSamples = [];
 let map = null, polyline = null, detailMap = null, currentDetailId = null;
 let voiceEnabled = false, recognition = null, statsFilter = 'all', editingNotes = false;
+
 /* ══════════════════════════════════════════════════════
  INIT & SPECS LOGIC
 ══════════════════════════════════════════════════════ */
