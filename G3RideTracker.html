@@ -32,7 +32,7 @@ header .sub{font-size:11px;color:var(--text2);margin-top:1px}
 
 /* NAV */
 nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
-nav button{flex:1;padding:10px 2px 8px;background:transparent;color:var(--text3);font-size:10px;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:3px;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s}
+nav button{flex:1;padding:10px 2px 8px;background:transparent;color:var(--text3);font-size:9px;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:3px;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s}
 nav button svg{width:19px;height:19px}
 nav button.active{color:var(--accent);border-bottom-color:var(--accent)}
 
@@ -114,6 +114,15 @@ textarea.notes-input::placeholder{color:var(--text3)}
 .pill{background:var(--bg4);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px}
 .has-media-badge{background:rgba(0,200,255,0.08);color:var(--accent);font-size:10px;border-radius:6px;padding:2px 6px;margin-top:4px;display:block;text-align:right}
 .weather-pill{background:rgba(243,156,18,0.1);color:var(--warn);border-radius:20px;padding:4px 10px;font-size:11px;display:inline-flex;align-items:center;gap:4px;margin-top:6px}
+
+/* SHOWROOM */
+.showroom-card h3{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--accent)}
+.showroom-img{width:100%;height:160px;background:var(--bg4);border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:14px;font-weight:600}
+.showroom-card p{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.5}
+.showroom-features{list-style:none;padding:0;display:flex;flex-direction:column;gap:8px}
+.showroom-features li{font-size:12px;color:var(--text2);line-height:1.5;padding-left:16px;position:relative}
+.showroom-features li::before{content:"•";color:var(--accent);position:absolute;left:0;font-size:16px;top:-2px}
+.showroom-features li strong{color:var(--text)}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:flex-end}
@@ -243,6 +252,9 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </button>
  <button onclick="showPage('garage',this)">
  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Garage
+ </button>
+ <button onclick="showPage('showroom',this)">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Models
  </button>
  <button onclick="showPage('settings',this)">
  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings
@@ -474,6 +486,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <button class="settings-btn" style="margin-top:0; padding:8px 12px; font-size:12px;" onclick="logRoutine('monthly')">Log Done</button>
  </div>
  </div>
+
  <!-- Maintenance Logger (Tyres) -->
  <div class="settings-card">
  <h3>🔧 Tyre Pressure (PSI/kPa)</h3>
@@ -488,6 +501,17 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </div>
  <button class="settings-btn" onclick="logMaintenance()">Save Pressures</button>
  </div>
+ </div>
+ </div>
+ <!-- SHOWROOM PAGE -->
+ <div class="page" id="page-showroom">
+ <div class="settings-inner">
+ <div class="settings-title">Model Overview</div>
+ <div class="settings-sub">Key features and detailed specifications for models in the database.</div>
+ <div style="margin-bottom:12px;">
+ <input type="text" id="showroom-search" class="settings-input" placeholder="Search models..." onkeyup="renderShowroom()">
+ </div>
+ <div id="showroom-list" style="display:flex; flex-direction:column; gap:16px;"></div>
  </div>
  </div>
 
@@ -621,15 +645,54 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  GARAGE & MAINTENANCE STATE (WITH 65-VEHICLE DB)
 ══════════════════════════════════════════════════════ */
 const DEFAULT_SPECS = {
- // USER'S EXISTING VEHICLES
- "Segway Max G3": { type:"Scooter", wt:"24.6kg", motor:"900W Max", volt:"48V", cap:"597Wh", cells:"21700", bms:"Smart Active BMS", tyre:"10-inch Tubeless Self-healing", frame:"Carbon Steel", url:"segway.com", unf:"120 x 47 x 122 cm", fold:"120 x 47 x 53 cm", factoryPsiFront:42, factoryPsiRear:42, balanceCycles:15, balanceMonths:3, dwellHours:"1-2 hours" },
- "Pure Advance Flex": { type:"Scooter", wt:"16.2kg", motor:"710W Peak", volt:"36V", cap:"345Wh", cells:"18650", bms:"Top-End Passive", tyre:"10-inch Tubeless", frame:"Alloy", url:"pureelectric.com", unf:"104 x 60 x 108 cm", fold:"62 x 30 x 57 cm", factoryPsiFront:36, factoryPsiRear:36, balanceCycles:10, balanceMonths:2, dwellHours:"2-3 hours" },
+ // HIGHLY DETAILED MODELS
+ "Segway Max G3 (2026 model)": { 
+ type:"Scooter", wt:"24.6kg", motor:"900W Max", volt:"48V", cap:"597Wh", cells:"21700", bms:"Smart Active BMS", tyre:"10-inch Tubeless Self-healing", frame:"Carbon Steel", url:"segway.com", unf:"120 x 47 x 122 cm", fold:"120 x 47 x 53 cm", factoryPsiFront:42, factoryPsiRear:42, balanceCycles:15, balanceMonths:3, dwellHours:"1-2 hours",
+ desc: "The next generation of the legendary Max series, built for ultimate reliability, extended range, and smart connectivity.",
+ features: [
+ "Traction Control System (TCS) for slippery surfaces",
+ "Native Apple Find My integration built-in",
+ "Smart Active Battery Management System",
+ "Self-healing tubeless tyres with jelly layer",
+ "Upgraded 900W max brushless direct current (BLDC) motor"
+ ]
+ },
+ "Segway ZT3 Pro": { 
+ type:"Scooter", wt:"29.7kg", motor:"1600W Max", volt:"48V", cap:"597Wh", cells:"18650", bms:"Smart BMS", tyre:"11-inch Tubeless Off-Road", frame:"High-strength Alloy", url:"segway.com", unf:"124 x 63 x 130 cm", fold:"124 x 63 x 60 cm", factoryPsiFront:38, factoryPsiRear:38, balanceCycles:15, balanceMonths:3, dwellHours:"1-2 hours",
+ desc: "An all-terrain urban crossover scooter featuring dual suspension and intelligent rider assist tech.",
+ features: [
+ "Dual telescopic front suspension and rear spring suspension",
+ "Automotive-grade Traction Control System (TCS)",
+ "Native Apple Find My integration",
+ "AirLock automatic Bluetooth proximity unlocking",
+ "11-inch all-terrain tubeless tyres for maximum grip"
+ ]
+ },
+ "Pure Advance Flex": { 
+ type:"Scooter", wt:"16.2kg", motor:"710W Peak", volt:"36V", cap:"345Wh", cells:"18650", bms:"Top-End Passive", tyre:"10-inch Tubeless", frame:"Alloy", url:"pureelectric.com", unf:"104 x 60 x 108 cm", fold:"62 x 30 x 57 cm", factoryPsiFront:36, factoryPsiRear:36, balanceCycles:10, balanceMonths:2, dwellHours:"2-3 hours",
+ desc: "A revolutionary ultra-compact scooter featuring a unique forward-facing riding stance for superior balance.",
+ features: [
+ "Unique forward-facing riding design (feet side-by-side)",
+ "Ultra-compact 5-step folding chassis fits in a car boot or under a desk",
+ "Pure Control™ steering stabilization system",
+ "IP65 water resistance rating for all-weather riding",
+ "710W peak power motor for tackling steep urban hills"
+ ]
+ },
+ "Pure Escape+ Ultra Suspension": { 
+ type:"Scooter", wt:"22kg", motor:"600W Peak", volt:"48V", cap:"650Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"pureelectric.com", unf:"115 x 50 x 115 cm", fold:"115 x 50 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours",
+ desc: "Designed for premium ride comfort over rough urban environments while maintaining the signature Pure stance.",
+ features: [
+ "Plush hydraulic suspension system for maximum comfort",
+ "Ergonomic forward-facing riding stance",
+ "High-torque 600W motor for rapid acceleration",
+ "All-weather IP65 rating with fully enclosed wiring",
+ "Integrated high-visibility halo lighting system"
+ ]
+ },
+
+ // STANDARD DATABASE (Top 50+)
  "Samebike LO26": { type:"E-Bike", wt:"25.5kg", motor:"500W", volt:"48V", cap:"499Wh", cells:"18650", bms:"Daly Smart Active BMS", tyre:"26x1.95-inch MTB", frame:"Aluminum Alloy", url:"samebike.com", unf:"177 x 65 x 104 cm", fold:"103 x 37 x 104 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:10, balanceMonths:3, dwellHours:"2-4 hours" },
- "XT3 Pro": { type:"Scooter", wt:"28kg", motor:"1000W", volt:"48V", cap:"720Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Pneumatic", frame:"Alloy", url:"#", unf:"120 x 60 x 120 cm", fold:"120 x 25 x 50 cm", factoryPsiFront:40, factoryPsiRear:40, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours" },
- "Escape": { type:"Scooter", wt:"20kg", motor:"500W", volt:"48V", cap:"600Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch", frame:"Alloy", url:"#", unf:"115 x 50 x 115 cm", fold:"115 x 50 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours" },
- "Escape Ultra Suspension": { type:"Scooter", wt:"22kg", motor:"600W", volt:"48V", cap:"650Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch", frame:"Alloy", url:"#", unf:"115 x 50 x 115 cm", fold:"115 x 50 x 50 cm", factoryPsiFront:45, factoryPsiRear:45, balanceCycles:15, balanceMonths:3, dwellHours:"2 hours" },
- 
- // TOP 50 SCOOTERS
  "Segway Max G30P": { type:"Scooter", wt:"19.1kg", motor:"350W", volt:"36V", cap:"551Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"segway.com", unf:"116 x 47 x 120 cm", fold:"116 x 47 x 53 cm" },
  "Ninebot Max G2": { type:"Scooter", wt:"24.3kg", motor:"450W", volt:"36V", cap:"551Wh", cells:"18650", bms:"Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"segway.com", unf:"121 x 57 x 126 cm", fold:"121 x 57 x 60 cm" },
  "Segway GT2": { type:"Scooter", wt:"52.6kg", motor:"3000W Dual", volt:"50.4V", cap:"1512Wh", cells:"21700", bms:"Smart BMS", tyre:"11-inch Tubeless", frame:"Aviation Alloy", url:"segway.com", unf:"148 x 65 x 130 cm", fold:"148 x 65 x 86 cm" },
@@ -677,11 +740,8 @@ const DEFAULT_SPECS = {
  "NIU KQi3 Max": { type:"Scooter", wt:"21.1kg", motor:"450W", volt:"48V", cap:"608Wh", cells:"18650", bms:"NIU Smart BMS", tyre:"9.5-inch Tubeless", frame:"Alloy", url:"niu.com", unf:"117 x 54 x 120 cm", fold:"117 x 54 x 50 cm" },
  "NIU KQi2 Pro": { type:"Scooter", wt:"18.4kg", motor:"300W", volt:"48V", cap:"365Wh", cells:"18650", bms:"NIU Smart BMS", tyre:"10-inch Tubeless", frame:"Alloy", url:"niu.com", unf:"112 x 52 x 120 cm", fold:"112 x 52 x 52 cm" },
  "Joyor S10-S": { type:"Scooter", wt:"27.1kg", motor:"1000W Dual", volt:"60V", cap:"1080Wh", cells:"18650", bms:"Standard BMS", tyre:"10-inch Tube", frame:"Alloy", url:"joyorscooter.com", unf:"121 x 60 x 121 cm", fold:"121 x 60 x 53 cm" },
- "Obarter X3": { type:"Scooter", wt:"42kg", motor:"1200W Dual", volt:"48V", cap:"1008Wh", cells:"18650", bms:"Standard BMS", tyre:"11-inch Off-road", frame:"Alloy", url:"#", unf:"134 x 70 x 134 cm", fold:"134 x 70 x 58 cm" },
  "Kugoo Kirin G3": { type:"Scooter", wt:"25kg", motor:"1200W", volt:"52V", cap:"936Wh", cells:"18650", bms:"Standard BMS", tyre:"10.5-inch Tubeless", frame:"Alloy", url:"kugoo.com", unf:"120 x 66 x 129 cm", fold:"120 x 66 x 55 cm" },
  "Superpedestrian Link": { type:"Scooter", wt:"27kg", motor:"500W", volt:"48V", cap:"980Wh", cells:"18650", bms:"Vehicle Intelligence System", tyre:"10-inch Solid", frame:"Alloy", url:"superpedestrian.com", unf:"119 x 50 x 119 cm", fold:"Non-folding" },
- 
- // TOP 15 E-BIKES
  "Rad Power RadRunner 3 Plus": { type:"E-Bike", wt:"34.2kg", motor:"750W Rear Hub", volt:"48V", cap:"672Wh", cells:"18650", bms:"Smart BMS", tyre:"20x3.3-inch Kenda", frame:"6061 Alloy", url:"radpowerbikes.com", unf:"175 x 71 x 116 cm", fold:"Non-folding" },
  "Aventon Level.2": { type:"E-Bike", wt:"28.1kg", motor:"500W Rear Hub", volt:"48V", cap:"672Wh", cells:"18650 LG", bms:"Smart BMS", tyre:"27.5x2.1-inch", frame:"Double-Butted Alloy", url:"aventon.com", unf:"180 x 68 x 106 cm", fold:"Non-folding" },
  "Aventon Aventure.2": { type:"E-Bike", wt:"34.9kg", motor:"750W Rear Hub", volt:"48V", cap:"720Wh", cells:"18650 LG", bms:"Smart BMS", tyre:"26x4.0-inch Fat", frame:"Alloy", url:"aventon.com", unf:"190 x 71 x 114 cm", fold:"Non-folding" },
@@ -699,8 +759,8 @@ const DEFAULT_SPECS = {
  "Engwe Engine Pro": { type:"E-Bike", wt:"31.7kg", motor:"750W Rear Hub", volt:"48V", cap:"768Wh", cells:"18650", bms:"Standard BMS", tyre:"20x4.0-inch Fat", frame:"Alloy", url:"engwe-bikes.com", unf:"170 x 68 x 124 cm", fold:"104 x 55 x 84 cm" }
 };
 
-let customSpecs = {}; // Holds user-overridden or newly created vehicles
-let VEHICLE_SPECS = {}; // Will hold merged DEFAULT + customSpecs
+let customSpecs = {}; 
+let VEHICLE_SPECS = {}; 
 
 let chargeLogs = [];
 let maintenanceLogs = [];
@@ -784,7 +844,7 @@ async function init() {
 
  // Load vehicles
  try { vehicles = JSON.parse(getSetting('g3_vehicles')||'[]'); } catch(e) { vehicles=[]; }
- if (!vehicles.length) { vehicles = ['Segway Max G3']; saveVehicles(); }
+ if (!vehicles.length) { vehicles = ['Segway Max G3 (2026 model)']; saveVehicles(); }
  selectedVehicle = getSetting('g3_last_vehicle') || vehicles[0];
  if (!vehicles.includes(selectedVehicle)) selectedVehicle = vehicles[0];
 
@@ -814,7 +874,7 @@ function mergeSpecs() {
 }
 
 /* ══════════════════════════════════════════════════════
- VEHICLES
+ VEHICLES & SHOWROOM
 ══════════════════════════════════════════════════════ */
 function saveVehicles() { setSetting('g3_vehicles', JSON.stringify(vehicles)); }
 
@@ -858,6 +918,39 @@ function renderVehicleMgmt() {
  </div>`).join('');
 }
 
+function renderShowroom() {
+ const container = document.getElementById('showroom-list');
+ const query = (document.getElementById('showroom-search').value || '').toLowerCase();
+ 
+ let html = '';
+ for (let modelName in VEHICLE_SPECS) {
+ const specs = VEHICLE_SPECS[modelName];
+ if (query && !modelName.toLowerCase().includes(query) && !(specs.desc && specs.desc.toLowerCase().includes(query))) continue;
+ 
+ let featuresHtml = '';
+ if (specs.features && specs.features.length) {
+ featuresHtml = `<ul class="showroom-features">` + specs.features.map(f => `<li>${escHtml(f)}</li>`).join('') + `</ul>`;
+ }
+
+ html += `
+ <div class="settings-card showroom-card">
+ <h3>${escHtml(modelName)}</h3>
+ ${specs.desc ? `<p>${escHtml(specs.desc)}</p>` : ''}
+ ${featuresHtml ? `<div style="margin-bottom:14px">${featuresHtml}</div>` : ''}
+ <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: var(--text2); background: var(--bg4); padding: 10px; border-radius: 8px;">
+ <div><strong style="color:var(--text3)">Type:</strong> ${escHtml(specs.type || '--')}</div>
+ <div><strong style="color:var(--text3)">Weight:</strong> ${escHtml(specs.wt || '--')}</div>
+ <div><strong style="color:var(--text3)">Motor:</strong> ${escHtml(specs.motor || '--')}</div>
+ <div><strong style="color:var(--text3)">Battery:</strong> ${escHtml(specs.volt || '--')} / ${escHtml(specs.cap || '--')}</div>
+ <div style="grid-column: 1 / -1"><strong style="color:var(--text3)">Tyres:</strong> ${escHtml(specs.tyre || '--')}</div>
+ <div style="grid-column: 1 / -1"><strong style="color:var(--text3)">BMS:</strong> ${escHtml(specs.bms || '--')}</div>
+ </div>
+ </div>
+ `;
+ }
+ container.innerHTML = html || '<div style="font-size:13px; color:var(--text2); text-align:center; padding: 20px;">No models found matching your search.</div>';
+}
+
 /* ══════════════════════════════════════════════════════
  TABS
 ══════════════════════════════════════════════════════ */
@@ -870,6 +963,7 @@ function showPage(name, btn) {
  if (name==='stats') renderStats();
  if (name==='settings') { updateSettingsKeyDisplay(); updateStorageInfo(); renderVehicleMgmt(); }
  if (name==='garage') renderGarage();
+ if (name==='showroom') renderShowroom();
 }
 
 /* ══════════════════════════════════════════════════════
