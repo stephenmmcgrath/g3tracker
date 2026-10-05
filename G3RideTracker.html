@@ -216,6 +216,41 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 /* VOICE TOAST */
 .voice-cmd-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,200,255,0.15);border:1px solid rgba(0,200,255,0.3);color:var(--accent);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;display:none}
 .voice-cmd-toast.show{display:block}
+
+/* EVOLUTION & RIDEGUIDE TABS - NEW */
+.encyclo-toc{display:flex;gap:6px;overflow-x:auto;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.encyclo-toc::-webkit-scrollbar{display:none}
+.encyclo-toc button{white-space:nowrap;padding:6px 12px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:11px;font-weight:600;transition:all 0.15s}
+.encyclo-toc button.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.evo-timeline{position:relative;padding-left:20px;border-left:2px solid var(--border);margin-left:8px}
+.evo-event{position:relative;margin-bottom:20px;padding-left:16px}
+.evo-event::before{content:'';position:absolute;left:-9px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--bg3)}
+.evo-year{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px}
+.evo-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.evo-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.evo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.evo-card{background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:10px}
+.evo-card h4{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.evo-card p{font-size:11px;color:var(--text2);line-height:1.4}
+.company-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.company-card h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.company-badge{font-size:9px;padding:2px 6px;border-radius:10px;background:rgba(0,200,255,0.15);color:var(--accent);border:1px solid rgba(0,200,255,0.25);font-weight:600}
+.company-card .meta{font-size:10px;color:var(--text3);margin-bottom:8px}
+.company-card p{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.company-features{display:flex;flex-wrap:wrap;gap:5px}
+.company-features span{font-size:10px;background:var(--bg4);border:1px solid var(--border);padding:3px 7px;border-radius:12px;color:var(--text2)}
+.guide-step{display:flex;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.guide-num{width:32px;height:32px;border-radius:8px;background:var(--accent);color:#000;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.guide-content h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.guide-content p{font-size:12px;color:var(--text2);line-height:1.5}
+.guide-tip{margin-top:8px;padding:8px 10px;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.2);border-radius:8px;font-size:11px;color:#2ecc71;line-height:1.4}
+.guide-warn{margin-top:8px;padding:8px 10px;background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.2);border-radius:8px;font-size:11px;color:var(--warn);line-height:1.4}
+.stance-diagram{display:flex;gap:8px;margin:10px 0}
+.stance-box{flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.stance-box .icon{font-size:24px;margin-bottom:4px}
+.stance-box .lbl{font-size:11px;font-weight:600;color:var(--text)}
+.stance-box .desc{font-size:10px;color:var(--text2);margin-top:2px}
+
 </style>
 </head>
 <body>
@@ -255,6 +290,12 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </button>
  <button onclick="showPage('showroom',this)">
  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Models
+ </button>
+ <button onclick="showPage('evolution',this)">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M12 8v-2"/><path d="M12 18v-2"/></svg>History
+ </button>
+ <button onclick="showPage('rideguide',this)">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1 2 1 2-1zM3 10l2 1m-2-1l2-1m-2 1v2.5M3 7l2-1m-2 1l2 1"/><circle cx="12" cy="12" r="3"/></svg>Guide
  </button>
  <button onclick="showPage('settings',this)">
  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings
@@ -511,9 +552,246 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <div style="margin-bottom:12px;">
  <input type="text" id="showroom-search" class="settings-input" placeholder="Search models..." onkeyup="renderShowroom()">
  </div>
- <div id="showroom-list" style="display:flex; flex-direction:column; gap:16px;"></div>
+
+ <!-- EVOLUTION / HISTORY PAGE - NEW -->
+ <div class="page" id="page-evolution">
+  <div class="settings-inner">
+   <div class="settings-title">Evolution of eBikes & eScooters</div>
+   <div class="settings-sub">From 1890s patents to 2026 smart mobility. How design, batteries, and motors shaped modern riding.</div>
+   
+   <div class="encyclo-toc" id="evo-toc">
+    <button class="active" onclick="scrollToEvo('evo-overview')">Overview</button>
+    <button onclick="scrollToEvo('evo-ebike-history')">eBike History</button>
+    <button onclick="scrollToEvo('evo-escooter-history')">eScooter History</button>
+    <button onclick="scrollToEvo('evo-design')">Design & Tech</button>
+    <button onclick="scrollToEvo('evo-ebike-companies')">Top eBikes</button>
+    <button onclick="scrollToEvo('evo-escooter-companies')">Top eScooters</button>
+   </div>
+
+   <div class="settings-card" id="evo-overview">
+    <h3>🌍 Why This Matters for a Brisbane Rider</h3>
+    <p>You're riding the product of 130 years of iteration. Understanding motor placement, battery chemistry, and braking physics isn't trivia — it's how you squeeze more range, avoid overheating, and choose your next upgrade. QLD law currently limits eBikes to 250W continuous (EN15194) and eScooters to 25 km/h on public paths, so knowing how designs hit those limits is practical.</p>
+    <div class="evo-grid">
+     <div class="evo-card"><h4>eBike DNA</h4><p>Pedal + electric assist. Built around bicycle geometry, gears, and rider input. Motor amplifies you.</p></div>
+     <div class="evo-card"><h4>eScooter DNA</h4><p>Stand-up, direct throttle. Built around kick-scooter simplicity, deck and stem. Motor replaces you.</p></div>
+     <div class="evo-card"><h4>Shared Tech</h4><p>BLDC motors, lithium-ion cells (18650/21700), sine-wave controllers, regenerative braking, Smart BMS.</p></div>
+     <div class="evo-card"><h4>Divergent Goals</h4><p>eBikes = efficiency & range. eScooters = portability & instant torque. Your G3 sits in between.</p></div>
+    </div>
+   </div>
+
+   <div class="settings-card" id="evo-ebike-history">
+    <h3>🚲 eBike History & Development</h3>
+    <p>The electric bicycle is older than the airplane.</p>
+    <div class="evo-timeline">
+     <div class="evo-event"><div class="evo-year">1895-1899</div><div class="evo-title">First Patents</div><div class="evo-desc">Ogden Bolton Jr. (USA) patents a 6-pole DC hub motor in rear wheel (1895). Hosea Libbey invents double-motor version (1897). Batteries are lead-acid, non-rechargeable, range ~ 10 km. Curiosity, not transport.</div></div>
+     <div class="evo-event"><div class="evo-year">1910s-1940s</div><div class="evo-title">Heavy & Forgotten</div><div class="evo-desc">Socovel in Belgium and others build small batches during fuel shortages in WWII. Weight over 40kg, primitive controllers. Petrol wins on energy density.</div></div>
+     <div class="evo-event"><div class="evo-year">1970s Oil Crisis</div><div class="evo-title">Second Wave</div><div class="evo-desc">Interest returns. Japanese firms experiment with NiCd batteries. Still heavy and expensive.</div></div>
+     <div class="evo-event"><div class="evo-year">1989-1993</div><div class="evo-title">Modern eBike Born</div><div class="evo-desc">Yamaha invents pedal-assist system (PAS) with torque sensor — Power Assist System (1989). Launches PAS in Japan (1993). Panasonic copies. Defines mid-drive + torque sensing DNA that dominates today.</div></div>
+     <div class="evo-event"><div class="evo-year">1997-2001</div><div class="evo-title">Mass Production</div><div class="evo-desc">Schwinn Power Bike, Giant Lafree (using Libbey's double motor revived). Lead-acid gives way to NiMH. Range jumps to 30km.</div></div>
+     <div class="evo-event"><div class="evo-year">2005-2010</div><div class="evo-title">Lithium-Ion Revolution</div><div class="evo-desc">18650 cells from laptop industry drop in price. Bosch launches eBike Systems (2010). Bikes drop from 32kg to 22kg. 400Wh packs become standard.</div></div>
+     <div class="evo-event"><div class="evo-year">2014-2019</div><div class="evo-title">Classes & Power</div><div class="evo-desc">EU EN15194 defines 250W limit. US defines Class 1/2/3 (20/28 mph). Mid-drive motors reach 85Nm. Integrated batteries in downtube. Direct-to-consumer brands (Rad Power, Aventon) disrupt pricing.</div></div>
+     <div class="evo-event"><div class="evo-year">2020-2026</div><div class="evo-title">Smart & Light</div><div class="evo-desc">Bosch Smart System (2022), 750Wh+ PowerTube batteries, 120Nm CX motors, ABS, radar. Weight for city bikes: 16-19kg. Carbon e-road bikes under 12kg with Mahle X20 hub. Torque sensors now standard even on budget hubs. Your Segway G3 uses 21700 cells + Smart Active BMS — direct descendant of this line.</div></div>
+    </div>
+   </div>
+
+   <div class="settings-card" id="evo-escooter-history">
+    <h3>🛴 eScooter History & Development</h3>
+    <p>From WWI mail delivery to Bird & Lime scooters on every Brisbane corner.</p>
+    <div class="evo-timeline">
+     <div class="evo-event"><div class="evo-year">1915-1921</div><div class="evo-title">The Autoped</div><div class="evo-desc">Arthur Hugo Cecil Gibson patents Autoped in Long Island (1913, produced 1915). 1.5hp gas engine over front wheel, 35 mph claimed. Used by US Postal Service and NYC police. German company Krupp builds under license. First mass-produced motorized scooter.</div></div>
+     <div class="evo-event"><div class="evo-year">1960s-70s</div><div class="evo-title">Electric Attempts</div><div class="evo-desc">ParCar by Marketeer Co., and Socovel's 400 electric mopeds. Lead-acid again limits adoption.</div></div>
+     <div class="evo-event"><div class="evo-year">1996</div><div class="evo-title">Foldable Revolution</div><div class="evo-desc">Wim Ouboter in Switzerland invents modern foldable kick-scooter (Micro Mobility Systems). Razor copy in 2000 sells 5 million in 6 months. Proves the form factor.</div></div>
+     <div class="evo-event"><div class="evo-year">2001-2006</div><div class="evo-title">Go-Ped ESR</div><div class="evo-desc">Go-Ped launches ESR750, first modern production electric kick-scooter with brushless hub. Niche off-road hobby.</div></div>
+     <div class="evo-event"><div class="evo-year">2013-2015</div><div class="evo-title">Lithium Makes it Real</div><div class="evo-desc">Xiaomi M365 prototype. 18650 packs make 12kg, 25km range scooter possible at $500. Segway acquires Ninebot (2015).</div></div>
+     <div class="evo-event"><div class="evo-year">2017-2019</div><div class="evo-title">Shared Scooter Boom</div><div class="evo-desc">Bird (Santa Monica, Sept 2017) and Lime drop thousands of scooters overnight. Valuation to $2B in 12 months. Cities scramble to regulate. Tech: solid + pneumatic hybrid tires, swappable batteries, IoT GPS. Brisbane's Neuron and Lime trials begin 2018-2019.</div></div>
+     <div class="evo-event"><div class="evo-year">2020-2026</div><div class="evo-title">Performance Era</div><div class="evo-desc">Dual-motor 2000W+ hyper scooters (Dualtron Thunder 2, Kaabo Wolf King GT, InMotion RS with transforming chassis and 72V 40Ah). Hydraulic brakes, 11-inch tubeless self-healing tires, sine-wave controllers, NFC unlock, Apple FindMy, IPX6. Your G3 is Gen 4 of this era: automotive-grade tubeless, Smart BMS with active balancing, 48V 597Wh 21700 pack, 2000W peak — 10x power of 2015 M365.</div></div>
+    </div>
+   </div>
+
+   <div class="settings-card" id="evo-design">
+    <h3>⚙️ Design, Features & Characteristics</h3>
+    
+    <h4 style="font-size:12px;color:var(--accent);margin:12px 0 6px">EBIKE ANATOMY</h4>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Motors:</strong> Hub (front/rear) = cheap, direct drive, 40-80Nm, no drivetrain wear, good for flat. Mid-drive (Bosch, Yamaha, Brose) = motor at cranks, uses gears, 85-120Nm, superior hill climbing, better weight balance, more expensive. Torque sensor (measures pedal force) = natural feel; cadence sensor = on/off. 2026 trend: mid-drives dominate premium, torque-sensing hubs dominate value.</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5;margin-top:8px"><strong style="color:var(--text)">Battery:</strong> Lithium-ion NMC, 36V-48V typical. Cells: 18650 (older) vs 21700 (higher density, what your G3 uses). Capacity 360-800Wh. Smart BMS monitors cell voltage, temperature, balances cells. Top-end balancing requires 100% charge + dwell (your Garage tab tracks this). Range formula: Wh / (15-25 Wh/km depending on assist). Degradation ~ 2-3% per 100 cycles if kept 20-80%.</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5;margin-top:8px"><strong style="color:var(--text)">Frame & Other:</strong> City (upright), MTB (suspension), Cargo (longtail), Road (light). Hydraulic disc brakes now standard (180mm). Drivetrains: Shimano Deore to XT, Gates belt + Enviolo hub for low maintenance. Displays: Bosch Kiox, Shimano EP8. Connectivity: ANT+, Bluetooth, theft tracking.</p>
+
+    <h4 style="font-size:12px;color:var(--accent);margin:16px 0 6px">ESCOOTER ANATOMY</h4>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Motors:</strong> Single (350-1000W nominal) = 25-45 km/h, efficient. Dual (2x800-2000W) = 60-100 km/h, 2WD, massive hill torque, 2x battery drain. BLDC hub motors in wheel. Sine-wave controllers = smooth, quiet vs square-wave = jerky. Peak vs nominal: your G3 is 1000W nominal / 2000W peak — peak is 10-sec burst for hills.</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5;margin-top:8px"><strong style="color:var(--text)">Battery & BMS:</strong> 36V-72V, 360Wh commuter to 2880Wh hyper (InMotion RS). 52V+ needed for >50km/h. Smart Active BMS (Segway G3) does active cell balancing vs passive bleeding — faster, cooler. P-groups: more in parallel = more range. Why you log charge % in Garage: lithium hates sitting at 100% > 3 days.</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5;margin-top:8px"><strong style="color:var(--text)">Suspension & Brakes:</strong> Suspension: rubber cartridge (Dualtron), spring + swingarm (most), hydraulic fork (premium). Tires: 8.5-inch tube (classic), 10-inch tubeless (G3, best balance), 11-inch tubeless self-healing (your G3), 8-inch solid (zero flats, harsh). Brakes: E-ABS (regen only, weak), drum (low maint), mechanical disc (cheap), hydraulic disc Zoom/Nutt/Brembo (best modulation). Regen braking extends range ~5-10% but can't stop you alone.</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5;margin-top:8px"><strong style="color:var(--text)">Deck, Stem & Folding:</strong> Low center deck = stability (Inokim Light). Wide deck = comfort for foot stance. Stem wobble is #1 failure — check latch weekly (Garage checklist does this). Folding: lever + hook vs patented one-click (Unagi).</p>
+   </div>
+
+   <div class="settings-card" id="evo-ebike-companies">
+    <h3>🏆 Top 10 eBike Companies (2026 Landscape)</h3>
+    <p>Mix of legacy giants, motor system leaders, and DTC disruptors that shape what you can buy in Brisbane.</p>
+    
+    <div class="company-card"><h3>Giant Manufacturing <span class="company-badge">World's Largest</span></h3><div class="meta">Taiwan • Founded 1972 • Giant, Liv, Momentum | Owns factory + Yamaha motor partnership</div><p>Produces more bicycles than anyone on earth. Giant eBikes (Explore E+, Trance X E+) use SyncDrive motors (Yamaha-based) and EnergyPak batteries. Known for value, dealer network, and frame innovation. Market leader in Australia.</p><div class="company-features"><span>Hybrid/Commuter</span><span>e-MTB</span><span>Mid-drive 80-85Nm</span><span>400-800Wh</span></div></div>
+
+    <div class="company-card"><h3>Yamaha Motor Company <span class="company-badge">PAS Pioneer</span></h3><div class="meta">Japan • 1955 • Invented modern torque-sensor PAS in 1989</div><p>Not just complete bikes (CrossCore, Moro), but motor supplier to Giant, Haibike. PW-X3 motor is 85Nm, 2.75kg, very quiet. Legendary reliability. Dominates Japanese commuter market.</p><div class="company-features"><span>PW Series Motors</span><span>Torque Sensor</span><span>Auto Support Mode</span></div></div>
+
+    <div class="company-card"><h3>Bosch eBike Systems <span class="company-badge">Motor Standard</span></h3><div class="meta">Germany • Part of Robert Bosch GmbH • Powers Trek, Cannondale, Cube, R&M</div><p>Doesn't make bikes, makes THE motor/battery/display ecosystem: Performance Line CX (85Nm, now 100-120Nm Smart System), PowerTube 750Wh, Kiox 300 display, ABS. If you ride a $5k+ Euro eBike, it's probably Bosch inside. Gold standard for integration and service network.</p><div class="company-features"><span>CX 85Nm → 120Nm</span><span>Smart System</span><span>750Wh PowerTube</span><span>eBike ABS</span></div></div>
+
+    <div class="company-card"><h3>Trek Bicycle Corporation <span class="company-badge">US Premium</span></h3><div class="meta">USA • 1976 • Trek, Electra | Waterloo, WI</div><p>Allant+ and Rail e-MTB lines are reference designs. Uses Bosch CX almost exclusively. Strong focus on integration — battery hidden in frame, Range Boost extender. Huge R&D in carbon e-road.</p><div class="company-features"><span>Allant+</span><span>Rail e-MTB</span><span>Bosch CX</span><span>Carbon</span></div></div>
+
+    <div class="company-card"><h3>Specialized Bicycle Components <span class="company-badge">Innovator</span></h3><div class="meta">USA • 1974 • Turbo series: Vado, Como, Levo, Creo</div><p>Makes own motors (Turbo Full Power 2.2 = Brose-based, 90Nm) and MasterMind display. Turbo Levo is benchmark e-MTB. SL (Super Light) range uses Mahle hub motors for 16kg bikes. Mission Control app is best in class for tuning assist.</p><div class="company-features"><span>Turbo OS</span><span>MasterMind TCU</span><span>SL Lightweight</span><span>Mission Control App</span></div></div>
+
+    <div class="company-card"><h3>Rad Power Bikes <span class="company-badge">DTC King</span></h3><div class="meta">USA • 2007 • Seattle • RadCity, RadRover, RadWagon</div><p>Created affordable fat-tire eBike category. 750W hub, 672Wh, $1,500-2,000. Sold online, 400k+ bikes/year. Not lightest, but unbeatable utility. Perfect for cargo/ute replacement in flat Brisbane suburbs.</p><div class="company-features"><span>750W Hub</span><span>Fat Tire</span><span>Cargo</span><span>DTC Value</span></div></div>
+
+    <div class="company-card"><h3>Aventon Bikes <span class="company-badge">Fastest Growing DTC</span></h3><div class="meta">USA • 2013 • Level.2, Sinch, Aventure</div><p>Design-forward, torque sensor on all models from 2023. Level.2 is $1,999, 500W hub, 672Wh, integrated lights. Aventure.2 fat has 750W and suspension. Best build quality at price.</p><div class="company-features"><span>Torque Sensor Hub</span><span>Integrated Lights</span><span>500-750W</span></div></div>
+
+    <div class="company-card"><h3>Accell Group <span class="company-badge">European Giant</span></h3><div class="meta">Netherlands • Owns Haibike, Winora, Ghost, Lapierre, Raleigh</div><p>Haibike invented e-MTB (XDURO 2010). Winora and Ghost cover city to enduro. Massive EU distribution. Focus on Bosch/Yamaha motors.</p><div class="company-features"><span>Haibike e-MTB Pioneer</span><span>Bosch & Yamaha</span><span>EU #1 Volume</span></div></div>
+
+    <div class="company-card"><h3>Yadea Group <span class="company-badge">Volume Leader</span></h3><div class="meta">China • 2001 • World's largest EV two-wheeler maker (>7M/year)</div><p>Not just scooters — Yadea eBikes dominate Asia. Own battery and motor factories, graphene battery tech. In Australia via PSW and ebike dealers. Budget to mid.</p><div class="company-features"><span>Graphene Battery</span><span>Vertical Integration</span><span>Mass Market</span></div></div>
+
+    <div class="company-card"><h3>Cannondale (Pon Holdings) <span class="company-badge">Performance</span></h3><div class="meta">USA • 1971 • Part of Pon Bicycle Holdings (also owns Gazelle, Cervelo, Santa Cruz)</div><p>Adventure Neo, Tesoro Neo — Bosch-powered with Lefty fork. Super light Neo SL with Mahle X35. Pon is now largest bike conglomerate, owning Gazelle (Dutch city eBike royalty).</p><div class="company-features"><span>Bosch Smart</span><span>Lefty Fork</span><span>Mahle X35 Light</span></div></div>
+   </div>
+
+   <div class="settings-card" id="evo-escooter-companies">
+    <h3>🏆 Top 10 eScooter Companies (2026)</h3>
+    <p>From commuter to hyper-scooter. All have models in your Garage DB already.</p>
+
+    <div class="company-card"><h3>Segway-Ninebot <span class="company-badge">Market Leader</span></h3><div class="meta">China/USA • 2012 merger • Max G3, G2, F2, P100S</div><p>60%+ global market share for consumer kick-scooters. Xiaomi M365 was made by Ninebot. Max series is gold standard for rental durability. G3 (your bike) brings 1000W nominal, 597Wh 21700, self-healing tubeless, traction control, FindMy. Best app and firmware support.</p><div class="company-features"><span>Max G3 24.6kg</span><span>21700 597Wh</span><span>Self-Healing Tires</span><span>Smart BMS</span></div></div>
+
+    <div class="company-card"><h3>Xiaomi / Mi Electric Scooters <span class="company-badge">Original Disruptor</span></h3><div class="meta">China • M365 (2016), Pro 2, 4 Pro, Electric Scooter 4</div><p>Created the modern $500 commuter template: 12-16kg, 250-350W, 25km/h, 30km range. Still best value. Made by Ninebot, but Xiaomi branding dominates EU/AU sales. Firmware hackable, huge community.</p><div class="company-features"><span>M365 Template</span><span>14.2kg</span><span>KERS Regen</span><span>E-ABS</span></div></div>
+
+    <div class="company-card"><h3>Niu Technologies <span class="company-badge">Smart Urban</span></h3><div class="meta">China • 2014 • KQi3, KQi2 Pro</div><p>Tesla of scooters — design-focused, IoT connected, app with GPS. KQi3 Max is 20kg, 450W, 65km range, 25km/h limited for AU/EU, self-healing tires. Strong in Brisbane rental trials.</p><div class="company-features"><span>KQi3 Max</span><span>48V 608Wh</span><span>IoT GPS</span><span>Wide Deck</span></div></div>
+
+    <div class="company-card"><h3>Dualtron / Minimotors <span class="company-badge">Hyper Performance</span></h3><div class="meta">Korea • 1999 • Thunder 2, Victor, Mini, Storm</div><p>The supercars of scooters. Thunder 2: dual 1350W nominal (5400W peak), 72V 40Ah 2940Wh, 100 km/h, 11-inch tubeless, hydraulic Brembo. EY3 display. Not for footpath — private property/off-road in QLD. Engineering overkill, built for 100kg+ riders.</p><div class="company-features"><span>Thunder 2 72V 40Ah</span><span>5400W Peak</span><span>EY3 Display</span><span>Rubber Cartridge Suspension</span></div></div>
+
+    <div class="company-card"><h3>Kaabo <span class="company-badge">Off-Road King</span></h3><div class="meta">China • 2013 • Wolf King GT, Mantis, Skywalker</div><p>Wolf King GT Pro: dual 1200W (8400W peak), 72V 35Ah, sine-wave, IPX5, 11-inch hybrid tires. Mantis is lighter 24-26kg dual. Best suspension travel in class. Favored by Australian trail riders.</p><div class="company-features"><span>Wolf King GT 72V</span><span>8400W Peak</span><span>150mm Suspension</span><span>Dual Hydraulic</span></div></div>
+
+    <div class="company-card"><h3>Apollo Scooters <span class="company-badge">North American Design</span></h3><div class="meta">Canada • 2019 • Phantom, Ghost, City, Air</div><p>Designed in Montreal, built for potholes. Phantom V3: dual 1400W, 52V 23Ah, quad-link suspension. Apollo app has regen tuning. Best customer service reputation, 2-year warranty.</p><div class="company-features"><span>Phantom V3 52V</span><span>Quad-Link Suspension</span><span>Self-Healing Tires</span><span>App Tuning</span></div></div>
+
+    <div class="company-card"><h3>InMotion <span class="company-badge">Innovation Lab</span></h3><div class="meta">China • 2007 • RS, Climber, S1, L9</div><p>InMotion RS: transforming hyper-scooter — 4 ride heights (83-93mm ground clearance), RaptorP suspension, 72V 40Ah 2880Wh, dual 2000W (8400W peak), 110 km/h. Climber is 20.8kg dual 450W hill specialist (36% grade). S1 is commuter. EUCs too.</p><div class="company-features"><span>RS Transforming Chassis</span><span>72V 40Ah 2880Wh</span><span>Climber 36% Grade</span></div></div>
+
+    <div class="company-card"><h3>Unagi Scooters <span class="company-badge">Design Luxury</span></h3><div class="meta">USA • 2018 • Model One E500, Voyager</div><p>Carbon fiber + magnesium, 13.4kg, dual 250W, one-click folding, 7.5-inch solid rubber. Not about speed — about carrying into cafe, office, train. Tesla-like fit & finish. Model One Voyager has 360Wh for 25-35km.</p><div class="company-features"><span>13.4kg</span><span>Carbon/Magnesium</span><span>One-Click Fold</span><span>Dual 250W</span></div></div>
+
+    <div class="company-card"><h3>Varla / Voro Motors (EMOVE) <span class="company-badge">Value Performance</span></h3><div class="meta">USA • Varla Eagle One, Pegasus / Voro EMOVE Cruiser, Roadrunner</div><p>Eagle One: dual 1000W, 52V 24Ah, 30.8kg, hydraulic brakes, 50km/h+, great value. EMOVE Cruiser S: single 1000W, 52V 30Ah LG 21700, 100km range king — same philosophy as G3, range over speed.</p><div class="company-features"><span>Eagle One 1000W Dual</span><span>Cruiser 1560Wh Range King</span><span>Hydraulic Brakes</span></div></div>
+
+    <div class="company-card"><h3>Pure Electric / Inokim <span class="company-badge">Premium Commuter</span></h3><div class="meta">UK / Israel • Pure Air, Pure Advance / Inokim OXO, Light 2</div><p>Pure Advance: forward-facing stance, 10-inch tubeless, 710W. Inokim OXO: dual 1000W, 60V 25Ah, single-sided swingarms for easy tire change, patented adjustable rubber suspension. Beautiful engineering, low center gravity.</p><div class="company-features"><span>Pure Forward Stance</span><span>Inokim OXO Swingarm</span><span>Low CG</span><span>Patented Suspension</span></div></div>
+
+   </div>
+
+   <div class="settings-card">
+    <h3>📚 Key Specs Glossary (For Your Garage)</h3>
+    <div style="display:grid;grid-template-columns:1fr;gap:6px">
+     <div style="font-size:11px;color:var(--text2)"><strong style="color:var(--text)">Wh (Watt-hours):</strong> Battery energy. Voltage x Amp-hours. Divide by 15-25 Wh/km for real range.</div>
+     <div style="font-size:11px;color:var(--text2)"><strong style="color:var(--text)">18650 vs 21700:</strong> Cell size. 21700 holds ~50% more energy, less heat, used in G3, Tesla.</div>
+     <div style="font-size:11px;color:var(--text2)"><strong style="color:var(--text)">Peak vs Nominal:</strong> Nominal = continuous. Peak = 10-sec burst for hills/acceleration. Marketing uses peak.</div>
+     <div style="font-size:11px;color:var(--text2)"><strong style="color:var(--text)">Sine-wave controller:</strong> Smooth, quiet, efficient. Square-wave = cheap, jerky, louder.</div>
+     <div style="font-size:11px;color:var(--text2)"><strong style="color:var(--text)">BMS:</strong> Battery Management System. Passive = bleeds high cells (slow). Smart Active = moves charge between cells (fast, G3).</div>
+     <div style="font-size:11px;color:var(--text2)"><strong style="color:var(--text)">Torque (Nm):</strong> Hill climbing force. Hub: 40-80Nm. Mid-drive: 85-120Nm. More = steeper hills, not higher top speed.</div>
+    </div>
+   </div>
+
+  </div>
  </div>
+
+ <!-- RIDE GUIDE PAGE - NEW -->
+ <div class="page" id="page-rideguide">
+  <div class="settings-inner">
+   <div class="settings-title">Complete Ride Guide</div>
+   <div class="settings-sub">How to ride safely, efficiently, and confidently — whether you're standing on a G3 or pedaling an eBike. Tailored for Brisbane roads & paths.</div>
+
+   <div class="encyclo-toc" id="guide-toc">
+    <button class="active" onclick="scrollToGuide('guide-safety')">Safety First</button>
+    <button onclick="scrollToGuide('guide-escooter')">eScooter</button>
+    <button onclick="scrollToGuide('guide-ebike')">eBike</button>
+    <button onclick="scrollToGuide('guide-key')">Key Considerations</button>
+    <button onclick="scrollToGuide('guide-brisbane')">Brisbane Law</button>
+   </div>
+
+   <div class="settings-card" id="guide-safety">
+    <h3>🛡️ Safety & Pre-Ride Check (2 Minutes)</h3>
+    <p>90% of crashes are preventable in the garage. Do this every ride — Garage tab has reminders.</p>
+    
+    <div class="guide-step"><div class="guide-num">1</div><div class="guide-content"><h4>Helmet, Gloves, Eyes</h4><p>QLD law: helmet required. Full-face for >30km/h eScooter strongly recommended. Gloves save palms in slide. Sunglasses keep bugs/dust out at 25km/h. For night: white front, red rear, reflective vest — legal requirement.</p><div class="guide-tip">💡 Pro: MIPS helmets reduce rotational brain injury. Your G3 hits 25km/h legal, 45km/h+ unlocked — treat it like a motorcycle above 30km/h.</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">2</div><div class="guide-content"><h4>T-Check: Tires, Torque, Throttle/Brakes</h4><p><strong>Tires:</strong> Check PSI (G3 factory 42 PSI). Low PSI = pinch flat, 30% more battery drain. Use Garage log. <strong>Torque:</strong> Stem latch tight? No wobble? Axle nuts tight? <strong>Brakes:</strong> Roll 3m, brake hard — should lock without lever hitting bar. <strong>Throttle:</strong> Returns to zero? No sticky.</p><div class="guide-warn">⚠️ Never ride with loose stem. #1 cause of high-speed faceplants on folding scooters. Weekly check in Garage.</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">3</div><div class="guide-content"><h4>Battery Mindset</h4><p>Start at 80-100% for safety margin. Know your real range: city stop-start uses 20-25 Wh/km, cruising bike path uses 12-15 Wh/km. Your G3 597Wh = ~28-40km real. Cold mornings (<15°C) cut 10% range. Log charge in Garage to track degradation.</p></div></div>
+   </div>
+
+   <div class="settings-card" id="guide-escooter">
+    <h3>🛴 eScooter — How to Ride Perfectly</h3>
+    
+    <h4 style="font-size:12px;color:var(--accent);margin:12px 0 8px">FOOT STANCES</h4>
+    <div class="stance-diagram">
+     <div class="stance-box"><div class="icon">🦶</div><div class="lbl">Regular</div><div class="desc">Left foot forward, right foot back (most people). Like skateboard.</div></div>
+     <div class="stance-box"><div class="icon">🦶</div><div class="lbl">Goofy</div><div class="desc">Right foot forward. Neither is wrong — use natural balance.</div></div>
+    </div>
+    <div class="guide-step"><div class="guide-num">A</div><div class="guide-content"><h4>Basic Athletic Stance</h4><p>Front foot at 45° near stem, over front axle line. Rear foot perpendicular near rear fender, over motor. Knees bent 10-15°, elbows bent, weight 60% rear / 40% front for stability. Never ride with feet side-by-side — you have no pitch control.</p><p style="margin-top:6px"><strong>Power Stance (30km/h+):</strong> Rear foot further back, lower hips 5cm, elbows wider. Lowers center of gravity.</p><div class="guide-tip">💡 For G3 wide deck: front foot pointing forward, rear foot at 90° gives best leverage for leaning.</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">B</div><div class="guide-content"><h4>Starting & Accelerating</h4><p>1. One foot on deck, one foot kicking like a kick-scooter to 3-4 km/h (most scooters require kick-start to avoid accidental throttle). 2. Gently roll throttle. Thumb throttle (G3): press with thumb pad, not tip — smoother. Twist throttle: wrist down. 3. Keep weight forward slightly as you accelerate to prevent front wheel lift on dual motors. 4. Avoid full throttle from 0 — spins tire, wastes battery, wears motor.</p><p style="margin-top:6px"><strong>Dual motor:</strong> Start in single (eco), switch to dual after 10km/h to avoid jerk.</p></div></div>
+
+    <div class="guide-step"><div class="guide-num">C</div><div class="guide-content"><h4>Braking — The Most Important Skill</h4><p>Your G3 has front + rear disc + E-ABS regen. Technique:</p><p style="margin-top:6px">• <strong>Normal stop:</strong> 70% rear brake, 30% front, squeeze progressive over 2-3 seconds. Shift hips BACK over rear wheel, straighten arms to brace. Look ahead, not down.<br>• <strong>Emergency:</strong> Both brakes hard, hips as far back as possible, knees bent deep, butt behind rear axle if needed. Don't grab front only — you'll go over handlebars.<br>• <strong>Downhill:</strong> Pulse brakes (on-off) to avoid overheating. Regen alone will fade on long descents (Mt Coot-tha).</p><div class="guide-warn">⚠️ Wet Brisbane paths: braking distance doubles. Painted lines and metal covers are ice when wet. Brake BEFORE them, not on them.</div><div class="guide-tip">💡 Practice: Find empty carpark, accelerate to 20km/h, mark stopping line, measure distance. You should stop in <4m dry. If not, bleed brakes (Garage).</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">D</div><div class="guide-content"><h4>Steering & Cornering</h4><p>Below 15km/h: turn handlebars. Above 15km/h: lean and counter-steer. Look where you want to go (target fixation is real).<br><br><strong>Steps for a turn:</strong> 1. Slow BEFORE turn (brake in straight line). 2. Look through turn. 3. Lean bike + body together, inside knee slightly bent. 4. Keep throttle steady (no braking in turn). 5. Accelerate gently on exit.<br><br><strong>Weight transfer:</strong> Leaning back improves rear traction, leaning forward improves front grip. For sharp low-speed U-turn, put more weight on front foot.</p><div class="guide-tip">💡 Avoid sharp turns at high speed — small 10-inch wheels have less gyroscopic stability than bicycles. Take Brisbane's riverside chicanes at <20km/h.</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">E</div><div class="guide-content"><h4>Surfaces & Hazards</h4><p>• Cracks >2cm: lift front wheel slightly by shifting weight back, bend knees to absorb.<br>• Gravel/sand: straight line, steady throttle, no hard braking — front washes out.<br>• Grass: 2x battery, avoid turning.<br>• Speed bumps: slow to walking speed, stand tall, let suspension work.</p></div></div>
+   </div>
+
+   <div class="settings-card" id="guide-ebike">
+    <h3>🚲 eBike — How to Ride Perfectly</h3>
+
+    <div class="guide-step"><div class="guide-num">1</div><div class="guide-content"><h4>Setup: Saddle & Position</h4><p>Saddle height: sitting, heel on pedal at bottom = leg fully straight. When clipped/pedaling, slight bend at bottom. Too low = knee pain, 15% more battery use. Handlebar height: for city, level with saddle. For efficiency, 2-5cm below.</p><p style="margin-top:6px"><strong>Power modes:</strong> Eco (50-100% assist) = max range, Tour/Standard = balanced, Sport/Turbo = hills. Use gears first, power second.</p></div></div>
+
+    <div class="guide-step"><div class="guide-num">2</div><div class="guide-content"><h4>Starting & Accelerating</h4><p>1. Gear: start in 2nd or 3rd easiest gear, not hardest. 2. Mount with brakes covered. 3. Start pedaling — torque sensor needs 1/4 crank to kick. Don't rely on throttle from stop in high gear (strains chain). 4. For cadence-sensor bikes: one pedal stroke = motor on, so hold brake until ready.<br><br><strong>Hill start:</strong> Tilt bike slightly uphill, put strong foot at 2 o'clock, high assist, push down hard while releasing brake. Practice on small slope.</p><div class="guide-tip">💡 eBikes are 8-12kg heavier than normal bikes. Slow-speed balance needs slightly higher speed — aim for >8km/h to feel stable.</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">3</div><div class="guide-content"><h4>Braking on eBike</h4><p>Disc brakes are powerful — 1-finger braking is enough. Both brakes evenly. Because battery + motor low and central, eBikes stop shorter than scooters but weight shifts forward more than analog bikes.<br><br>• <strong>Downhill:</strong> Alternate front/rear, don't drag one brake (overheats). On 10%+ grades like Mt Coot-tha, stop mid-way to cool rims/discs if you smell hot.<br>• <strong>Wet:</strong> Squeeze 0.5 sec early to wipe water off rotor, then brake properly.<br>• <strong>Emergency:</strong> Hips back behind saddle, arms straight, brake hard both — ABS on Bosch eBikes helps.</p></div></div>
+
+    <div class="guide-step"><div class="guide-num">4</div><div class="guide-content"><h4>Steering, Cornering & Gears</h4><p>Counter-steer above ~20km/h: push right bar to go right. Look ahead 20m, not 2m. Inside pedal up when cornering to avoid strike.<br><br><strong>Gearing:</strong> Keep cadence 70-90 RPM. Too slow (grinding) = motor overheats + chain wear. Too fast (spinning) = inefficient. Shift BEFORE hill, not under load — ease pedal pressure for half second while shifting.</p><p style="margin-top:6px"><strong>Weight:</strong> Panniers? Put heavy low, near axle. Top-heavy = wobble at low speed.</p></div></div>
+
+    <div class="guide-step"><div class="guide-num">5</div><div class="guide-content"><h4>Mounting / Dismounting with Motor</h4><p>Always cover brakes when walking bike — accidental pedal bump can launch bike forward. Walk mode (6km/h) for pushing up ramps. Dismount to left (away from chain). For cargo/longtail, swing leg over high and keep bike tilted toward you.</p></div></div>
+   </div>
+
+   <div class="settings-card" id="guide-key">
+    <h3>🔑 Key Considerations for Both</h3>
+    
+    <h4 style="font-size:12px;color:var(--text);margin:12px 0 6px">🔋 Battery & Range Reality</h4>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5">Your display lies by ~10% when new. Real range = (Battery Wh × 0.85 efficiency) / Wh per km. For you: Brisbane flat bike path = 12 Wh/km, city stop-start = 22 Wh/km, Mt Coot-tha climb = 35 Wh/km. So 597Wh G3 = 27-49km. Log every ride in Stats to learn YOUR Wh/km. Cold: -10% range below 15°C. Store at 50-70% if not riding >1 week (Garage tells you).</p>
+
+    <h4 style="font-size:12px;color:var(--text);margin:12px 0 6px">🌧️ Weather & Night</h4>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5">IPX6 (G3) = heavy rain OK, but not submersion. After wet ride: dry charging port, wipe deck grip. Tires: 10% lower PSI in wet for more grip (but more puncture risk). Night: front white 400+ lumens, rear red, reflective ankle bands move and catch drivers' eyes best.</p>
+
+    <h4 style="font-size:12px;color:var(--text);margin:12px 0 6px">⚠️ Common Mistakes (Don't Do)</h4>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5">
+    • Riding with headphones both ears — illegal and deaf to cars<br>
+    • One-hand phone check at 25km/h — 7m traveled per second blind<br>
+    • Braking mid-corner on painted surface<br>
+    • Sitting at 100% charge for weeks — kills capacity 3x faster<br>
+    • Over-tightening stem clamp — strips threads, then stem slips<br>
+    • Ignoring 14-day tire check — Garage alerts you for a reason<br>
+    • Using turbo up every hill in highest gear — wears chain + motor
+    </p>
+
+    <h4 style="font-size:12px;color:var(--text);margin:12px 0 6px">🧰 Maintenance Tie-In</h4>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5">Your Garage tab already tracks cycles, balance due, PSI. Use it: log charge after every charge, log PSI weekly. Monthly: clean deck tape, check brake pads (replace at 1.5mm), lube folding hinge with silicone. Every 500km: check spoke tension on eBike, check tire wear indicators on scooter.</p>
+   </div>
+
+   <div class="settings-card" id="guide-brisbane">
+    <h3>📍 Brisbane / Queensland Legal & Practical</h3>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5">Rules as of 2026 (check TMR QLD for updates — laws change).</p>
+    <div style="margin-top:10px">
+     <div style="font-size:12px;color:var(--text);margin-bottom:6px"><strong>eScooter (Personal Mobility Device):</strong></div>
+     <div style="font-size:11px;color:var(--text2);line-height:1.5">• Max 25km/h on bike paths, footpaths (12km/h on footpaths in some councils — Brisbane City allows 25km/h on shared paths, 12km/h on footpaths)<br>• Helmet required, no pillion, 16+ (12+ supervised)<br>• Front white light + rear red light + reflector at night<br>• Must not be used on roads with speed limit >50km/h unless bike lane<br>• Your G3 in road mode may exceed — use Eco/Standard 25km/h mode in public. Sport/Private mode only on private property.<br>• Drink riding = same as bicycle DUI rules apply</div>
+     
+     <div style="font-size:12px;color:var(--text);margin:12px 0 6px"><strong>eBike:</strong></div>
+     <div style="font-size:11px;color:var(--text2);line-height:1.5">• 250W continuous max (EN15194), assist cuts at 25km/h, throttle limited to 6km/h without pedaling (if throttle present)<br>• No rego, no license, helmet required<br>• Can use all bike paths, roads, bike lanes<br>• 500W+ or throttle >25km/h = classified as motorbike — needs rego, license, not allowed on bike paths<br>• Brisbane: CityCycle and Riverwalk allow eBikes, but not faster than pedestrian flow</div>
+
+     <div style="font-size:12px;color:var(--text);margin:12px 0 6px"><strong>Where to Ride in Brisbane:</strong></div>
+     <div style="font-size:11px;color:var(--text2);line-height:1.5">• Best for testing: Boondall Wetlands circuit (flat, smooth), Kedron Brook bikeway, ICB bikeway (watch wind)<br>• Hill test: Mt Coot-tha lower loop (don't go road without experience)<br>• Avoid: Kurilpa Bridge timber boards when wet — slippery. South Bank pavers when crowded.<br>• Charging: Most cafes won't mind 1h top-up if you ask — carry your own charger, not just cable (G3 charger is 2A)</div>
+    </div>
+    <div class="guide-tip" style="margin-top:12px">💡 Save this Guide offline: This page works without internet — all text is in your app. Perfect for referencing trailside.</div>
+   </div>
+
+   <div style="padding:12px;text-align:center;font-size:10px;color:var(--text3)">G3 Ride Tracker • Evolution & Guide v1.0 • Built for Segway Max G3 • Brisbane QLD</div>
+  </div>
  </div>
+
+
 
  <!-- SETTINGS PAGE -->
  <div class="page" id="page-settings">
@@ -1953,6 +2231,22 @@ function startNoSleep() {
 }
 async function reacquireWakeLock() { if (isRecording && document.visibilityState === 'visible' && !noSleepVideo) { try { noSleepVideo = await navigator.wakeLock.request('screen'); noSleepVideo.addEventListener('release', () => { noSleepVideo = null; }); } catch(e) {} } }
 function stopNoSleep() { document.removeEventListener('visibilitychange', reacquireWakeLock); if (!noSleepVideo) return; if (noSleepVideo.release) { noSleepVideo.release().catch(() => {}); } noSleepVideo = null; }
+
+
+function scrollToEvo(id){
+  const el = document.getElementById(id);
+  if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); 
+  document.querySelectorAll('#evo-toc button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  }
+}
+function scrollToGuide(id){
+  const el = document.getElementById(id);
+  if(el){ el.scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelectorAll('#guide-toc button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  }
+}
 
 init();
 </script>
