@@ -220,6 +220,54 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 .voice-cmd-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(255,214,10,0.15);border:1px solid rgba(255,214,10,0.3);color:var(--accent);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;display:none}
 .voice-cmd-toast.show{display:block}
 
+.ride-group{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:12px 4px 0;display:flex;align-items:center;gap:8px}
+.ride-group::after{content:'';flex:1;height:1px;background:var(--border)}
+.ride-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.ride-stats div{text-align:center}.ride-stats b{display:block;font-size:15px;font-weight:700;color:var(--text)}
+.ride-stats small{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-top:2px}
+.ride-meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--text2)}
+.encyclo-toc{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;-webkit-overflow-scrolling:touch}
+.encyclo-toc button{flex:none;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;white-space:nowrap}
+.encyclo-toc button.active{background:var(--accent);color:#0a0a14;border-color:var(--accent)}
+.evo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.evo-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px}
+.evo-card h4{font-size:13px;color:var(--accent);margin:0 0 6px}.evo-card p{font-size:12px;color:var(--text2);line-height:1.5;margin:0}
+.evo-timeline{position:relative;margin:14px 0 4px 6px;padding-left:20px;border-left:2px solid var(--border)}
+.evo-event{position:relative;padding-bottom:18px}
+.evo-event::before{content:'';position:absolute;left:-27px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--bg2,#12121a)}
+.evo-year{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;color:#0a0a14;background:var(--accent);border-radius:999px;padding:2px 9px}
+.evo-title{font-size:15px;font-weight:700;color:var(--text);margin:6px 0 4px}
+.evo-line{font-size:12px;color:var(--text2);line-height:1.5;padding:2px 0 2px 14px;position:relative}
+.evo-line::before{content:'\25B8';position:absolute;left:0;color:var(--accent)}
+.evo-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.company-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:12px}
+.company-card h3{font-size:14px;margin:0 0 4px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.company-badge{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 8px}
+.company-card .meta{font-size:11px;color:var(--text3);margin-bottom:8px}.company-card p{margin:0}
+.evo-sep{display:flex;align-items:center;gap:12px;margin:8px 0;color:var(--text3)}.evo-sep i{flex:1;height:1px;background:var(--border)}.evo-sep span{font-size:18px}
+#evo-design p{font-size:12px;line-height:1.6;margin-top:12px}#evo-design p strong{display:block;margin-bottom:3px;font-size:13px}
+.guide-step{display:flex;gap:12px;padding:14px 0;border-top:1px solid var(--border)}
+.guide-num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#0a0a14;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.guide-content{flex:1;min-width:0}
+.guide-content h4{font-size:15px;margin:2px 0 8px;color:var(--text)}
+.guide-content p{font-size:13px;line-height:1.6;color:var(--text2);margin:0 0 8px}
+.guide-content strong{color:var(--text)}
+.guide-list{margin:0 0 10px;padding-left:20px;font-size:13px;line-height:1.55;color:var(--text2)}
+.guide-list li{margin:0 0 6px}.guide-list strong{color:var(--text)}
+.guide-kv{list-style:none;padding:0;margin:0 0 10px}
+.guide-kv li{padding:7px 0;border-top:1px dashed var(--border);font-size:13px;line-height:1.55;color:var(--text2)}
+.guide-kv li:first-child{border-top:0}
+.guide-kv li strong{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:1px}
+.guide-tip,.guide-warn{font-size:12.5px;line-height:1.55;border-radius:10px;padding:10px 12px;margin:10px 0 2px;border-left:3px solid}
+.guide-tip{background:rgba(255,214,10,.08);border-color:var(--accent);color:var(--text)}
+.guide-warn{background:rgba(231,76,60,.1);border-color:#e74c3c;color:var(--text)}
+.stance-diagram{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}
+.stance-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 6px;text-align:center}
+.stance-box svg{width:56px;height:100px;display:block;margin:0 auto 6px}
+.stance-box .lbl{font-size:12px;font-weight:700;color:var(--text)}.stance-box .ang{font-size:10px;color:var(--accent);margin:2px 0 4px}
+.stance-box .desc{font-size:11px;line-height:1.4;color:var(--text2)}.stance-pick{border-color:var(--accent)}
+#guide-key h4{margin:18px 0 6px!important;padding-top:12px;border-top:1px solid var(--border)}
+#guide-key p{font-size:13px!important;line-height:1.6!important}
 </style>
 </head>
 <body>
@@ -524,12 +572,12 @@ canvas.ride-chart{width:100%!important;max-height:160px}
    <div class="settings-sub">From 1890s patents to 2026 smart mobility. How design, batteries, and motors shaped modern riding.</div>
    
    <div class="encyclo-toc" id="evo-toc">
-    <button class="active" onclick=\"scrollToEvo('evo-overview', event)\">Overview</button>
-    <button onclick=\"scrollToEvo('evo-ebike-history', event)\">eBike History</button>
-    <button onclick=\"scrollToEvo('evo-escooter-history', event)\">eScooter History</button>
-    <button onclick=\"scrollToEvo('evo-design', event)\">Design & Tech</button>
-    <button onclick=\"scrollToEvo('evo-ebike-companies', event)\">Top eBikes</button>
-    <button onclick=\"scrollToEvo('evo-escooter-companies', event)\">Top eScooters</button>
+    <button class="active" onclick="scrollToEvo('evo-overview', event)">Overview</button>
+    <button onclick="scrollToEvo('evo-ebike-history', event)">eBike History</button>
+    <button onclick="scrollToEvo('evo-escooter-history', event)">eScooter History</button>
+    <button onclick="scrollToEvo('evo-design', event)">Design & Tech</button>
+    <button onclick="scrollToEvo('evo-ebike-companies', event)">Top eBikes</button>
+    <button onclick="scrollToEvo('evo-escooter-companies', event)">Top eScooters</button>
    </div>
 
    <div class="settings-card" id="evo-overview">
@@ -661,18 +709,18 @@ canvas.ride-chart{width:100%!important;max-height:160px}
    <div class="settings-sub">How to ride safely, efficiently, and confidently — whether you're standing on a G3 or pedaling an eBike. Tailored for Brisbane roads & paths.</div>
 
    <div class="encyclo-toc" id="guide-toc">
-    <button class="active" onclick=\"scrollToGuide('guide-safety', event)\">Safety First</button>
-    <button onclick=\"scrollToGuide('guide-escooter', event)\">eScooter</button>
-    <button onclick=\"scrollToGuide('guide-ebike', event)\">eBike</button>
-    <button onclick=\"scrollToGuide('guide-key', event)\">Key Considerations</button>
-    <button onclick=\"scrollToGuide('guide-brisbane', event)\">Brisbane Law</button>
+    <button class="active" onclick="scrollToGuide('guide-safety', event)">Safety First</button>
+    <button onclick="scrollToGuide('guide-escooter', event)">eScooter</button>
+    <button onclick="scrollToGuide('guide-ebike', event)">eBike</button>
+    <button onclick="scrollToGuide('guide-key', event)">Key Considerations</button>
+    <button onclick="scrollToGuide('guide-brisbane', event)">Legal</button>
    </div>
 
    <div class="settings-card" id="guide-safety">
     <h3>🛡️ Safety & Pre-Ride Check (2 Minutes)</h3>
     <p>90% of crashes are preventable in the garage. Do this every ride — Garage tab has reminders.</p>
     
-    <div class="guide-step"><div class="guide-num">1</div><div class="guide-content"><h4>Helmet, Gloves, Eyes</h4><p>QLD law: helmet required. Full-face for >30km/h eScooter strongly recommended. Gloves save palms in slide. Sunglasses keep bugs/dust out at 25km/h. For night: white front, red rear, reflective vest — legal requirement.</p><div class="guide-tip">💡 Pro: MIPS helmets reduce rotational brain injury. Your G3 hits 25km/h legal, 45km/h+ unlocked — treat it like a motorcycle above 30km/h.</div></div></div>
+    <div class="guide-step"><div class="guide-num">1</div><div class="guide-content"><h4>Helmet, Gloves, Eyes</h4><p>QLD law: helmet required. Full-face for >30km/h eScooter strongly recommended. Gloves save palms in slide. Sunglasses keep bugs/dust out at 25km/h. At night use a white front light and a red rear light; reflective gear helps drivers see you.</p><div class="guide-tip">💡 Pro: MIPS helmets reduce rotational brain injury. Queensland now requires e-scooters to be limited to 25km/h on public paths and roads; higher speeds are for private land only. Protect yourself like a motorcycle rider anywhere above 30km/h.</div></div></div>
 
     <div class="guide-step"><div class="guide-num">2</div><div class="guide-content"><h4>T-Check: Tires, Torque, Throttle/Brakes</h4><p><strong>Tires:</strong> Check PSI (G3 factory 42 PSI). Low PSI = pinch flat, 30% more battery drain. Use Garage log. <strong>Torque:</strong> Stem latch tight? No wobble? Axle nuts tight? <strong>Brakes:</strong> Roll 3m, brake hard — should lock without lever hitting bar. <strong>Throttle:</strong> Returns to zero? No sticky.</p><div class="guide-warn">⚠️ Never ride with loose stem. #1 cause of high-speed faceplants on folding scooters. Weekly check in Garage.</div></div></div>
 
@@ -683,12 +731,20 @@ canvas.ride-chart{width:100%!important;max-height:160px}
     <h3>🛴 eScooter — How to Ride Perfectly</h3>
     
     <h4 style="font-size:12px;color:var(--accent);margin:12px 0 8px">FOOT STANCES</h4>
+    <p style="font-size:13px;line-height:1.6;color:var(--text2);margin:0 0 10px">There is no single correct stance. Regular (left foot forward) or Goofy (right foot forward) is just your natural side. What changes is how far each foot is turned from straight ahead. Pick the one that suits the situation.</p>
     <div class="stance-diagram">
-     <div class="stance-box"><div class="icon">🦶</div><div class="lbl">Regular</div><div class="desc">Left foot forward, right foot back (most people). Like skateboard.</div></div>
-     <div class="stance-box"><div class="icon">🦶</div><div class="lbl">Goofy</div><div class="desc">Right foot forward. Neither is wrong — use natural balance.</div></div>
+     <div class="stance-box" data-f="0" data-r="15"><div class="lbl">Forward-facing</div><div class="ang">Front 0° · Rear ~15°</div><div class="desc">Best for speed, hard braking and acceleration. Narrow and stable, with less feel for leaning.</div></div>
+     <div class="stance-box stance-pick" data-f="25" data-r="45"><div class="lbl">Offset angled</div><div class="ang">Front ~20-30° · Rear 45°</div><div class="desc">Balanced all-rounder. Rear foot turned out for leaning and carving, front foot braced for stops.</div></div>
+     <div class="stance-box" data-f="90" data-r="90"><div class="lbl">Sideways</div><div class="ang">Front 90° · Rear 90°</div><div class="desc">Best for tight turns and carving at low speed. Weakest when braking or accelerating hard.</div></div>
     </div>
-    <div class="guide-step"><div class="guide-num">A</div><div class="guide-content"><h4>Basic Athletic Stance</h4><p>Front foot at 45° near stem, over front axle line. Rear foot perpendicular near rear fender, over motor. Knees bent 10-15°, elbows bent, weight 60% rear / 40% front for stability. Never ride with feet side-by-side — you have no pitch control.</p><p style="margin-top:6px"><strong>Power Stance (30km/h+):</strong> Rear foot further back, lower hips 5cm, elbows wider. Lowers center of gravity.</p><div class="guide-tip">💡 For G3 wide deck: front foot pointing forward, rear foot at 90° gives best leverage for leaning.</div></div></div>
-
+    <div style="font-size:11px;color:var(--text3);margin:-2px 0 10px">Diagrams show a Regular rider looking down at the deck, front of scooter at the top. Mirror them if you ride Goofy.</div>
+    <ul class="guide-list">
+     <li><strong>Going faster or braking harder:</strong> turn both feet more towards forward.</li>
+     <li><strong>Carving, tight turns, slow weaving:</strong> turn your feet more sideways.</li>
+     <li><strong>Mix it up:</strong> swap your lead foot now and then to reduce fatigue and build balance.</li>
+     <li><strong>Test first:</strong> practise braking in each stance on a quiet path before using it in traffic.</li>
+    </ul>
+    <div class="guide-step"><div class="guide-num">A</div><div class="guide-content"><h4>Posture (any stance)</h4><p>Front foot near the stem, over the front axle line. Rear foot over the motor near the rear fender. Knees bent 10-15°, elbows soft, weight about 60% rear / 40% front for stability. Never ride with feet side-by-side: you lose pitch control.</p><p><strong>Power stance (30km/h+):</strong> rear foot further back, hips 5cm lower, elbows wider. Lowers your centre of gravity.</p><div class="guide-tip">💡 Whatever stance you use, brake from it a few times at walking pace first, so your body knows how it feels before you need it.</div></div></div>
     <div class="guide-step"><div class="guide-num">B</div><div class="guide-content"><h4>Starting & Accelerating</h4><p>1. One foot on deck, one foot kicking like a kick-scooter to 3-4 km/h (most scooters require kick-start to avoid accidental throttle). 2. Gently roll throttle. Thumb throttle (G3): press with thumb pad, not tip — smoother. Twist throttle: wrist down. 3. Keep weight forward slightly as you accelerate to prevent front wheel lift on dual motors. 4. Avoid full throttle from 0 — spins tire, wastes battery, wears motor.</p><p style="margin-top:6px"><strong>Dual motor:</strong> Start in single (eco), switch to dual after 10km/h to avoid jerk.</p></div></div>
 
     <div class="guide-step"><div class="guide-num">C</div><div class="guide-content"><h4>Braking — The Most Important Skill</h4><p>Your G3 has front + rear disc + E-ABS regen. Technique:</p><p style="margin-top:6px">• <strong>Normal stop:</strong> 70% rear brake, 30% front, squeeze progressive over 2-3 seconds. Shift hips BACK over rear wheel, straighten arms to brace. Look ahead, not down.<br>• <strong>Emergency:</strong> Both brakes hard, hips as far back as possible, knees bent deep, butt behind rear axle if needed. Don't grab front only — you'll go over handlebars.<br>• <strong>Downhill:</strong> Pulse brakes (on-off) to avoid overheating. Regen alone will fade on long descents (Mt Coot-tha).</p><div class="guide-warn">⚠️ Wet Brisbane paths: braking distance doubles. Painted lines and metal covers are ice when wet. Brake BEFORE them, not on them.</div><div class="guide-tip">💡 Practice: Find empty carpark, accelerate to 20km/h, mark stopping line, measure distance. You should stop in <4m dry. If not, bleed brakes (Garage).</div></div></div>
@@ -696,6 +752,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
     <div class="guide-step"><div class="guide-num">D</div><div class="guide-content"><h4>Steering & Cornering</h4><p>Below 15km/h: turn handlebars. Above 15km/h: lean and counter-steer. Look where you want to go (target fixation is real).<br><br><strong>Steps for a turn:</strong> 1. Slow BEFORE turn (brake in straight line). 2. Look through turn. 3. Lean bike + body together, inside knee slightly bent. 4. Keep throttle steady (no braking in turn). 5. Accelerate gently on exit.<br><br><strong>Weight transfer:</strong> Leaning back improves rear traction, leaning forward improves front grip. For sharp low-speed U-turn, put more weight on front foot.</p><div class="guide-tip">💡 Avoid sharp turns at high speed — small 10-inch wheels have less gyroscopic stability than bicycles. Take Brisbane's riverside chicanes at <20km/h.</div></div></div>
 
     <div class="guide-step"><div class="guide-num">E</div><div class="guide-content"><h4>Surfaces & Hazards</h4><p>• Cracks >2cm: lift front wheel slightly by shifting weight back, bend knees to absorb.<br>• Gravel/sand: straight line, steady throttle, no hard braking — front washes out.<br>• Grass: 2x battery, avoid turning.<br>• Speed bumps: slow to walking speed, stand tall, let suspension work.</p></div></div>
+    <div class="guide-step"><div class="guide-num">F</div><div class="guide-content"><h4>Shared Paths & Pedestrians</h4><p>Keep left, pass pedestrians and cyclists wide and slow, and be ready to stop. In Queensland the limit is 12km/h on footpaths and when passing pedestrians on shared paths. Ring your bell early, and slow right down at blind corners, driveways and path junctions.</p><div class="guide-warn">⚠️ Give way to pedestrians on footpaths and shared paths. The speed alert button next to the vehicle selector can be set to 12km/h for these sections.</div></div></div>
    </div>
 
    <div class="settings-card" id="guide-ebike">
@@ -1286,7 +1343,7 @@ let supabaseClient = null;
 let syncEnabled = false;
 
 const STRAVA_CLIENT_ID = '261028';
-const STRAVA_CLIENT_SECRET = 'd69a13c1aa7b4bbe0bace7aafcab19d0bd7f993d';
+const stravaTokenCall = body => fetch(SUPABASE_URL + '/functions/v1/strava', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY }, body: JSON.stringify(body) }); // Strava secret now lives in Supabase, not in this page
 let stravaToken = null;
 let stravaAutopost = false;
 
@@ -1960,26 +2017,33 @@ function renderDetailMap(ride) {
  const bounds = new google.maps.LatLngBounds(); pts.forEach(p => bounds.extend(p)); detailMap.fitBounds(bounds,20);
 }
 
+function vtVehIcon(v) { return /bike|cycle|lo26|mtb/i.test(v || '') ? '\uD83D\uDEB2' : '\uD83D\uDEF4'; }
 function renderHistory() {
  const list = document.getElementById('ride-list'), empty = document.getElementById('empty-history'); list.innerHTML = '';
  if (!rides.length) { empty.style.display='flex'; list.style.display='none'; return; }
  empty.style.display='none'; list.style.display='flex';
+ let lastGroup = '';
  rides.forEach(ride => {
- const div = document.createElement('div'); div.className = 'ride-item'; div.onclick = () => openDetail(ride.id);
- const distKm = (ride.distanceM/1000).toFixed(2), hasMedia = ride.media && ride.media.length;
- div.innerHTML = `
- <div class="ride-item-top">
- <div class="ride-title-row">
- <div class="ride-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="2.5"/><circle cx="18.5" cy="17.5" r="2.5"/><path d="M8 17.5H16"/><path d="M13 17.5L11 10H8.5"/><path d="M11 10L15.5 8V6"/><path d="M13.5 6H17.5"/></svg></div>
- <div><div class="ride-name">${escHtml(ride.title||'Unnamed ride')}</div><div class="ride-date">${formatDate(ride.startTime)}</div>${ride.vehicle?`<div class="ride-vehicle-tag">${escHtml(ride.vehicle)}</div>`:''}</div>
- </div>
- <div><div class="ride-dist-big">${distKm}<span> km</span></div>${hasMedia?`<div class="has-media-badge">📷 ${ride.media.length}</div>`:''}</div>
- </div>
- <div class="ride-pills">
- <div class="pill">${formatDur(ride.durationSecs)}</div><div class="pill">⚡ Max ${ride.maxSpeedKmh.toFixed(1)} km/h</div><div class="pill">~ ${ride.avgSpeedKmh.toFixed(1)} km/h avg</div>
- ${ride.weather?`<div class="pill">${ride.weather}</div>`:''} ${ride.notes?'<div class="pill">📝 Notes</div>':''}
- </div>`;
- list.appendChild(div);
+  const grp = new Date(ride.startTime).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
+  if (grp !== lastGroup) { lastGroup = grp; const h = document.createElement('div'); h.className = 'ride-group'; h.innerHTML = '<span>' + vtVehIcon(ride.vehicle) + '</span>' + escHtml(grp); list.appendChild(h); }
+  const div = document.createElement('div'); div.className = 'ride-item'; div.onclick = () => openDetail(ride.id);
+  const distKm = ((ride.distanceM || 0) / 1000).toFixed(2), hasMedia = ride.media && ride.media.length;
+  const meta = [ride.weather ? ride.weather : '', hasMedia ? '\uD83D\uDCF7 ' + ride.media.length : '', ride.notes ? '\uD83D\uDCDD Notes' : ''].filter(Boolean);
+  div.innerHTML = `
+  <div class="ride-item-top">
+   <div class="ride-title-row">
+    <div class="ride-icon" style="font-size:20px">${vtVehIcon(ride.vehicle)}</div>
+    <div><div class="ride-name">${escHtml(ride.title || 'Unnamed ride')}</div><div class="ride-date">${formatDate(ride.startTime)}</div>${ride.vehicle ? `<div class="ride-vehicle-tag">${escHtml(ride.vehicle)}</div>` : ''}</div>
+   </div>
+   <div class="ride-dist-big">${distKm}<span> km</span></div>
+  </div>
+  <div class="ride-stats">
+   <div><b>${formatDur(ride.durationSecs)}</b><small>Time</small></div>
+   <div><b>${(ride.maxSpeedKmh || 0).toFixed(1)}</b><small>Max km/h</small></div>
+   <div><b>${(ride.avgSpeedKmh || 0).toFixed(1)}</b><small>Avg km/h</small></div>
+  </div>
+  ${meta.length ? `<div class="ride-meta">${meta.map(m => `<span>${m}</span>`).join('')}</div>` : ''}`;
+  list.appendChild(div);
  });
 }
 
@@ -2136,14 +2200,14 @@ function stravaAuth() { window.location.href = 'https://www.strava.com/oauth/aut
 async function exchangeStravaCode(code) {
  updateStravaStatus('syncing', 'Connecting to Strava…');
  try {
- const resp = await fetch('https://www.strava.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' }) }), data = await resp.json();
+ const resp = await stravaTokenCall({ action: 'exchange', code: code }), data = await resp.json();
  if (data.access_token) { stravaToken = { access_token: data.access_token, refresh_token: data.refresh_token, expires_at: data.expires_at, athlete_name: data.athlete ? data.athlete.firstname : 'athlete' }; setSetting('g3_strava_token', JSON.stringify(stravaToken)); updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name); document.getElementById('strava-connect-btn').style.display = 'none'; document.getElementById('strava-disconnect-btn').style.display = ''; showStravaAutopostRow(); showToast('✓ Strava connected!'); } else { updateStravaStatus('error', 'Connection failed — try again'); showToast('Strava connection failed'); }
  } catch(e) { updateStravaStatus('error', 'Connection failed'); }
 }
 async function refreshStravaToken() {
  if (!stravaToken || !stravaToken.refresh_token) return;
  try {
- const resp = await fetch('https://www.strava.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, refresh_token: stravaToken.refresh_token, grant_type: 'refresh_token' }) }), data = await resp.json();
+ const resp = await stravaTokenCall({ action: 'refresh', refresh_token: stravaToken.refresh_token }), data = await resp.json();
  if (data.access_token) { stravaToken.access_token = data.access_token; stravaToken.refresh_token = data.refresh_token; stravaToken.expires_at = data.expires_at; setSetting('g3_strava_token', JSON.stringify(stravaToken)); updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name); document.getElementById('strava-connect-btn').style.display = 'none'; document.getElementById('strava-disconnect-btn').style.display = ''; }
  } catch(e) {}
 }
@@ -2175,7 +2239,7 @@ async function pollStravaUpload(uploadId) {
  } throw new Error('Upload timed out');
 }
 function buildGPX(ride) {
- const pts = ride.routePoints.map(p => ` <trkpt lat="${p.lat}" lon="${p.lng}"><ele>${(p.altitude || 0).toFixed(1)}</ele><time>${new Date(p.ts || ride.startTime).toISOString()}</time><extensions><gpxtpx:TrackPointExtension><gpxtpx:speed>${((p.speedKmh || 0) / 3.6).toFixed(2)}</gpxtpx:speed></gpxtpx:TrackPointExtension></extensions></trkpt>`).join('\n');
+ const pts = (window.vtPrivacyTrim ? vtPrivacyTrim(ride.routePoints) : ride.routePoints).map(p => ` <trkpt lat="${p.lat}" lon="${p.lng}"><ele>${(p.altitude || 0).toFixed(1)}</ele><time>${new Date(p.ts || ride.startTime).toISOString()}</time><extensions><gpxtpx:TrackPointExtension><gpxtpx:speed>${((p.speedKmh || 0) / 3.6).toFixed(2)}</gpxtpx:speed></gpxtpx:TrackPointExtension></extensions></trkpt>`).join('\n');
  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Volt Trail" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">\n <trk>\n <name>${(ride.title || 'G3 Ride').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</name>\n <trkseg>\n${pts}\n </trkseg>\n </trk>\n</gpx>`;
 }
 function showStravaAutopostRow() {
@@ -2336,6 +2400,102 @@ const sp=$('page-settings');
 if(sp){const c=document.createElement('div'); c.className='settings-card';
  c.innerHTML='<h3>\uD83D\uDCBE Backup &amp; export</h3><p>Save a copy of your rides, vehicles and logs, or move them to another device.</p><button class="settings-btn" onclick="vtBackup()">Download backup (JSON)</button><button class="settings-btn" style="margin-top:8px" onclick="document.getElementById(\'vt-restore\').click()">Restore from backup</button><input type="file" id="vt-restore" accept="application/json,.json" style="display:none" onchange="vtRestore(event)"><button class="settings-btn" style="margin-top:8px" onclick="vtCsv()">Export rides (CSV)</button>';
  sp.appendChild(c);}
+})();
+</script>
+
+<script>
+(function(){
+const KEY='g3_privacy', toast=m=>{try{showToast(m)}catch(e){}};
+const get=()=>{try{const p=JSON.parse(getSetting(KEY)||'{}');return{on:!!p.on,radius:p.radius||300,zones:p.zones||[]};}catch(e){return{on:false,radius:300,zones:[]};}};
+const put=p=>setSetting(KEY,JSON.stringify(p));
+const hav=(a,b,c,d)=>{const R=6371000,r=Math.PI/180,x=(c-a)*r,y=(d-b)*r,h=Math.sin(x/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)**2;return 2*R*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));};
+window.vtPrivacyTrim=pts=>{
+ const p=get(); if(!p.on||!p.zones.length||!pts||!pts.length) return pts;
+ const inz=q=>p.zones.some(z=>hav(q.lat,q.lng,z.lat,z.lng)<=p.radius);
+ let a=0,b=pts.length-1; while(a<=b&&inz(pts[a])) a++; while(b>=a&&inz(pts[b])) b--;
+ return pts.slice(a,b+1);
+};
+function render(){
+ const el=document.getElementById('vt-privacy'); if(!el) return; const p=get();
+ el.innerHTML='<h3>\uD83D\uDEE1\uFE0F Privacy zones</h3>'
+ +'<p>Optional. Hides the start and end of a ride when it begins or finishes near a place you add (like home). Applies to Strava uploads and GPX files. Your saved rides keep the full route.</p>'
+ +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin:8px 0"><input type="checkbox" '+(p.on?'checked':'')+' onchange="vtPzOn(this.checked)"> Hide start and end near my zones</label>'
+ +'<div style="font-size:13px;color:var(--text);margin:8px 0">Zone size: <select onchange="vtPzRadius(this.value)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px">'+[150,300,500,1000].map(r=>'<option value="'+r+'"'+(r===p.radius?' selected':'')+'>'+r+' m</option>').join('')+'</select></div>'
+ +p.zones.map((z,i)=>'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border);font-size:13px;color:var(--text)"><span style="flex:1">\uD83D\uDCCD '+escHtml(z.label)+'</span><button class="settings-btn" style="width:auto;padding:5px 10px;margin:0" onclick="vtPzDel('+i+')">Remove</button></div>').join('')
+ +'<button class="settings-btn" style="margin-top:8px" onclick="vtPzAdd()">Add my current location as a zone</button>';
+}
+window.vtPzOn=v=>{const p=get();p.on=v;put(p);if(v&&!p.zones.length)toast('Now add a zone below');};
+window.vtPzRadius=v=>{const p=get();p.radius=parseInt(v,10);put(p);};
+window.vtPzDel=i=>{const p=get();p.zones.splice(i,1);put(p);render();};
+window.vtPzAdd=()=>{
+ if(!navigator.geolocation){toast('Location not available');return;}
+ navigator.geolocation.getCurrentPosition(pos=>{
+  const l=prompt('Name this place (for example Home)','Home'); if(l===null) return;
+  const p=get(); p.zones.push({lat:+pos.coords.latitude.toFixed(5),lng:+pos.coords.longitude.toFixed(5),label:l||'Zone'}); p.on=true; put(p); render(); toast('Zone added');
+ },()=>toast('Could not get your location'),{enableHighAccuracy:true,timeout:15000});
+};
+const sp=document.getElementById('page-settings');
+if(sp){const c=document.createElement('div');c.className='settings-card';c.id='vt-privacy';sp.appendChild(c);render();}
+})();
+</script>
+
+<script>
+(function(){
+const pg=document.getElementById('page-evolution'); if(!pg) return;
+const protect=t=>t.replace(/\b(Jr|Co|Inc|Ltd|vs|St|Dr|Mr|approx)\./g,'$1\u0001').replace(/U\.S\./g,'U\u0002S\u0002');
+const restore=t=>t.replace(/\u0001/g,'.').replace(/\u0002/g,'.');
+function lines(el){
+ const parts=protect(el.textContent.trim()).split(/(?<=[a-z0-9)%"'])\.\s+(?=[A-Z0-9(])/).map(restore).map(x=>x.trim().replace(/\.$/,'')).filter(Boolean);
+ if(parts.length<2) return;
+ el.textContent=''; parts.forEach(t=>{const d=document.createElement('div'); d.className='evo-line'; d.textContent=t; el.appendChild(d);});
+}
+pg.querySelectorAll('#evo-ebike-history .evo-title').forEach(e=>e.textContent='\uD83D\uDEB2 '+e.textContent);
+pg.querySelectorAll('#evo-escooter-history .evo-title').forEach(e=>e.textContent='\uD83D\uDEF4 '+e.textContent);
+pg.querySelectorAll('.evo-desc, .company-card p').forEach(lines);
+const icon={'evo-ebike-history':'\uD83D\uDEB2','evo-escooter-history':'\uD83D\uDEF4','evo-design':'\u2699\uFE0F','evo-ebike-companies':'\uD83C\uDFC6','evo-escooter-companies':'\uD83C\uDFC6'};
+pg.querySelectorAll('.settings-card').forEach(c=>{ if(icon[c.id]) c.insertAdjacentHTML('beforebegin','<div class="evo-sep"><i></i><span>'+icon[c.id]+'</span><i></i></div>'); });
+})();
+</script>
+
+<script>
+(function(){
+const pg=document.getElementById('page-rideguide'); if(!pg) return;
+const foot=(cx,cy,deg)=>'<g transform="rotate('+deg+' '+cx+' '+cy+')"><rect x="'+(cx-7)+'" y="'+(cy-17)+'" width="14" height="34" rx="7" fill="var(--accent)"/><circle cx="'+cx+'" cy="'+(cy-11)+'" r="3" fill="#0a0a14"/></g>';
+const svg=(f,r)=>'<svg viewBox="0 0 60 120" aria-hidden="true"><rect x="12" y="4" width="36" height="112" rx="12" fill="none" stroke="var(--text3)" stroke-width="2"/><rect x="25" y="4" width="10" height="8" rx="3" fill="var(--text3)"/>'+foot(30,38,f)+foot(30,86,r)+'</svg>';
+pg.querySelectorAll('.stance-box[data-f]').forEach(b=>b.insertAdjacentHTML('afterbegin',svg(+b.dataset.f,+b.dataset.r)));
+
+const LBL=/<strong>[^<]{1,40}:<\/strong>/g;
+function convert(p){
+ const parts=p.innerHTML.split(/(?:<br\s*\/?>\s*){2,}/); let out='',changed=false;
+ for(let part of parts){
+  part=part.trim(); if(!part) continue;
+  if(part.indexOf('\u2022')>-1){
+   const bits=part.split(/(?:<br\s*\/?>\s*)*\u2022\s*/).map(x=>x.trim()).filter(Boolean);
+   if(!part.startsWith('\u2022')) out+='<p>'+bits.shift()+'</p>';
+   out+='<ul class="guide-list">'+bits.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; changed=true; continue;
+  }
+  const labels=part.match(LBL)||[];
+  if(labels.length>=3 && part.startsWith('<strong>')){
+   const items=part.split(/(?=<strong>[^<]{1,40}:<\/strong>)/).map(x=>x.trim()).filter(Boolean);
+   out+='<ul class="guide-kv">'+items.map(x=>'<li>'+x.replace(/:<\/strong>/,'</strong>')+'</li>').join('')+'</ul>'; changed=true; continue;
+  }
+  const m=part.match(/(^|\s)1\.\s+[A-Z]/);
+  if(m){
+   const idx=m.index+m[1].length, intro=part.slice(0,idx).trim();
+   const items=part.slice(idx).split(/\s(?=\d{1,2}\.\s+[A-Z<])/);
+   if(items.length>=2 && items.every((x,i)=>x.startsWith((i+1)+'. '))){
+    if(intro) out+='<p>'+intro+'</p>';
+    out+='<ol class="guide-list">'+items.map(x=>'<li>'+x.replace(/^\d{1,2}\.\s+/,'')+'</li>').join('')+'</ol>'; changed=true; continue;
+   }
+  }
+  out+='<p>'+part+'</p>';
+ }
+ if(changed) p.outerHTML=out;
+}
+pg.querySelectorAll('.guide-content > p').forEach(convert);
+
+const icon={'guide-escooter':'\uD83D\uDEF4','guide-ebike':'\uD83D\uDEB2','guide-key':'\uD83D\uDD11','guide-brisbane':'\u2696\uFE0F'};
+pg.querySelectorAll('.settings-card').forEach(c=>{ if(icon[c.id]) c.insertAdjacentHTML('beforebegin','<div class="evo-sep"><i></i><span>'+icon[c.id]+'</span><i></i></div>'); });
 })();
 </script>
 </body>
