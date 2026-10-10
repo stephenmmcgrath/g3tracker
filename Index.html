@@ -10,11 +10,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>G3 Ride Tracker</title>
+<title>Volt Trail</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#0a0a14;--bg2:#12121f;--bg3:#1a1a2e;--bg4:#22223a;--accent:#00c8ff;--accent2:#0090cc;--danger:#e74c3c;--success:#2ecc71;--warn:#f39c12;--text:#eef0f4;--text2:#8890a0;--text3:#4a5060;--border:rgba(255,255,255,0.07);--r:12px;--r-lg:20px;--font:-apple-system,'SF Pro Display','Segoe UI',sans-serif}
+:root{--bg:#0a0a14;--bg2:#12121f;--bg3:#1a1a2e;--bg4:#22223a;--accent:#FFD60A;--accent2:#D9B300;--danger:#e74c3c;--success:#2ecc71;--warn:#f39c12;--text:#eef0f4;--text2:#8890a0;--text3:#4a5060;--border:rgba(255,255,255,0.07);--r:12px;--r-lg:20px;--font:-apple-system,'SF Pro Display','Segoe UI',sans-serif}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
@@ -90,7 +90,7 @@ textarea.notes-input::placeholder{color:var(--text3)}
 .media-thumb-wrap{position:relative;flex-shrink:0}
 .media-thumb-wrap img,.media-thumb-wrap video{width:72px;height:72px;border-radius:10px;object-fit:cover}
 .media-thumb-wrap .del-btn{position:absolute;top:-5px;right:-5px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:white;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1}
-.add-media-btn{width:72px;height:72px;border-radius:10px;background:var(--bg3);border:1.5px dashed rgba(0,200,255,0.3);color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px;flex-shrink:0;cursor:pointer}
+.add-media-btn{width:72px;height:72px;border-radius:10px;background:var(--bg3);border:1.5px dashed rgba(255,214,10,0.3);color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px;flex-shrink:0;cursor:pointer}
 .add-media-btn svg{width:22px;height:22px}
 #media-input,#edit-media-input{display:none}
 .idle-msg{padding:20px 14px;text-align:center;color:var(--text2);font-size:14px;line-height:1.5}
@@ -106,16 +106,16 @@ textarea.notes-input::placeholder{color:var(--text3)}
 .ride-item:active{background:var(--bg4)}
 .ride-item-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
 .ride-title-row{display:flex;align-items:center;gap:8px}
-.ride-icon{width:34px;height:34px;background:rgba(0,200,255,0.1);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ride-icon{width:34px;height:34px;background:rgba(255,214,10,0.1);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .ride-icon svg{width:18px;height:18px;color:var(--accent)}
 .ride-name{font-size:15px;font-weight:600}
 .ride-date{font-size:11px;color:var(--text2);margin-top:2px}
-.ride-vehicle-tag{font-size:10px;color:var(--accent);background:rgba(0,200,255,0.08);border-radius:5px;padding:1px 6px;margin-top:3px;display:inline-block}
+.ride-vehicle-tag{font-size:10px;color:var(--accent);background:rgba(255,214,10,0.08);border-radius:5px;padding:1px 6px;margin-top:3px;display:inline-block}
 .ride-dist-big{font-size:22px;font-weight:700;color:var(--accent);letter-spacing:-0.5px;text-align:right}
 .ride-dist-big span{font-size:12px;color:var(--text2);font-weight:400}
 .ride-pills{display:flex;flex-wrap:wrap;gap:6px}
 .pill{background:var(--bg4);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px}
-.has-media-badge{background:rgba(0,200,255,0.08);color:var(--accent);font-size:10px;border-radius:6px;padding:2px 6px;margin-top:4px;display:block;text-align:right}
+.has-media-badge{background:rgba(255,214,10,0.08);color:var(--accent);font-size:10px;border-radius:6px;padding:2px 6px;margin-top:4px;display:block;text-align:right}
 .weather-pill{background:rgba(243,156,18,0.1);color:var(--warn);border-radius:20px;padding:4px 10px;font-size:11px;display:inline-flex;align-items:center;gap:4px;margin-top:6px}
 
 /* SHOWROOM */
@@ -158,7 +158,7 @@ textarea.notes-input::placeholder{color:var(--text3)}
 #media-viewer-inner video{max-width:100%;max-height:88dvh;border-radius:8px;width:100%}
 #media-viewer-close{position:absolute;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);color:white;font-size:26px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;line-height:1;z-index:501}
 .action-btn{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:var(--r);padding:13px;font-size:14px;font-weight:500;margin-top:8px;text-align:left}
-.action-btn.accent{background:rgba(0,200,255,0.08);border-color:rgba(0,200,255,0.2);color:var(--accent)}
+.action-btn.accent{background:rgba(255,214,10,0.08);border-color:rgba(255,214,10,0.2);color:var(--accent)}
 .delete-ride-btn{width:100%;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:var(--danger);border-radius:var(--r);padding:13px;font-size:14px;font-weight:500;margin-top:8px}
 
 /* STATS PAGE */
@@ -167,7 +167,7 @@ textarea.notes-input::placeholder{color:var(--text3)}
 .stats-filter-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
 .stats-filter-row::-webkit-scrollbar{display:none}
 .filter-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--bg3);color:var(--text2);white-space:nowrap;cursor:pointer;flex-shrink:0}
-.filter-chip.active{background:rgba(0,200,255,0.12);border-color:var(--accent);color:var(--accent)}
+.filter-chip.active{background:rgba(255,214,10,0.12);border-color:var(--accent);color:var(--accent)}
 .lifetime-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .lifetime-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
 .lifetime-card .big{font-size:28px;font-weight:700;color:var(--accent);letter-spacing:-1px}
@@ -217,7 +217,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 #db-banner{background:rgba(231,76,60,0.1);border-bottom:1px solid rgba(231,76,60,0.2);padding:8px 16px;font-size:12px;color:var(--danger);display:none;text-align:center}
 
 /* VOICE TOAST */
-.voice-cmd-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,200,255,0.15);border:1px solid rgba(0,200,255,0.3);color:var(--accent);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;display:none}
+.voice-cmd-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(255,214,10,0.15);border:1px solid rgba(255,214,10,0.3);color:var(--accent);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;display:none}
 .voice-cmd-toast.show{display:block}
 
 </style>
@@ -227,19 +227,10 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <div id="db-banner">Ride data saving to temporary storage only — history may not persist.</div>
 
  <header>
- <div class="logo">
- <svg viewBox="0 0 24 24" fill="none">
- <circle cx="5.5" cy="17.5" r="2.5" stroke="#0a0a14" stroke-width="1.5"/>
- <circle cx="18.5" cy="17.5" r="2.5" stroke="#0a0a14" stroke-width="1.5"/>
- <path d="M8 17.5H16" stroke="#0a0a14" stroke-width="1.5" stroke-linecap="round"/>
- <path d="M13 17.5L11 10H8.5" stroke="#0a0a14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
- <path d="M11 10L15.5 8V6" stroke="#0a0a14" stroke-width="1.5" stroke-linecap="round"/>
- <path d="M13.5 6H17.5" stroke="#0a0a14" stroke-width="1.5" stroke-linecap="round"/>
- </svg>
- </div>
+ <div class="logo"><svg viewBox="0 0 24 24"><path d="M13 2L5 13h6l-1 9 9-12h-6z" fill="#0a0a14"/></svg></div>
  <div>
- <h1>Ride Tracker</h1>
- <div class="sub" id="header-sub">Segway Max G3 • v5 Clean</div>
+ <h1>Volt Trail</h1>
+ <div class="sub" id="header-sub">Ride • Track • Explore</div>
  </div>
  <div class="rec-badge" id="rec-badge"><div class="rec-dot"></div><span id="rec-timer">0:00</span></div>
  </header>
@@ -271,12 +262,12 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  </button>
  </nav>
 
- <!-- RIDE PAGE -->
- <div class="page active" id="page-ride">
  <div class="vehicle-bar">
  <label>Vehicle:</label>
  <select class="vehicle-select" id="vehicle-select" onchange="onVehicleChange()"></select>
  </div>
+ <!-- RIDE PAGE -->
+ <div class="page active" id="page-ride">
  <div id="map-container">
  <div id="map"></div>
  <div id="map-placeholder">
@@ -746,22 +737,18 @@ canvas.ride-chart{width:100%!important;max-height:160px}
    </div>
 
    <div class="settings-card" id="guide-brisbane">
-    <h3>📍 Brisbane / Queensland Legal & Practical</h3>
-    <p style="font-size:12px;color:var(--text2);line-height:1.5">Rules as of 2026 (check TMR QLD for updates — laws change).</p>
+    <h3>⚖️ Rules &amp; Legalities</h3>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5">Summary reviewed October 2026 from government and motoring-body sources. Not legal advice. Rules change often, so check the official link for your area before riding.</p>
+    <div id="legal-root"></div>
     <div style="margin-top:10px">
-     <div style="font-size:12px;color:var(--text);margin-bottom:6px"><strong>eScooter (Personal Mobility Device):</strong></div>
-     <div style="font-size:11px;color:var(--text2);line-height:1.5">• Max 25km/h on bike paths, footpaths (12km/h on footpaths in some councils — Brisbane City allows 25km/h on shared paths, 12km/h on footpaths)<br>• Helmet required, no pillion, 16+ (12+ supervised)<br>• Front white light + rear red light + reflector at night<br>• Must not be used on roads with speed limit >50km/h unless bike lane<br>• Your G3 in road mode may exceed — use Eco/Standard 25km/h mode in public. Sport/Private mode only on private property.<br>• Drink riding = same as bicycle DUI rules apply</div>
-     
-     <div style="font-size:12px;color:var(--text);margin:12px 0 6px"><strong>eBike:</strong></div>
-     <div style="font-size:11px;color:var(--text2);line-height:1.5">• 250W continuous max (EN15194), assist cuts at 25km/h, throttle limited to 6km/h without pedaling (if throttle present)<br>• No rego, no license, helmet required<br>• Can use all bike paths, roads, bike lanes<br>• 500W+ or throttle >25km/h = classified as motorbike — needs rego, license, not allowed on bike paths<br>• Brisbane: CityCycle and Riverwalk allow eBikes, but not faster than pedestrian flow</div>
-
+     <div style="font-size:12px;color:var(--text);margin:4px 0 6px"><strong>📍 Brisbane practical</strong></div>
      <div style="font-size:12px;color:var(--text);margin:12px 0 6px"><strong>Where to Ride in Brisbane:</strong></div>
      <div style="font-size:11px;color:var(--text2);line-height:1.5">• Best for testing: Boondall Wetlands circuit (flat, smooth), Kedron Brook bikeway, ICB bikeway (watch wind)<br>• Hill test: Mt Coot-tha lower loop (don't go road without experience)<br>• Avoid: Kurilpa Bridge timber boards when wet — slippery. South Bank pavers when crowded.<br>• Charging: Most cafes won't mind 1h top-up if you ask — carry your own charger, not just cable (G3 charger is 2A)</div>
     </div>
     <div class="guide-tip" style="margin-top:12px">💡 Save this Guide offline: This page works without internet — all text is in your app. Perfect for referencing trailside.</div>
    </div>
 
-   <div style="padding:12px;text-align:center;font-size:10px;color:var(--text3)">G3 Ride Tracker • Evolution & Guide v1.0 • Built for Segway Max G3 • Brisbane QLD</div>
+   <div style="padding:12px;text-align:center;font-size:10px;color:var(--text3)">Volt Trail • Evolution & Guide • Brisbane QLD</div>
   </div>
  </div>
 
@@ -1376,7 +1363,7 @@ function onVehicleChange() {
  renderGarage();
 }
 
-function updateHeaderSub() { document.getElementById('header-sub').textContent = selectedVehicle || 'Ride Tracker'; }
+function updateHeaderSub() { document.getElementById('header-sub').textContent = selectedVehicle || 'Volt Trail'; }
 
 function addVehicle() {
  const inp = document.getElementById('vehicle-add-input');
@@ -1639,7 +1626,7 @@ function renderChargeHistory() {
  <div style="font-size:11px; color:var(--text2);">${dateStr} · Odo: ${log.odoKm || '--'} km</div>
  </div>
  <div style="display:flex; gap:6px;">
- <button onclick="editChargeLog(${log.id})" style="background:rgba(0,200,255,0.15); color:var(--accent); border-radius:6px; padding:5px 10px; font-size:11px; font-weight:600;">Edit</button>
+ <button onclick="editChargeLog(${log.id})" style="background:rgba(255,214,10,0.15); color:var(--accent); border-radius:6px; padding:5px 10px; font-size:11px; font-weight:600;">Edit</button>
  <button onclick="deleteChargeLog(${log.id})" style="background:rgba(231,76,60,0.15); color:var(--danger); border-radius:6px; padding:5px 10px; font-size:11px; font-weight:600;">Delete</button>
  </div>
  </div>
@@ -1800,6 +1787,7 @@ function onPosition(pos) {
  if (accuracy && accuracy > 50) return;
 
  let speedKmh = 0;
+ const prevTs = lastPos && lastPos.ts;
  if (lastPos && lastPos.ts) {
  const dist = haversine(lastPos.lat, lastPos.lng, lat, lng), timeDiff = (now - lastPos.ts) / 1000;
  if (dist > 1 && timeDiff > 0) speedKmh = Math.max(0, (dist / timeDiff) * 3.6) > 60 ? 0 : Math.max(0, (dist / timeDiff) * 3.6);
@@ -1816,7 +1804,7 @@ function onPosition(pos) {
 
  if (speedKmh >= 2 && speedKmh <= 60) {
  if (!window._movingSecs) window._movingSecs = 0;
- window._movingSecs += (lastPos && lastPos.ts) ? Math.min((now - (lastPos.prevTs||now)) / 1000, 5) : 0;
+ window._movingSecs += prevTs ? Math.min((now - prevTs) / 1000, 5) : 0;
  }
  if (altitude != null) elevations.push(altitude);
 
@@ -1959,7 +1947,7 @@ function initLiveMap() {
  const mapEl = document.getElementById('map'); if (!mapEl) return;
  document.getElementById('map-placeholder').style.display = 'none'; mapEl.innerHTML = '';
  map = new google.maps.Map(mapEl, { center:{lat:-27.57,lng:152.95}, zoom:15, mapTypeId:'roadmap', disableDefaultUI:true, gestureHandling:'greedy' });
- polyline = new google.maps.Polyline({ path:[], strokeColor:'#00c8ff', strokeOpacity:0.9, strokeWeight:4, map });
+ polyline = new google.maps.Polyline({ path:[], strokeColor:'#FFD60A', strokeOpacity:0.9, strokeWeight:4, map });
  navigator.geolocation.getCurrentPosition(pos => { if (map) map.setCenter({lat:pos.coords.latitude, lng:pos.coords.longitude}); }, ()=>{}, { timeout:5000, enableHighAccuracy:true });
  } catch(e) { showToast('Map error — check API key in Settings'); }
 }
@@ -1967,7 +1955,7 @@ function renderDetailMap(ride) {
  if (!window.google || !ride.routePoints || !ride.routePoints.length) return;
  const pts = ride.routePoints.map(p => ({lat:p.lat,lng:p.lng}));
  detailMap = new google.maps.Map(document.getElementById('detail-map'), { center:pts[Math.floor(pts.length/2)], zoom:14, mapTypeId:'roadmap', disableDefaultUI:true });
- new google.maps.Polyline({path:pts,strokeColor:'#00c8ff',strokeOpacity:0.9,strokeWeight:4,map:detailMap});
+ new google.maps.Polyline({path:pts,strokeColor:'#FFD60A',strokeOpacity:0.9,strokeWeight:4,map:detailMap});
  new google.maps.Marker({position:pts[0],map:detailMap,label:{text:'S',color:'#fff'}}); new google.maps.Marker({position:pts[pts.length-1],map:detailMap,label:{text:'E',color:'#fff'}});
  const bounds = new google.maps.LatLngBounds(); pts.forEach(p => bounds.extend(p)); detailMap.fitBounds(bounds,20);
 }
@@ -2070,7 +2058,7 @@ function renderStats() {
  document.getElementById('st-month-rides-lbl').textContent = filtered.filter(r=>{const d=new Date(r.startTime);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length+' this month';
  document.getElementById('st-max-speed').textContent = maxSpeed.toFixed(1); document.getElementById('st-total-time').textContent = formatTotalTime(totalSecs); document.getElementById('st-avg-dist').textContent = avgDist.toFixed(1); document.getElementById('st-avg-speed').textContent = avgSpeed.toFixed(1); document.getElementById('st-max-gforce').textContent = maxGforce.toFixed(2); document.getElementById('st-max-elev').textContent = elevMaxAll > -Infinity ? elevMaxAll.toFixed(0)+'m' : '—';
  const recent = [...filtered].reverse().slice(-20), labels = recent.map(r => formatShortDate(r.startTime));
- chartSpeed = drawChart('chart-speed', chartSpeed, labels, recent.map(r => +r.maxSpeedKmh.toFixed(1)), '#00c8ff', 'km/h'); chartDist = drawChart('chart-dist', chartDist, labels, recent.map(r => +(r.distanceM/1000).toFixed(2)), '#2ecc71', 'km'); chartDur = drawChart('chart-dur', chartDur, labels, recent.map(r => +(r.durationSecs/60).toFixed(1)), '#f39c12', 'min');
+ chartSpeed = drawChart('chart-speed', chartSpeed, labels, recent.map(r => +r.maxSpeedKmh.toFixed(1)), '#FFD60A', 'km/h'); chartDist = drawChart('chart-dist', chartDist, labels, recent.map(r => +(r.distanceM/1000).toFixed(2)), '#2ecc71', 'km'); chartDur = drawChart('chart-dur', chartDur, labels, recent.map(r => +(r.durationSecs/60).toFixed(1)), '#f39c12', 'min');
 }
 function setStatsFilter(v) { statsFilter=v; renderStats(); }
 function drawChart(id, existing, labels, data, color, unit) {
@@ -2188,7 +2176,7 @@ async function pollStravaUpload(uploadId) {
 }
 function buildGPX(ride) {
  const pts = ride.routePoints.map(p => ` <trkpt lat="${p.lat}" lon="${p.lng}"><ele>${(p.altitude || 0).toFixed(1)}</ele><time>${new Date(p.ts || ride.startTime).toISOString()}</time><extensions><gpxtpx:TrackPointExtension><gpxtpx:speed>${((p.speedKmh || 0) / 3.6).toFixed(2)}</gpxtpx:speed></gpxtpx:TrackPointExtension></extensions></trkpt>`).join('\n');
- return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="G3 Ride Tracker" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">\n <trk>\n <name>${(ride.title || 'G3 Ride').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</name>\n <trkseg>\n${pts}\n </trkseg>\n </trk>\n</gpx>`;
+ return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Volt Trail" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">\n <trk>\n <name>${(ride.title || 'G3 Ride').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</name>\n <trkseg>\n${pts}\n </trkseg>\n </trk>\n</gpx>`;
 }
 function showStravaAutopostRow() {
  const row = document.getElementById('strava-autopost-row');
@@ -2236,6 +2224,119 @@ function scrollToGuide(id, evt){
 }
 
 init();
+</script>
+
+<script>
+(function(){
+const EB_AU='Legal e-bike: 250W continuous motor, assist cuts out at 25km/h, throttle only up to 6km/h, helmet compulsory.';
+const L=[
+['Australia',null,null,[
+ ['Queensland (QLD)',true,'Private e-scooters legal. Device must be locked to 25km/h max (older devices from 31 Aug 2026). 12km/h on footpaths and when passing pedestrians on shared paths. Allowed on roads and on-road bike lanes with a speed limit up to 60km/h. Riders must be 16+ and hold a licence (a learner licence counts) from 31 Aug 2026. Helmet, one person per device. Random breath tests apply (0.05). Police can seize illegal devices. Speeding fines $345 to $1,986; parents can be fined $518 for riders under 16.',EB_AU+' Compliance label (EN 15194) becomes mandatory by 28 Feb 2027, including for older e-bikes. Compliant bikes without a label can be verified and labelled under a Queensland assurance scheme before that date. Riders must be 16+ with a licence. 12km/h on footpaths. Throttle-only or higher-powered bikes are illegal and can be seized.','https://streetsmarts.initiatives.qld.gov.au/e-bikes-e-scooters/'],
+ ['New South Wales (NSW)',false,'Private e-scooters allowed on private property only. Hire e-scooters can be used in approved trial areas (roads up to 50km/h).',EB_AU+' Check Transport for NSW for battery and standards changes.','https://www.transport.nsw.gov.au/roadsafety/road-users/e-scooters'],
+ ['Victoria (VIC)',false,'Private e-scooters allowed on most roads and paths but not footpaths. Helmet required.',EB_AU+' EN 15194 standard applies.','https://transport.vic.gov.au/road-and-active-transport/active-transport/e-scooter-road-rules'],
+ ['South Australia (SA)',false,'Private e-scooters legalised in July 2025. Not allowed on public transport. Check current limits on the official page.',EB_AU+' EN 15194 standard applies.','https://mylicence.sa.gov.au/roadrules/personal-mobility-devices'],
+ ['Western Australia (WA)',false,'Private e-scooters ("eRideables") legal. 10km/h on footpaths, 25km/h on shared paths and bike paths. Helmet required.',EB_AU,'https://www.wa.gov.au/organisation/road-safety-commission/erideables'],
+ ['Tasmania (TAS)',false,'Private e-scooters legal on paths and selected roads. 15km/h on footpaths, 25km/h elsewhere. Helmet required.',EB_AU+' EN 15194 standard applies.','https://www.transport.tas.gov.au'],
+ ['Australian Capital Territory (ACT)',false,'Private e-scooters legal on paths. 15km/h on footpaths, 25km/h on shared paths. Roads largely off limits except crossings. Helmet required.',EB_AU,'https://www.legislation.act.gov.au/sl/2017-43'],
+ ['Northern Territory (NT)',false,'Private e-scooters banned in public places. Only approved hire scooters (15km/h limit).',EB_AU,'https://nt.gov.au/driving/safety/electric-scooters-and-bikes']
+]],
+['New Zealand',false,'Private e-scooters legal (low-powered vehicle, motor up to 300W). Check NZTA for helmet and path rules.','Pedal-assist e-bikes (up to 300W) treated as bicycles.','https://nzta.govt.nz'],
+['United Kingdom',false,'Private e-scooters are illegal on public roads, cycle lanes and pavements (only hire trials). Government has signalled it will legalise private use after a consultation; check current status.','EAPC rules: 250W, assist cuts out at 25km/h, rider 14+, no licence needed.','https://www.gov.uk/guidance/electric-scooter-rules-and-licensing'],
+['Europe (EU and neighbours)',false,'Most countries allow private e-scooters, usually capped at 20 to 25km/h and banned from pavements. Third-party insurance is mandatory in several (Germany, France, Italy, Netherlands, Norway, Sweden). Germany: 20km/h with insurance sticker. Helmet rules vary by country and age.','Pedelecs: 250W, 25km/h assist cut-out. Faster "speed pedelecs" need licence, plate and insurance.','https://road-safety.transport.ec.europa.eu'],
+['United States',false,'No federal law; states and cities decide. Typical limits are 15 to 20mph. Helmet and age rules vary. California: 16+, 15mph, roads up to 25mph and bike lanes, no sidewalks.','Most states use 3 classes: Class 1 and 2 to 20mph, Class 3 to 28mph (often 16+ and helmet).','https://www.nhtsa.gov'],
+['Canada',false,'Set by each province and city. Ontario runs a pilot with age and helmet rules. Check your province.','Federal "power-assisted bicycle" rules: 500W max, 32km/h assist limit; provinces add rules.','https://tc.canada.ca'],
+['Singapore',false,'Banned from footpaths. Allowed on cycling paths and park connectors at up to 25km/h. Devices must be registered and UL2272-certified.','Power-assisted bicycles must meet local standards and registration rules.','https://www.lta.gov.sg'],
+['Japan',false,'Standard e-scooters count as motor vehicles (licence, registration, insurance). A newer low-speed category (up to 20km/h) allows use without a licence on set paths.','Pedal-assist e-bikes follow assist limits and are treated as bicycles.','https://www.npa.go.jp'],
+['United Arab Emirates',false,'Rules differ by emirate (permits, designated zones, helmets). Check RTA or local authority.','Similar local rules for e-bikes.','https://www.rta.ae']
+];
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const box=(t,open,l)=>`<details style="margin:6px 0;border:1px solid var(--border);border-radius:8px;padding:6px 10px"${open?' open':''}><summary style="font-size:12px;color:var(--text);cursor:pointer;font-weight:600">${esc(t)}</summary><div style="font-size:11px;color:var(--text2);line-height:1.5;margin-top:6px"><strong style="color:var(--text)">E-scooter:</strong> ${esc(l[0])}<br><br><strong style="color:var(--text)">E-bike:</strong> ${esc(l[1])}${l[2]?`<br><a href="${l[2]}" target="_blank" rel="noopener" style="color:var(--accent)">Official source</a>`:''}</div></details>`;
+const hdr=t=>`<div style="font-size:12px;color:var(--text);margin:12px 0 4px"><strong>${t}</strong></div>`;
+let h='',world=false;
+for(const r of L){
+ if(Array.isArray(r[3])){ h+=hdr('Australia (by state and territory)'); for(const st of r[3]) h+=box(st[0],st[1],[st[2],st[3],st[4]]); }
+ else { if(!world){ h+=hdr('Around the world'); world=true; } h+=box(r[0],false,[r[2],r[3],r[4]]); }
+}
+document.getElementById('legal-root').innerHTML=h;
+})();
+</script>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const toast=m=>{try{showToast(m)}catch(e){}};
+
+/* 1. Speed warning: button in the vehicle bar cycles Off / 12 / 25 km/h */
+const LIMITS=[0,12,25];
+let swLimit=parseInt(getSetting('g3_speed_limit')||'25',10); if(!LIMITS.includes(swLimit)) swLimit=25;
+let over=0,lastBuzz=0;
+const ban=document.createElement('div');
+ban.style.cssText='position:fixed;top:0;left:0;right:0;z-index:998;background:var(--danger);color:#fff;text-align:center;font-weight:700;font-size:15px;padding:10px;display:none';
+document.body.appendChild(ban);
+const hideBanner=()=>{ban.style.display='none';over=0};
+const btn=document.createElement('button');
+btn.style.cssText='background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;font-size:12px;padding:7px 10px;white-space:nowrap';
+const lbl=()=>{btn.textContent=swLimit?'\u26A0 '+swLimit+' km/h':'\u26A0 Off'};
+btn.onclick=()=>{swLimit=LIMITS[(LIMITS.indexOf(swLimit)+1)%LIMITS.length];setSetting('g3_speed_limit',String(swLimit));lbl();hideBanner();toast(swLimit?'Speed alert at '+swLimit+' km/h':'Speed alert off')};
+lbl(); const vb=document.querySelector('.vehicle-bar'); if(vb) vb.appendChild(btn);
+const _op=onPosition;
+onPosition=function(pos){
+ _op(pos);
+ try{
+  const p=currentRoutePoints[currentRoutePoints.length-1]; if(!swLimit||!p) return;
+  if(p.speedKmh>swLimit+1){ over++; if(over>=2){ ban.textContent='Over '+swLimit+' km/h - slow down ('+p.speedKmh.toFixed(0)+')'; ban.style.display='block'; if(Date.now()-lastBuzz>4000){lastBuzz=Date.now(); if(navigator.vibrate) navigator.vibrate([250,120,250]);} } }
+  else hideBanner();
+ }catch(e){}
+};
+const _sr=stopRecording; stopRecording=function(){hideBanner(); return _sr.apply(this,arguments)};
+
+/* 4. Service reminders by distance (Garage tab) */
+const RULES=[['Brakes & discs check',500],['Bolts, hinge & tyre wear',500],['Full service',2000]];
+const kd=()=>{try{return JSON.parse(getSetting('g3_km_done')||'{}')}catch(e){return {}}};
+const kmSince=(v,ts)=>(rides||[]).filter(r=>r.vehicle===v&&r.startTime>ts).reduce((a,r)=>a+(r.distanceM||0),0)/1000;
+function renderKm(){
+ const el=$('km-reminders'); if(!el) return;
+ const d=kd(), v=selectedVehicle;
+ el.innerHTML='<h3>\uD83D\uDD27 Service reminders (by distance)</h3>'+RULES.map((r,i)=>{
+  const ts=d[v+'|'+r[0]]||0, km=kmSince(v,ts), left=r[1]-km, col=left<=0?'var(--danger)':left<=r[1]*0.1?'var(--warn)':'var(--success)';
+  return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border)"><div style="flex:1"><div style="font-size:13px;color:var(--text)">'+escHtml(r[0])+'</div><div style="font-size:11px;color:'+col+'">'+(left<=0?'Overdue by '+(-left).toFixed(0)+' km':left.toFixed(0)+' km to go')+' (every '+r[1]+' km, '+km.toFixed(0)+' km since '+(ts?'last done':'first ride')+')</div></div><button class="settings-btn" style="width:auto;padding:6px 12px;margin:0" onclick="kmDone('+i+')">Done</button></div>';
+ }).join('');
+}
+window.kmDone=i=>{const d=kd(); d[selectedVehicle+'|'+RULES[i][0]]=Date.now(); setSetting('g3_km_done',JSON.stringify(d)); renderKm(); toast('Logged: '+RULES[i][0])};
+const gp=$('page-garage'); if(gp){const c=document.createElement('div'); c.className='settings-card'; c.id='km-reminders'; gp.insertBefore(c,gp.firstChild);}
+['renderGarage','renderHistory'].forEach(n=>{const f=window[n]; if(typeof f==='function') window[n]=function(){const r=f.apply(this,arguments); try{renderKm()}catch(e){} return r;};});
+setTimeout(()=>{try{renderKm(); const d=kd(), v=selectedVehicle; const due=RULES.filter(r=>r[1]-kmSince(v,d[v+'|'+r[0]]||0)<=0).map(r=>r[0]); if(due.length) toast('Service due: '+due[0]);}catch(e){}},3000);
+
+/* 5. Backup & export (Settings tab) */
+const dl=(name,text,type)=>{const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1000);};
+const stamp=()=>new Date().toISOString().slice(0,10);
+window.vtBackup=()=>{dl('volt-trail-backup-'+stamp()+'.json',JSON.stringify({app:'Volt Trail',version:1,exported:new Date().toISOString(),rides,vehicles,selectedVehicle,chargeLogs,maintenanceLogs,routineLogs,kmDone:kd()}),'application/json'); toast('Backup downloaded');};
+window.vtRestore=async ev=>{
+ const f=ev.target.files[0]; ev.target.value=''; if(!f) return;
+ try{
+  const b=JSON.parse(await f.text()); if(!b||!Array.isArray(b.rides)) throw new Error('bad');
+  if(!confirm('Restore '+b.rides.length+' rides? Matching rides are replaced, others are kept.')) return;
+  const merge=(cur,inc)=>{const m=new Map((cur||[]).map(x=>[x.id,x])); (inc||[]).forEach(x=>m.set(x.id,x)); return [...m.values()];};
+  for(const r of b.rides) await dbPut(r);
+  rides=merge(rides,b.rides).sort((x,y)=>(y.startTime||0)-(x.startTime||0));
+  chargeLogs=merge(chargeLogs,b.chargeLogs); maintenanceLogs=merge(maintenanceLogs,b.maintenanceLogs); routineLogs=merge(routineLogs,b.routineLogs);
+  if(Array.isArray(b.vehicles)) vehicles=[...new Set([...vehicles,...b.vehicles])];
+  if(b.kmDone) setSetting('g3_km_done',JSON.stringify(Object.assign(kd(),b.kmDone)));
+  saveGarageDataLocally(); saveVehicles(); populateVehicleSelect(); renderVehicleMgmt(); renderHistory(); renderStats(); renderGarage();
+  toast('Restored '+b.rides.length+' rides');
+ }catch(e){toast('Could not read that backup file');}
+};
+window.vtCsv=()=>{
+ const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+ const hdr=['Date','Title','Vehicle','Distance km','Duration min','Moving min','Avg km/h','Max km/h','Max G','Elev max m','Elev min m','Weather','Notes'];
+ const rows=rides.slice().sort((a,b)=>a.startTime-b.startTime).map(r=>[new Date(r.startTime).toLocaleString('en-AU'),r.title,r.vehicle,((r.distanceM||0)/1000).toFixed(2),((r.durationSecs||0)/60).toFixed(1),((r.movingTimeSecs||0)/60).toFixed(1),(r.avgSpeedKmh||0).toFixed(1),(r.maxSpeedKmh||0).toFixed(1),(r.maxGforce||0).toFixed(2),r.elevMax==null?'':r.elevMax,r.elevMin==null?'':r.elevMin,r.weather||'',r.notes||'']);
+ dl('volt-trail-rides-'+stamp()+'.csv','\uFEFF'+[hdr].concat(rows).map(r=>r.map(q).join(',')).join('\n'),'text/csv');
+};
+const sp=$('page-settings');
+if(sp){const c=document.createElement('div'); c.className='settings-card';
+ c.innerHTML='<h3>\uD83D\uDCBE Backup &amp; export</h3><p>Save a copy of your rides, vehicles and logs, or move them to another device.</p><button class="settings-btn" onclick="vtBackup()">Download backup (JSON)</button><button class="settings-btn" style="margin-top:8px" onclick="document.getElementById(\'vt-restore\').click()">Restore from backup</button><input type="file" id="vt-restore" accept="application/json,.json" style="display:none" onchange="vtRestore(event)"><button class="settings-btn" style="margin-top:8px" onclick="vtCsv()">Export rides (CSV)</button>';
+ sp.appendChild(c);}
+})();
 </script>
 </body>
 </html>
