@@ -1279,6 +1279,8 @@ const dbClear = () => dbOp('readwrite', s => s.clear());
 
 const getSetting = k => { try { return localStorage.getItem(k); } catch(e) { return null; } };
 const setSetting = (k,v) => { try { localStorage.setItem(k,v); } catch(e) {} };
+// Supabase calls only run when awaited/then'd, and the builder has no .catch(); this runs one safely.
+function sbRun(builder, label) { return Promise.resolve(builder).then(r => { if (r && r.error) console.warn(label || 'Sync error', r.error); return r; }).catch(e => { console.warn(label || 'Sync error', e); }); }
 const removeSetting = k => { try { localStorage.removeItem(k); } catch(e) {} };
 
 /* ══════════════════════════════════════════════════════
@@ -1614,7 +1616,7 @@ function endChargeSession() {
  document.getElementById('charge-target-pct').value = '';
  
  renderGarage(); saveGarageDataLocally();
- if (syncEnabled && supabaseClient) supabaseClient.from('charge_logs').upsert(log).catch(e=>{});
+ if (syncEnabled && supabaseClient) sbRun(supabaseClient.from('charge_logs').upsert(log));
  showToast('Charge saved');
 }
 
@@ -1664,7 +1666,7 @@ function editChargeLog(id) {
  renderGarage();
  
  if (syncEnabled && supabaseClient) {
- supabaseClient.from('charge_logs').upsert(log).catch(e => console.warn('Sync edit failed', e));
+ sbRun(supabaseClient.from('charge_logs').upsert(log), 'Sync edit failed');
  }
  showToast('Charge log updated');
 }
@@ -1676,7 +1678,7 @@ function deleteChargeLog(id) {
  renderGarage();
  
  if (syncEnabled && supabaseClient) {
- supabaseClient.from('charge_logs').delete().eq('id', id).catch(e => console.warn('Sync delete failed', e));
+ sbRun(supabaseClient.from('charge_logs').delete().eq('id', id), 'Sync delete failed');
  }
  showToast('Charge log deleted');
 }
@@ -1690,7 +1692,7 @@ function logMaintenance() {
  showToast('Tyre pressures saved');
  document.getElementById('maint-psi-f').value = ''; document.getElementById('maint-psi-r').value = '';
  evaluateMaintenance();
- if (syncEnabled && supabaseClient) supabaseClient.from('maintenance_logs').upsert(log).catch(e=>{});
+ if (syncEnabled && supabaseClient) sbRun(supabaseClient.from('maintenance_logs').upsert(log));
 }
 
 function evaluateMaintenance() {
@@ -2035,8 +2037,21 @@ async function deleteRide(id) {
  if (!confirm('Delete this ride? Cannot be undone.')) return;
  rides = rides.filter(r=>r.id!==id);
  try { if(db) await dbDelete(id); } catch(e) {}
- if (syncEnabled && supabaseClient) supabaseClient.from('rides').upsert({ ride_id: String(id), device_id: DEVICE_ID, deleted: true, data: null, start_time: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'ride_id' }).catch(()=>{});
  closeDetailModal(); renderHistory(); renderStats();
+ if (syncEnabled && supabaseClient) {
+  let ok = false;
+  try { const { error } = await supabaseClient.from('rides').upsert({ ride_id: String(id), device_id: DEVICE_ID, deleted: true, data: null, start_time: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'ride_id' }); ok = !error; } catch(e) {}
+  if (!ok) { let q = []; try { q = JSON.parse(getSetting('g3_pending_del') || '[]'); } catch(e) {} q.push(String(id)); setSetting('g3_pending_del', JSON.stringify(q)); showToast('Deleted here - will remove from cloud on next sync'); }
+ }
+}
+async function flushPendingDeletes() {
+ let ids = []; try { ids = JSON.parse(getSetting('g3_pending_del') || '[]'); } catch(e) { ids = []; }
+ if (!ids.length) return;
+ const left = [];
+ for (const rid of ids) {
+  try { const { error } = await supabaseClient.from('rides').upsert({ ride_id: String(rid), device_id: DEVICE_ID, deleted: true, data: null, start_time: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'ride_id' }); if (error) left.push(rid); } catch(e) { left.push(rid); }
+ }
+ setSetting('g3_pending_del', JSON.stringify(left));
 }
 function renameRide() {
  const ride = rides.find(r=>r.id===currentDetailId); if (!ride) return;
@@ -2099,6 +2114,7 @@ function updateSyncStatus(state, msg) { const el = document.getElementById('driv
 async function supabaseSync() {
  if (!syncEnabled || !supabaseClient) return; updateSyncStatus('syncing', 'Syncing…');
  try {
+ await flushPendingDeletes();
  const { data: remoteData } = await supabaseClient.from('rides').select('ride_id, data, deleted').order('start_time', { ascending: false });
  const remoteDeleted = new Set((remoteData || []).filter(r => r.deleted).map(r => r.ride_id));
  if (remoteDeleted.size > 0) { const before = rides.length; rides = rides.filter(r => !remoteDeleted.has(String(r.id))); if (rides.length !== before) { if (db) { await dbClear(); for (const r of rides) await dbPut(r); } } }
