@@ -278,7 +278,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <div class="logo"><svg viewBox="0 0 24 24"><path d="M13 2L5 13h6l-1 9 9-12h-6z" fill="#0a0a14"/></svg></div>
  <div>
  <h1>Volt Trail</h1>
- <div class="sub" id="header-sub">Ride • Track • Explore</div>
+ <div class="sub" id="header-sub">Your E-Scooter &amp; E-Bike World</div>
  </div>
  <div class="rec-badge" id="rec-badge"><div class="rec-dot"></div><span id="rec-timer">0:00</span></div>
  </header>
@@ -487,6 +487,14 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <!-- Charge Logger -->
  <div class="settings-card">
  <h3>🔌 Log Charge Session</h3>
+ <p style="margin-bottom:8px">Log every charge. Each one you record (start %, finish %, odometer, and how long it took) teaches Volt Trail about <em>your</em> vehicle. Over time it uses your logs to:</p>
+ <ul class="guide-list" style="margin-bottom:8px">
+ <li><strong>Predict real-world range:</strong> from the distance you ride between charges, it works out the km you really get from a full charge.</li>
+ <li><strong>Track battery health:</strong> if that range slowly shrinks, the Health Status above shows the wear.</li>
+ <li><strong>Revise the time to your target %:</strong> it learns how fast your charger actually adds charge, so the estimate improves with every charge.</li>
+ </ul>
+ <p style="margin-bottom:8px">Enter the odometer each time, press Start Charging when you plug in, and End Charge &amp; Save when you unplug. Until you have a few logged charges the time estimate uses a default rate.</p>
+ <div id="charge-learn-note" style="font-size:12px;color:var(--text2);line-height:1.6;padding:10px;background:var(--bg4);border-radius:10px;margin-bottom:10px"></div>
  <div style="display:flex; gap:8px; margin-bottom:8px;">
  <input type="number" id="charge-start-pct" class="settings-input" placeholder="Start %" min="0" max="100">
  <input type="number" id="charge-target-pct" class="settings-input" placeholder="Target %" min="0" max="100">
@@ -494,12 +502,14 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <div style="display:flex; gap:8px; margin-bottom:8px;">
  <input type="number" id="charge-odo" class="settings-input" placeholder="Current Odometer (km)">
  </div>
+ <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Tip: a target of about 80% suits daily use. Charge to 100% only before long rides, or when the balance alert asks.</div>
  <button class="settings-btn" onclick="startChargeSession()">Start Charging</button>
  
  <!-- Live Prediction -->
  <div id="charge-prediction" style="margin-top:12px; display:none;">
  <div style="font-size:12px; color:var(--text2);">Estimated Time to Target:</div>
  <div style="font-size:24px; font-weight:700; color:var(--success);" id="charge-eta">--:--</div>
+ <div style="font-size:11px; color:var(--text3); margin-top:2px;" id="charge-eta-note"></div>
  <button class="settings-btn danger" onclick="endChargeSession()" style="width:100%; margin-top:8px;">End Charge & Save</button>
  </div>
  </div>
@@ -581,7 +591,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
    </div>
 
    <div class="settings-card" id="evo-overview">
-    <h3>🌍 Why This Matters for a Brisbane Rider</h3>
+    <h3>🌍 Why This Matters for a Rider</h3>
     <p>You're riding the product of 130 years of iteration. Understanding motor placement, battery chemistry, and braking physics isn't trivia — it's how you squeeze more range, avoid overheating, and choose your next upgrade. QLD law currently limits eBikes to 250W continuous (EN15194) and eScooters to 25 km/h on public paths, so knowing how designs hit those limits is practical.</p>
     <div class="evo-grid">
      <div class="evo-card"><h4>eBike DNA</h4><p>Pedal + electric assist. Built around bicycle geometry, gears, and rider input. Motor amplifies you.</p></div>
@@ -608,14 +618,14 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
    <div class="settings-card" id="evo-escooter-history">
     <h3>🛴 eScooter History & Development</h3>
-    <p>From WWI mail delivery to Bird & Lime scooters on every Brisbane corner.</p>
+    <p>From WWI mail delivery to Bird & Lime scooters on every city corner.</p>
     <div class="evo-timeline">
      <div class="evo-event"><div class="evo-year">1915-1921</div><div class="evo-title">The Autoped</div><div class="evo-desc">Arthur Hugo Cecil Gibson patents Autoped in Long Island (1913, produced 1915). 1.5hp gas engine over front wheel, 35 mph claimed. Used by US Postal Service and NYC police. German company Krupp builds under license. First mass-produced motorized scooter.</div></div>
      <div class="evo-event"><div class="evo-year">1960s-70s</div><div class="evo-title">Electric Attempts</div><div class="evo-desc">ParCar by Marketeer Co., and Socovel's 400 electric mopeds. Lead-acid again limits adoption.</div></div>
      <div class="evo-event"><div class="evo-year">1996</div><div class="evo-title">Foldable Revolution</div><div class="evo-desc">Wim Ouboter in Switzerland invents modern foldable kick-scooter (Micro Mobility Systems). Razor copy in 2000 sells 5 million in 6 months. Proves the form factor.</div></div>
      <div class="evo-event"><div class="evo-year">2001-2006</div><div class="evo-title">Go-Ped ESR</div><div class="evo-desc">Go-Ped launches ESR750, first modern production electric kick-scooter with brushless hub. Niche off-road hobby.</div></div>
      <div class="evo-event"><div class="evo-year">2013-2015</div><div class="evo-title">Lithium Makes it Real</div><div class="evo-desc">Xiaomi M365 prototype. 18650 packs make 12kg, 25km range scooter possible at $500. Segway acquires Ninebot (2015).</div></div>
-     <div class="evo-event"><div class="evo-year">2017-2019</div><div class="evo-title">Shared Scooter Boom</div><div class="evo-desc">Bird (Santa Monica, Sept 2017) and Lime drop thousands of scooters overnight. Valuation to $2B in 12 months. Cities scramble to regulate. Tech: solid + pneumatic hybrid tires, swappable batteries, IoT GPS. Brisbane's Neuron and Lime trials begin 2018-2019.</div></div>
+     <div class="evo-event"><div class="evo-year">2017-2019</div><div class="evo-title">Shared Scooter Boom</div><div class="evo-desc">Bird (Santa Monica, Sept 2017) and Lime drop thousands of scooters overnight. Valuation to $2B in 12 months. Cities scramble to regulate. Tech: solid + pneumatic hybrid tires, swappable batteries, IoT GPS. Rental trials follow in cities worldwide in 2018-2019.</div></div>
      <div class="evo-event"><div class="evo-year">2020-2026</div><div class="evo-title">Performance Era</div><div class="evo-desc">Dual-motor 2000W+ hyper scooters (Dualtron Thunder 2, Kaabo Wolf King GT, InMotion RS with transforming chassis and 72V 40Ah). Hydraulic brakes, 11-inch tubeless self-healing tires, sine-wave controllers, NFC unlock, Apple FindMy, IPX6. Your G3 is Gen 4 of this era: automotive-grade tubeless, Smart BMS with active balancing, 48V 597Wh 21700 pack, 2000W peak — 10x power of 2015 M365.</div></div>
     </div>
    </div>
@@ -637,7 +647,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
    <div class="settings-card" id="evo-ebike-companies">
     <h3>🏆 Top 10 eBike Companies (2026 Landscape)</h3>
-    <p>Mix of legacy giants, motor system leaders, and DTC disruptors that shape what you can buy in Brisbane.</p>
+    <p>Mix of legacy giants, motor system leaders, and DTC disruptors that shape what you can buy today.</p>
     
     <div class="company-card"><h3>Giant Manufacturing <span class="company-badge">World's Largest</span></h3><div class="meta">Taiwan • Founded 1972 • Giant, Liv, Momentum | Owns factory + Yamaha motor partnership</div><p>Produces more bicycles than anyone on earth. Giant eBikes (Explore E+, Trance X E+) use SyncDrive motors (Yamaha-based) and EnergyPak batteries. Known for value, dealer network, and frame innovation. Market leader in Australia.</p><div class="company-features"><span>Hybrid/Commuter</span><span>e-MTB</span><span>Mid-drive 80-85Nm</span><span>400-800Wh</span></div></div>
 
@@ -649,7 +659,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
     <div class="company-card"><h3>Specialized Bicycle Components <span class="company-badge">Innovator</span></h3><div class="meta">USA • 1974 • Turbo series: Vado, Como, Levo, Creo</div><p>Makes own motors (Turbo Full Power 2.2 = Brose-based, 90Nm) and MasterMind display. Turbo Levo is benchmark e-MTB. SL (Super Light) range uses Mahle hub motors for 16kg bikes. Mission Control app is best in class for tuning assist.</p><div class="company-features"><span>Turbo OS</span><span>MasterMind TCU</span><span>SL Lightweight</span><span>Mission Control App</span></div></div>
 
-    <div class="company-card"><h3>Rad Power Bikes <span class="company-badge">DTC King</span></h3><div class="meta">USA • 2007 • Seattle • RadCity, RadRover, RadWagon</div><p>Created affordable fat-tire eBike category. 750W hub, 672Wh, $1,500-2,000. Sold online, 400k+ bikes/year. Not lightest, but unbeatable utility. Perfect for cargo/ute replacement in flat Brisbane suburbs.</p><div class="company-features"><span>750W Hub</span><span>Fat Tire</span><span>Cargo</span><span>DTC Value</span></div></div>
+    <div class="company-card"><h3>Rad Power Bikes <span class="company-badge">DTC King</span></h3><div class="meta">USA • 2007 • Seattle • RadCity, RadRover, RadWagon</div><p>Created affordable fat-tire eBike category. 750W hub, 672Wh, $1,500-2,000. Sold online, 400k+ bikes/year. Not lightest, but unbeatable utility. Perfect for cargo/ute replacement in flat suburbs.</p><div class="company-features"><span>750W Hub</span><span>Fat Tire</span><span>Cargo</span><span>DTC Value</span></div></div>
 
     <div class="company-card"><h3>Aventon Bikes <span class="company-badge">Fastest Growing DTC</span></h3><div class="meta">USA • 2013 • Level.2, Sinch, Aventure</div><p>Design-forward, torque sensor on all models from 2023. Level.2 is $1,999, 500W hub, 672Wh, integrated lights. Aventure.2 fat has 750W and suspension. Best build quality at price.</p><div class="company-features"><span>Torque Sensor Hub</span><span>Integrated Lights</span><span>500-750W</span></div></div>
 
@@ -668,7 +678,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
     <div class="company-card"><h3>Xiaomi / Mi Electric Scooters <span class="company-badge">Original Disruptor</span></h3><div class="meta">China • M365 (2016), Pro 2, 4 Pro, Electric Scooter 4</div><p>Created the modern $500 commuter template: 12-16kg, 250-350W, 25km/h, 30km range. Still best value. Made by Ninebot, but Xiaomi branding dominates EU/AU sales. Firmware hackable, huge community.</p><div class="company-features"><span>M365 Template</span><span>14.2kg</span><span>KERS Regen</span><span>E-ABS</span></div></div>
 
-    <div class="company-card"><h3>Niu Technologies <span class="company-badge">Smart Urban</span></h3><div class="meta">China • 2014 • KQi3, KQi2 Pro</div><p>Tesla of scooters — design-focused, IoT connected, app with GPS. KQi3 Max is 20kg, 450W, 65km range, 25km/h limited for AU/EU, self-healing tires. Strong in Brisbane rental trials.</p><div class="company-features"><span>KQi3 Max</span><span>48V 608Wh</span><span>IoT GPS</span><span>Wide Deck</span></div></div>
+    <div class="company-card"><h3>Niu Technologies <span class="company-badge">Smart Urban</span></h3><div class="meta">China • 2014 • KQi3, KQi2 Pro</div><p>Tesla of scooters — design-focused, IoT connected, app with GPS. KQi3 Max is 20kg, 450W, 65km range, 25km/h limited for AU/EU, self-healing tires. Popular with rental fleets.</p><div class="company-features"><span>KQi3 Max</span><span>48V 608Wh</span><span>IoT GPS</span><span>Wide Deck</span></div></div>
 
     <div class="company-card"><h3>Dualtron / Minimotors <span class="company-badge">Hyper Performance</span></h3><div class="meta">Korea • 1999 • Thunder 2, Victor, Mini, Storm</div><p>The supercars of scooters. Thunder 2: dual 1350W nominal (5400W peak), 72V 40Ah 2940Wh, 100 km/h, 11-inch tubeless, hydraulic Brembo. EY3 display. Not for footpath — private property/off-road in QLD. Engineering overkill, built for 100kg+ riders.</p><div class="company-features"><span>Thunder 2 72V 40Ah</span><span>5400W Peak</span><span>EY3 Display</span><span>Rubber Cartridge Suspension</span></div></div>
 
@@ -706,14 +716,16 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 <div class="page" id="page-rideguide">
   <div class="settings-inner">
    <div class="settings-title">Complete Ride Guide</div>
-   <div class="settings-sub">How to ride safely, efficiently, and confidently — whether you're standing on a G3 or pedaling an eBike. Tailored for Brisbane roads & paths.</div>
+   <div class="settings-sub">How to ride safely, efficiently, and confidently — whether you're standing on a G3 or pedaling an eBike.</div>
 
    <div class="encyclo-toc" id="guide-toc">
     <button class="active" onclick="scrollToGuide('guide-safety', event)">Safety First</button>
     <button onclick="scrollToGuide('guide-escooter', event)">eScooter</button>
+    <button onclick="scrollToGuide('guide-pure', event)">Pure stance</button>
     <button onclick="scrollToGuide('guide-ebike', event)">eBike</button>
+    <button onclick="scrollToGuide('guide-tyres', event)">Tyres</button>
     <button onclick="scrollToGuide('guide-key', event)">Key Considerations</button>
-    <button onclick="scrollToGuide('guide-brisbane', event)">Legal</button>
+    <button onclick="scrollToGuide('guide-legal', event)">Legal</button>
    </div>
 
    <div class="settings-card" id="guide-safety">
@@ -724,16 +736,16 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
     <div class="guide-step"><div class="guide-num">2</div><div class="guide-content"><h4>T-Check: Tires, Torque, Throttle/Brakes</h4><p><strong>Tires:</strong> Check PSI (G3 factory 42 PSI). Low PSI = pinch flat, 30% more battery drain. Use Garage log. <strong>Torque:</strong> Stem latch tight? No wobble? Axle nuts tight? <strong>Brakes:</strong> Roll 3m, brake hard — should lock without lever hitting bar. <strong>Throttle:</strong> Returns to zero? No sticky.</p><div class="guide-warn">⚠️ Never ride with loose stem. #1 cause of high-speed faceplants on folding scooters. Weekly check in Garage.</div></div></div>
 
-    <div class="guide-step"><div class="guide-num">3</div><div class="guide-content"><h4>Battery Mindset</h4><p>Start at 80-100% for safety margin. Know your real range: city stop-start uses 20-25 Wh/km, cruising bike path uses 12-15 Wh/km. Your G3 597Wh = ~28-40km real. Cold mornings (<15°C) cut 10% range. Log charge in Garage to track degradation.</p></div></div>
+    <div class="guide-step"><div class="guide-num">3</div><div class="guide-content"><h4>Battery Mindset</h4><p>For everyday riding keep the battery roughly between 30% and 80% (see Battery &amp; Range Reality below), but start a long or remote ride closer to 100% for a safety margin. Know your real range: city stop-start uses 20-25 Wh/km, cruising bike path uses 12-15 Wh/km. Your G3 597Wh = ~28-40km real. Cold mornings (<15°C) cut 10% range. Log charge in Garage to track degradation.</p></div></div>
    </div>
 
    <div class="settings-card" id="guide-escooter">
     <h3>🛴 eScooter — How to Ride Perfectly</h3>
     
     <h4 style="font-size:12px;color:var(--accent);margin:12px 0 8px">FOOT STANCES</h4>
-    <p style="font-size:13px;line-height:1.6;color:var(--text2);margin:0 0 10px">There is no single correct stance. Regular (left foot forward) or Goofy (right foot forward) is just your natural side. What changes is how far each foot is turned from straight ahead. Pick the one that suits the situation.</p>
+    <p style="font-size:13px;line-height:1.6;color:var(--text2);margin:0 0 10px">There is no single correct stance. Regular (left foot forward) or Goofy (right foot forward) is just your natural side. What changes is how far each foot is turned from straight ahead. Pick the one that suits the situation. These suit a standard single-deck scooter; Pure Electric's split-deck design uses a different, side-by-side stance (see Pure forward-facing stance below).</p>
     <div class="stance-diagram">
-     <div class="stance-box" data-f="0" data-r="15"><div class="lbl">Forward-facing</div><div class="ang">Front 0° · Rear ~15°</div><div class="desc">Best for speed, hard braking and acceleration. Narrow and stable, with less feel for leaning.</div></div>
+     <div class="stance-box" data-f="0" data-r="15"><div class="lbl">Inline forward</div><div class="ang">Front 0° · Rear ~15°</div><div class="desc">Best for speed, hard braking and acceleration. Narrow and stable, with less feel for leaning.</div></div>
      <div class="stance-box stance-pick" data-f="25" data-r="45"><div class="lbl">Offset angled</div><div class="ang">Front ~20-30° · Rear 45°</div><div class="desc">Balanced all-rounder. Rear foot turned out for leaning and carving, front foot braced for stops.</div></div>
      <div class="stance-box" data-f="90" data-r="90"><div class="lbl">Sideways</div><div class="ang">Front 90° · Rear 90°</div><div class="desc">Best for tight turns and carving at low speed. Weakest when braking or accelerating hard.</div></div>
     </div>
@@ -744,15 +756,83 @@ canvas.ride-chart{width:100%!important;max-height:160px}
      <li><strong>Mix it up:</strong> swap your lead foot now and then to reduce fatigue and build balance.</li>
      <li><strong>Test first:</strong> practise braking in each stance on a quiet path before using it in traffic.</li>
     </ul>
-    <div class="guide-step"><div class="guide-num">A</div><div class="guide-content"><h4>Posture (any stance)</h4><p>Front foot near the stem, over the front axle line. Rear foot over the motor near the rear fender. Knees bent 10-15°, elbows soft, weight about 60% rear / 40% front for stability. Never ride with feet side-by-side: you lose pitch control.</p><p><strong>Power stance (30km/h+):</strong> rear foot further back, hips 5cm lower, elbows wider. Lowers your centre of gravity.</p><div class="guide-tip">💡 Whatever stance you use, brake from it a few times at walking pace first, so your body knows how it feels before you need it.</div></div></div>
+    <div class="guide-step"><div class="guide-num">A</div><div class="guide-content"><h4>Posture (any stance)</h4><p>Front foot near the stem, over the front axle line. Rear foot over the motor near the rear fender. Knees bent 10-15°, elbows soft, weight about 60% rear / 40% front for stability. On a standard single deck, never ride with feet side-by-side: you lose pitch control. (Split-deck scooters like the Pure Advance are built for it, see below.)</p><p><strong>Power stance (30km/h+):</strong> rear foot further back, hips 5cm lower, elbows wider. Lowers your centre of gravity.</p><div class="guide-tip">💡 Whatever stance you use, brake from it a few times at walking pace first, so your body knows how it feels before you need it.</div></div></div>
     <div class="guide-step"><div class="guide-num">B</div><div class="guide-content"><h4>Starting & Accelerating</h4><p>1. One foot on deck, one foot kicking like a kick-scooter to 3-4 km/h (most scooters require kick-start to avoid accidental throttle). 2. Gently roll throttle. Thumb throttle (G3): press with thumb pad, not tip — smoother. Twist throttle: wrist down. 3. Keep weight forward slightly as you accelerate to prevent front wheel lift on dual motors. 4. Avoid full throttle from 0 — spins tire, wastes battery, wears motor.</p><p style="margin-top:6px"><strong>Dual motor:</strong> Start in single (eco), switch to dual after 10km/h to avoid jerk.</p></div></div>
 
-    <div class="guide-step"><div class="guide-num">C</div><div class="guide-content"><h4>Braking — The Most Important Skill</h4><p>Your G3 has front + rear disc + E-ABS regen. Technique:</p><p style="margin-top:6px">• <strong>Normal stop:</strong> 70% rear brake, 30% front, squeeze progressive over 2-3 seconds. Shift hips BACK over rear wheel, straighten arms to brace. Look ahead, not down.<br>• <strong>Emergency:</strong> Both brakes hard, hips as far back as possible, knees bent deep, butt behind rear axle if needed. Don't grab front only — you'll go over handlebars.<br>• <strong>Downhill:</strong> Pulse brakes (on-off) to avoid overheating. Regen alone will fade on long descents (Mt Coot-tha).</p><div class="guide-warn">⚠️ Wet Brisbane paths: braking distance doubles. Painted lines and metal covers are ice when wet. Brake BEFORE them, not on them.</div><div class="guide-tip">💡 Practice: Find empty carpark, accelerate to 20km/h, mark stopping line, measure distance. You should stop in <4m dry. If not, bleed brakes (Garage).</div></div></div>
+    <div class="guide-step"><div class="guide-num">C</div><div class="guide-content"><h4>Braking — The Most Important Skill</h4><p>Your G3 has front + rear disc + E-ABS regen. Technique:</p><p style="margin-top:6px">• <strong>Normal stop:</strong> 70% rear brake, 30% front, squeeze progressive over 2-3 seconds. Shift hips BACK over rear wheel, straighten arms to brace. Look ahead, not down.<br>• <strong>Emergency:</strong> Both brakes hard, hips as far back as possible, knees bent deep, butt behind rear axle if needed. Don't grab front only — you'll go over handlebars.<br>• <strong>Downhill:</strong> Pulse brakes (on-off) to avoid overheating. Regen alone will fade on long, steep descents.</p><div class="guide-warn">⚠️ Wet paths: braking distance doubles. Painted lines and metal covers are ice when wet. Brake BEFORE them, not on them.</div><div class="guide-tip">💡 Practice: Find empty carpark, accelerate to 20km/h, mark stopping line, measure distance. You should stop in <4m dry. If not, bleed brakes (Garage).</div></div></div>
 
-    <div class="guide-step"><div class="guide-num">D</div><div class="guide-content"><h4>Steering & Cornering</h4><p>Below 15km/h: turn handlebars. Above 15km/h: lean and counter-steer. Look where you want to go (target fixation is real).<br><br><strong>Steps for a turn:</strong> 1. Slow BEFORE turn (brake in straight line). 2. Look through turn. 3. Lean bike + body together, inside knee slightly bent. 4. Keep throttle steady (no braking in turn). 5. Accelerate gently on exit.<br><br><strong>Weight transfer:</strong> Leaning back improves rear traction, leaning forward improves front grip. For sharp low-speed U-turn, put more weight on front foot.</p><div class="guide-tip">💡 Avoid sharp turns at high speed — small 10-inch wheels have less gyroscopic stability than bicycles. Take Brisbane's riverside chicanes at <20km/h.</div></div></div>
+    <div class="guide-step"><div class="guide-num">D</div><div class="guide-content"><h4>Steering & Cornering</h4><p>Below 15km/h: turn handlebars. Above 15km/h: lean and counter-steer. Look where you want to go (target fixation is real).<br><br><strong>Steps for a turn:</strong> 1. Slow BEFORE turn (brake in straight line). 2. Look through turn. 3. Lean bike + body together, inside knee slightly bent. 4. Keep throttle steady (no braking in turn). 5. Accelerate gently on exit.<br><br><strong>Weight transfer:</strong> Leaning back improves rear traction, leaning forward improves front grip. For sharp low-speed U-turn, put more weight on front foot.</p><div class="guide-tip">💡 Avoid sharp turns at high speed — small 10-inch wheels have less gyroscopic stability than bicycles. Take tight path chicanes and switchbacks at <20km/h.</div></div></div>
 
     <div class="guide-step"><div class="guide-num">E</div><div class="guide-content"><h4>Surfaces & Hazards</h4><p>• Cracks >2cm: lift front wheel slightly by shifting weight back, bend knees to absorb.<br>• Gravel/sand: straight line, steady throttle, no hard braking — front washes out.<br>• Grass: 2x battery, avoid turning.<br>• Speed bumps: slow to walking speed, stand tall, let suspension work.</p></div></div>
-    <div class="guide-step"><div class="guide-num">F</div><div class="guide-content"><h4>Shared Paths & Pedestrians</h4><p>Keep left, pass pedestrians and cyclists wide and slow, and be ready to stop. In Queensland the limit is 12km/h on footpaths and when passing pedestrians on shared paths. Ring your bell early, and slow right down at blind corners, driveways and path junctions.</p><div class="guide-warn">⚠️ Give way to pedestrians on footpaths and shared paths. The speed alert button next to the vehicle selector can be set to 12km/h for these sections.</div></div></div>
+    <div class="guide-step"><div class="guide-num">F</div><div class="guide-content"><h4>Shared Paths & Pedestrians</h4><p>Keep left, pass pedestrians and cyclists wide and slow, and be ready to stop. In Queensland the limit is 12km/h on footpaths and when passing pedestrians on shared paths. Ring your bell early, and slow right down at blind corners, driveways and path junctions.</p><div class="guide-warn">⚠️ Give way to pedestrians on footpaths and shared paths. The speed alert button next to the vehicle selector can be set to 12km/h for these sections, or to any speed you like.</div></div></div>
+   </div>
+
+   <div class="settings-card" id="guide-pure">
+    <h3>🦶 Pure Electric forward-facing stance</h3>
+    <p style="font-size:13px;line-height:1.6;color:var(--text2);margin:0 0 10px">Pure Electric's Advance, Advance+ and Flex scooters use a split deck: a slim central chassis with a footpad on each side, level with the rear axle. You stand facing forward with your feet roughly shoulder-width apart, instead of side-on with one foot behind the other. Pure says this lowers your centre of gravity and feels steadier when accelerating and braking, and the scooters add Pure Control steering stabilisation to calm jittery handlebars.</p>
+    <svg viewBox="0 0 320 190" role="img" aria-label="Top-down comparison of a standard single deck with feet in line and a Pure split deck with feet side by side" style="width:100%;max-width:340px;display:block;margin:4px auto 6px">
+     <!-- Standard deck -->
+     <text x="75" y="12" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text)">Standard deck</text>
+     <rect x="64" y="20" width="22" height="22" rx="8" fill="none" stroke="var(--text3)" stroke-width="2"/>
+     <line x1="40" y1="24" x2="110" y2="24" stroke="var(--text3)" stroke-width="3" stroke-linecap="round"/>
+     <line x1="75" y1="24" x2="75" y2="46" stroke="var(--text3)" stroke-width="2"/>
+     <rect x="58" y="46" width="34" height="108" rx="12" fill="none" stroke="var(--text3)" stroke-width="2"/>
+     <rect x="64" y="148" width="22" height="22" rx="8" fill="none" stroke="var(--text3)" stroke-width="2"/>
+     <g transform="rotate(25 75 78)"><rect x="68" y="61" width="14" height="34" rx="7" fill="var(--accent)"/><circle cx="75" cy="67" r="3" fill="#0a0a14"/></g>
+     <g transform="rotate(45 75 122)"><rect x="68" y="105" width="14" height="34" rx="7" fill="var(--accent)"/><circle cx="75" cy="111" r="3" fill="#0a0a14"/></g>
+     <text x="75" y="186" text-anchor="middle" font-size="8.5" fill="var(--text2)">one foot behind the other</text>
+     <!-- Pure split deck -->
+     <text x="245" y="12" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text)">Pure split deck</text>
+     <rect x="234" y="20" width="22" height="22" rx="8" fill="none" stroke="var(--text3)" stroke-width="2"/>
+     <line x1="200" y1="24" x2="290" y2="24" stroke="var(--text3)" stroke-width="3" stroke-linecap="round"/>
+     <line x1="245" y1="24" x2="245" y2="62" stroke="var(--text3)" stroke-width="2"/>
+     <rect x="236" y="62" width="18" height="84" rx="7" fill="var(--bg4)" stroke="var(--text3)" stroke-width="2"/>
+     <rect x="234" y="124" width="22" height="30" rx="8" fill="none" stroke="var(--text3)" stroke-width="2"/>
+     <rect x="196" y="104" width="34" height="50" rx="9" fill="none" stroke="var(--text3)" stroke-width="2" stroke-dasharray="4 3"/>
+     <rect x="260" y="104" width="34" height="50" rx="9" fill="none" stroke="var(--text3)" stroke-width="2" stroke-dasharray="4 3"/>
+     <g><rect x="206" y="108" width="14" height="34" rx="7" fill="var(--accent)"/><circle cx="213" cy="114" r="3" fill="#0a0a14"/></g>
+     <g><rect x="270" y="108" width="14" height="34" rx="7" fill="var(--accent)"/><circle cx="277" cy="114" r="3" fill="#0a0a14"/></g>
+     <line x1="213" y1="160" x2="277" y2="160" stroke="var(--text2)" stroke-width="1" stroke-dasharray="2 2"/>
+     <text x="245" y="170" text-anchor="middle" font-size="8.5" fill="var(--text2)">about shoulder width</text>
+     <text x="245" y="186" text-anchor="middle" font-size="8.5" fill="var(--text2)">feet side by side, facing forward</text>
+    </svg>
+    <div style="font-size:11px;color:var(--text3);margin:0 0 10px;text-align:center">Looking down on each scooter, front at the top. Dashed boxes are the footpads, level with the rear axle.</div>
+
+    <ul class="guide-kv">
+     <li><strong>Feet</strong>Side by side, both pointing forward. There is no lead foot, so Regular and Goofy do not apply.</li>
+     <li><strong>Balance</strong>Your weight is shared left and right across two pads instead of front and back along one deck. Posture is closer to standing on a bike's pedals: knees soft, hips low, elbows relaxed.</li>
+     <li><strong>Which scooters</strong>The split-deck design belongs to Pure Electric's Advance range. A standard single-deck scooter (like the Max G3) is not built for a side-by-side stance.</li>
+    </ul>
+
+    <div class="guide-step"><div class="guide-num">A</div><div class="guide-content"><h4>Mounting &amp; dismounting</h4>
+     <p>There is no single deck to step onto, so the routine differs from a standard scooter.</p>
+     <ol class="guide-list">
+      <li>Stand beside the scooter on level ground with both hands on the grips and a brake held.</li>
+      <li>Step one foot onto the nearer pad, then the other. Do not swing a leg over the chassis or hop up while it rolls.</li>
+      <li>Settle both feet fully on the pads, bend your knees slightly and check the brake lever before you move off.</li>
+      <li>Check your model's manual for how it starts. A standard scooter lets you push off with a back foot, but with both feet on pads you set off differently.</li>
+     </ol>
+     <p><strong>To get off:</strong> come to a complete stop with a brake still held, then step down one foot at a time and keep your hands on the grips until both feet are on the ground. Never step off while it is still rolling.</p></div></div>
+
+    <div class="guide-step"><div class="guide-num">B</div><div class="guide-content"><h4>Braking considerations</h4>
+     <ul class="guide-list">
+      <li><strong>No foot brake:</strong> with both feet planted on pads you cannot stamp a rear fender or drag a foot. Stopping is all hand levers and the motor's e-brake, so learn which control does what on your model. The Advance+ pairs a front drum brake with a rear e-brake.</li>
+      <li><strong>Brace, don't lunge:</strong> braking pushes your body forward over both pads at once. Bend your knees, keep your arms slightly bent and your hips low, and let the legs absorb it. You cannot throw your hips back behind the rear wheel as on a standard deck.</li>
+      <li><strong>Start earlier:</strong> because you cannot quickly put a foot down, begin slowing sooner and avoid last-second corrections.</li>
+      <li><strong>Modulate:</strong> squeeze progressively. A lower, centred body helps, but a sudden grab still pitches you forward.</li>
+      <li><strong>Wet:</strong> braking distance still roughly doubles. Brake before painted lines and metal covers, not on them.</li>
+     </ul>
+     <div class="guide-tip">💡 Practise stopping from walking pace, then from a jog, on an empty path before riding in traffic or on a shared path.</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">C</div><div class="guide-content"><h4>Other things to get used to</h4>
+     <ul class="guide-list">
+      <li><strong>Wider footprint:</strong> your feet sit further apart than on a standard deck. Mind bollards, narrow gaps and pavement edges.</li>
+      <li><strong>Cornering:</strong> steer with your hips and knees and lean the whole scooter smoothly. Avoid sudden left-right weight shifts.</li>
+      <li><strong>Steering feel:</strong> Pure Control returns the bars to centre over rough ground. Expect them to settle on their own, and keep a relaxed grip.</li>
+      <li><strong>Kerbs and bumps:</strong> the pads sit around rear-axle level. Take kerbs square-on and slowly, and bend your knees over bumps.</li>
+      <li><strong>Give it a few rides:</strong> if you are used to a standard deck, expect your first rides to feel strange. Keep speeds low until it feels natural.</li>
+     </ul>
+     <div class="guide-warn">⚠️ General guidance only. Follow your model's manual for start-up, braking and weight limits.</div></div></div>
    </div>
 
    <div class="settings-card" id="guide-ebike">
@@ -762,18 +842,82 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
     <div class="guide-step"><div class="guide-num">2</div><div class="guide-content"><h4>Starting & Accelerating</h4><p>1. Gear: start in 2nd or 3rd easiest gear, not hardest. 2. Mount with brakes covered. 3. Start pedaling — torque sensor needs 1/4 crank to kick. Don't rely on throttle from stop in high gear (strains chain). 4. For cadence-sensor bikes: one pedal stroke = motor on, so hold brake until ready.<br><br><strong>Hill start:</strong> Tilt bike slightly uphill, put strong foot at 2 o'clock, high assist, push down hard while releasing brake. Practice on small slope.</p><div class="guide-tip">💡 eBikes are 8-12kg heavier than normal bikes. Slow-speed balance needs slightly higher speed — aim for >8km/h to feel stable.</div></div></div>
 
-    <div class="guide-step"><div class="guide-num">3</div><div class="guide-content"><h4>Braking on eBike</h4><p>Disc brakes are powerful — 1-finger braking is enough. Both brakes evenly. Because battery + motor low and central, eBikes stop shorter than scooters but weight shifts forward more than analog bikes.<br><br>• <strong>Downhill:</strong> Alternate front/rear, don't drag one brake (overheats). On 10%+ grades like Mt Coot-tha, stop mid-way to cool rims/discs if you smell hot.<br>• <strong>Wet:</strong> Squeeze 0.5 sec early to wipe water off rotor, then brake properly.<br>• <strong>Emergency:</strong> Hips back behind saddle, arms straight, brake hard both — ABS on Bosch eBikes helps.</p></div></div>
+    <div class="guide-step"><div class="guide-num">3</div><div class="guide-content"><h4>Braking on eBike</h4><p>Disc brakes are powerful — 1-finger braking is enough. Both brakes evenly. Because battery + motor low and central, eBikes stop shorter than scooters but weight shifts forward more than analog bikes.<br><br>• <strong>Downhill:</strong> Alternate front/rear, don't drag one brake (overheats). On 10%+ grades, stop mid-way to cool rims/discs if you smell hot.<br>• <strong>Wet:</strong> Squeeze 0.5 sec early to wipe water off rotor, then brake properly.<br>• <strong>Emergency:</strong> Hips back behind saddle, arms straight, brake hard both — ABS on Bosch eBikes helps.</p></div></div>
 
     <div class="guide-step"><div class="guide-num">4</div><div class="guide-content"><h4>Steering, Cornering & Gears</h4><p>Counter-steer above ~20km/h: push right bar to go right. Look ahead 20m, not 2m. Inside pedal up when cornering to avoid strike.<br><br><strong>Gearing:</strong> Keep cadence 70-90 RPM. Too slow (grinding) = motor overheats + chain wear. Too fast (spinning) = inefficient. Shift BEFORE hill, not under load — ease pedal pressure for half second while shifting.</p><p style="margin-top:6px"><strong>Weight:</strong> Panniers? Put heavy low, near axle. Top-heavy = wobble at low speed.</p></div></div>
 
     <div class="guide-step"><div class="guide-num">5</div><div class="guide-content"><h4>Mounting / Dismounting with Motor</h4><p>Always cover brakes when walking bike — accidental pedal bump can launch bike forward. Walk mode (6km/h) for pushing up ramps. Dismount to left (away from chain). For cargo/longtail, swing leg over high and keep bike tilted toward you.</p></div></div>
    </div>
 
+   <div class="settings-card" id="guide-tyres">
+    <h3>⚫ Tyres: types, tread &amp; changing</h3>
+    <p style="font-size:13px;line-height:1.6;color:var(--text2);margin:0 0 10px">Tyres are your only contact with the road. The right type, pressure and tread depth matter as much as your brakes. Record what your vehicle shipped with, and every change you make, in the Garage tab (Tyres card).</p>
+
+    <div class="guide-step"><div class="guide-num">1</div><div class="guide-content"><h4>Construction: tube, tubeless, jelly</h4>
+     <ul class="guide-kv">
+      <li><strong>Inner tube</strong>Benefits: cheapest, easy to find, simple roadside fix (patch or swap the tube). Drawbacks: a thorn means a flat, and too little pressure can pinch the tube against the rim.</li>
+      <li><strong>Tubeless</strong>Benefits: no tube to pinch, usually leaks slowly rather than going flat suddenly, and can run slightly lower pressure for grip and comfort. Drawbacks: harder to fit because the bead must seal, and a large cut still needs a plug or a tube. If yours uses sealant, top it up every few months.</li>
+      <li><strong>Jelly (self-sealing) layer</strong>Benefits: a tubeless tyre with a sticky gel lining that plugs small punctures from nails and thorns as they happen, with no sealant to maintain. Drawbacks: heavier, slightly more rolling resistance, it does not fix big cuts or sidewall damage, and the gel makes tyre changes messy.</li>
+      <li><strong>Solid or airless</strong>Benefits: can never go flat and needs no pressure checks. Drawbacks: harsher ride, less grip, heavier and difficult to fit.</li>
+     </ul></div></div>
+
+    <div class="guide-step"><div class="guide-num">2</div><div class="guide-content"><h4>Soft vs hard</h4>
+     <p>This is about pressure and about the rubber compound.</p>
+     <ul class="guide-kv">
+      <li><strong>Softer (lower pressure or softer rubber)</strong>More grip, a smoother ride and better wet-weather feel. But more rolling resistance (less range), faster wear, squirmy handling, and a higher chance of flats or rim damage if too low.</li>
+      <li><strong>Harder (higher pressure or harder rubber)</strong>Lower rolling resistance (more range), longer life and sharper steering. But a harsher ride, less grip on wet or rough surfaces, and a skittish feel over bumps.</li>
+     </ul>
+     <div class="guide-tip">💡 Start from the pressure on the tyre sidewall and in your Garage. Adjust by a few PSI for load and conditions, never above the sidewall maximum, and check it every couple of weeks.</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">3</div><div class="guide-content"><h4>Urban vs knobby off-road</h4>
+     <ul class="guide-kv">
+      <li><strong>Urban or road (smooth to fine tread)</strong>Lowest rolling resistance, quiet, long wear on tarmac and the best grip on pavement. Poor on loose gravel, mud and wet grass.</li>
+      <li><strong>Knobby or off-road (blocky tread)</strong>Bites into dirt, gravel and mud. But noisy, more rolling resistance (shorter range), vague on tarmac, and the lugs wear quickly on pavement.</li>
+      <li><strong>Mixed or semi-slick</strong>A compromise for paths with the occasional trail. A good choice if you ride a bit of everything.</li>
+     </ul></div></div>
+
+    <div class="guide-step"><div class="guide-num">4</div><div class="guide-content"><h4>How much tread is acceptable</h4>
+     <p>There is no legal minimum for scooter and e-bike tyres, so use these rules of thumb.</p>
+     <ul class="guide-list">
+      <li>Look for the wear indicators (small dimples or bars in the grooves). When they are level with the surface, replace the tyre.</li>
+      <li>On a patterned tyre, plan to replace at about 2 mm of tread and don't go below about 1 mm, especially if you ride in the wet.</li>
+      <li>On knobbies, replace when the lugs are worn about halfway or the edges have rounded off and grip fades.</li>
+      <li>On a smooth tyre, replace when a flat strip runs along the centre or you can see the fabric cords.</li>
+      <li>Replace regardless of tread for cracks or dry rot, bulges, cuts into the casing, exposed cords, sidewall damage, repeated punctures in the same spot, or tyres roughly five years old or more.</li>
+     </ul>
+     <div class="guide-tip">💡 The driven wheel (the rear on most scooters) wears fastest. Check it with your fortnightly pressure check.</div></div></div>
+
+    <div class="guide-step"><div class="guide-num">5</div><div class="guide-content"><h4>How to change a tyre</h4>
+     <p><strong>You will need:</strong> the right tyre (size and type), a new tube if yours uses one, tyre levers, a pump or compressor, spanners or Allen keys that fit the axle, soapy water, a valve-core tool and sealant for tubeless, and gloves.</p>
+     <ol class="guide-list">
+      <li>Switch the scooter off, unplug the charger and remove the key. Support it so it cannot roll or fall.</li>
+      <li>Photograph the cable routing and brake position. On hub-motor wheels, disconnect the motor cable only with the power off.</li>
+      <li>Let all the air out (take out the valve core on tubeless), loosen the axle nuts and remove the wheel. Don't squeeze the brake lever while the wheel is out.</li>
+      <li>Push the tyre sidewalls into the rim well to break the bead, then work the levers around to lift one side off, and remove the tube or the second bead.</li>
+      <li>Inspect the rim, rim tape and inside of the tyre for thorns, glass and sharp edges. Check the direction arrow on the new tyre.</li>
+      <li>Wet the beads with soapy water. For a tube, inflate it slightly so it does not twist, tuck it in and seat the second bead without trapping it. For tubeless, seat the beads with a compressor or high-volume pump, adding sealant if your set-up uses it.</li>
+      <li>Refit the wheel with the brake disc centred in the caliper, reconnect the motor cable, tighten the axle nuts firmly to the manufacturer's torque, and spin the wheel to check it runs free.</li>
+      <li>Inflate to the recommended pressure, never above the sidewall maximum, then test the brakes before riding. Recheck the pressure the next day and log the change in the Garage.</li>
+     </ol>
+     <div class="guide-warn">⚠️ Hub-motor wheels, drum brakes and hydraulic discs are fiddly. If you are unsure, have a bike or scooter shop do it. A badly seated tyre or loose axle is dangerous.</div></div></div>
+   </div>
+
    <div class="settings-card" id="guide-key">
     <h3>🔑 Key Considerations for Both</h3>
     
     <h4 style="font-size:12px;color:var(--text);margin:12px 0 6px">🔋 Battery & Range Reality</h4>
-    <p style="font-size:12px;color:var(--text2);line-height:1.5">Your display lies by ~10% when new. Real range = (Battery Wh × 0.85 efficiency) / Wh per km. For you: Brisbane flat bike path = 12 Wh/km, city stop-start = 22 Wh/km, Mt Coot-tha climb = 35 Wh/km. So 597Wh G3 = 27-49km. Log every ride in Stats to learn YOUR Wh/km. Cold: -10% range below 15°C. Store at 50-70% if not riding >1 week (Garage tells you).</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5">Your display lies by ~10% when new. Real range = (Battery Wh × 0.85 efficiency) / Wh per km. As a guide: flat bike path = 12 Wh/km, city stop-start = 22 Wh/km, steep climbing = 35 Wh/km. So 597Wh G3 = 27-49km. Log every ride in Stats to learn YOUR Wh/km. Cold: -10% range below 15°C. Store at 50-70% if not riding >1 week (Garage tells you).</p>
+
+    <h4 style="font-size:12px;color:var(--text);margin:12px 0 6px">🔋 Charge window for battery health</h4>
+    <p style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:6px">The lithium-ion packs in e-scooters and e-bikes last longest when you avoid the extremes. For day-to-day riding, aim to keep the charge roughly between 30% and 80%. Cells age fastest when they are held near 100% (especially when warm) and when they are run close to flat.</p>
+    <ul class="guide-list">
+     <li><strong>Everyday:</strong> charge to about 80% and plug in again before you drop below about 30%.</li>
+     <li><strong>Long rides:</strong> charge higher (up to 100%) just before you leave and ride soon after. Don't leave it sitting full.</li>
+     <li><strong>Charge limits:</strong> if your charger, bike display or app lets you set a limit such as 80%, use it.</li>
+     <li><strong>Occasional full charge:</strong> the Garage will tell you when a full charge is due to balance the cells. Treat it as the exception and ride soon after.</li>
+     <li><strong>Heat and cold:</strong> let a hot battery cool before charging, don't charge in the sun or a hot car, and don't charge when it is freezing.</li>
+     <li><strong>Storage:</strong> keep it at around 50-70% in a cool place and check it every month or two.</li>
+    </ul>
 
     <h4 style="font-size:12px;color:var(--text);margin:12px 0 6px">🌧️ Weather & Night</h4>
     <p style="font-size:12px;color:var(--text2);line-height:1.5">IPX6 (G3) = heavy rain OK, but not submersion. After wet ride: dry charging port, wipe deck grip. Tires: 10% lower PSI in wet for more grip (but more puncture risk). Night: front white 400+ lumens, rear red, reflective ankle bands move and catch drivers' eyes best.</p>
@@ -784,6 +928,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
     • One-hand phone check at 25km/h — 7m traveled per second blind<br>
     • Braking mid-corner on painted surface<br>
     • Sitting at 100% charge for weeks — kills capacity 3x faster<br>
+    • Leaving the battery flat (below 10%) for days — deep discharge damages cells<br>
     • Over-tightening stem clamp — strips threads, then stem slips<br>
     • Ignoring 14-day tire check — Garage alerts you for a reason<br>
     • Using turbo up every hill in highest gear — wears chain + motor
@@ -793,19 +938,15 @@ canvas.ride-chart{width:100%!important;max-height:160px}
     <p style="font-size:12px;color:var(--text2);line-height:1.5">Your Garage tab already tracks cycles, balance due, PSI. Use it: log charge after every charge, log PSI weekly. Monthly: clean deck tape, check brake pads (replace at 1.5mm), lube folding hinge with silicone. Every 500km: check spoke tension on eBike, check tire wear indicators on scooter.</p>
    </div>
 
-   <div class="settings-card" id="guide-brisbane">
+   <div class="settings-card" id="guide-legal">
     <h3>⚖️ Rules &amp; Legalities</h3>
     <p style="font-size:12px;color:var(--text2);line-height:1.5">Summary reviewed October 2026 from government and motoring-body sources. Not legal advice. Rules change often, so check the official link for your area before riding.</p>
     <div id="legal-root"></div>
-    <div style="margin-top:10px">
-     <div style="font-size:12px;color:var(--text);margin:4px 0 6px"><strong>📍 Brisbane practical</strong></div>
-     <div style="font-size:12px;color:var(--text);margin:12px 0 6px"><strong>Where to Ride in Brisbane:</strong></div>
-     <div style="font-size:11px;color:var(--text2);line-height:1.5">• Best for testing: Boondall Wetlands circuit (flat, smooth), Kedron Brook bikeway, ICB bikeway (watch wind)<br>• Hill test: Mt Coot-tha lower loop (don't go road without experience)<br>• Avoid: Kurilpa Bridge timber boards when wet — slippery. South Bank pavers when crowded.<br>• Charging: Most cafes won't mind 1h top-up if you ask — carry your own charger, not just cable (G3 charger is 2A)</div>
-    </div>
+    <div class="guide-tip" style="margin-top:12px">💡 Charging away from home: most cafes won't mind a 1h top-up if you ask. Carry your own charger, not just a cable (the G3 charger is 2A).</div>
     <div class="guide-tip" style="margin-top:12px">💡 Save this Guide offline: This page works without internet — all text is in your app. Perfect for referencing trailside.</div>
    </div>
 
-   <div style="padding:12px;text-align:center;font-size:10px;color:var(--text3)">Volt Trail • Evolution & Guide • Brisbane QLD</div>
+   <div style="padding:12px;text-align:center;font-size:10px;color:var(--text3)">Volt Trail • Evolution & Guide</div>
   </div>
  </div>
 
@@ -813,7 +954,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <div class="page" id="page-settings">
  <div class="settings-inner">
  <div class="settings-title">Settings</div>
- <div class="settings-sub">Configure your Ride Tracker.</div>
+ <div class="settings-sub">Configure Volt Trail.</div>
 
  <div class="settings-card">
  <h3>🛴 My Vehicles</h3>
@@ -859,7 +1000,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
 
  <div class="settings-card" style="position:relative">
  <h3>🟠 Strava Integration</h3>
- <p>Automatically post completed rides to Strava. Requires your Strava subscription.</p>
+ <p>Connect once, then post rides to Strava from the ride screen or automatically. Posting runs through Volt Trail's secure Supabase helper, so no Strava password or secret is kept in this page. Rides recorded on the watch can be posted from here too.</p>
  <div class="drive-status" id="strava-status-el"><div class="dot"></div><span id="strava-status-txt">Not connected</span></div>
  <button class="settings-btn" id="strava-connect-btn" onclick="stravaAuth()" style="margin-top:10px;background:#fc4c02;color:white">Connect Strava</button>
  <button class="settings-btn danger" id="strava-disconnect-btn" onclick="stravaDisconnect()" style="margin-top:8px;display:none">Disconnect Strava</button>
@@ -909,6 +1050,7 @@ canvas.ride-chart{width:100%!important;max-height:160px}
  <div class="stat-block"><div class="val" id="d-avg">—</div><div class="lbl">Avg speed</div></div>
  <div class="stat-block"><div class="val" id="d-gforce">—</div><div class="lbl">Max G-force</div></div>
  <div class="stat-block"><div class="val" id="d-elev">—</div><div class="lbl">Elev max/min</div></div>
+ <div class="stat-block" id="d-hr-block" style="display:none;grid-column:1/-1"><div class="val" id="d-hr">—</div><div class="lbl">Heart rate avg / max</div><div id="d-hr-chart" style="margin-top:8px;display:none"></div></div>
  </div>
  <div class="modal-section-lbl">Notes</div>
  <div class="modal-notes" id="d-notes">No notes added.</div>
@@ -1342,8 +1484,7 @@ const DEVICE_ID = (() => {
 let supabaseClient = null;
 let syncEnabled = false;
 
-const STRAVA_CLIENT_ID = '261028';
-const stravaTokenCall = body => fetch(SUPABASE_URL + '/functions/v1/strava', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY }, body: JSON.stringify(body) }); // Strava secret now lives in Supabase, not in this page
+const STRAVA_FN = SUPABASE_URL + '/functions/v1'; // Strava login and posting run in Supabase functions, so no Strava secret or token lives in this page
 let stravaToken = null;
 let stravaAutopost = false;
 
@@ -1420,7 +1561,7 @@ function onVehicleChange() {
  renderGarage();
 }
 
-function updateHeaderSub() { document.getElementById('header-sub').textContent = selectedVehicle || 'Volt Trail'; }
+function updateHeaderSub() { document.getElementById('header-sub').textContent = 'Your E-Scooter & E-Bike World'; }
 
 function addVehicle() {
  const inp = document.getElementById('vehicle-add-input');
@@ -1640,6 +1781,7 @@ function startChargeSession() {
  const eta = new Date(Date.now() + (minsRemaining * 60000));
  document.getElementById('charge-prediction').style.display = 'block';
  document.getElementById('charge-eta').textContent = eta.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+ const etaNote = document.getElementById('charge-eta-note'); if (etaNote) etaNote.textContent = vLogs.length >= 3 ? 'Based on your last ' + Math.min(5, vLogs.length) + ' charges (' + avgRate.toFixed(2) + '% per minute). Charging slows near 100%.' : 'Default estimate (' + avgRate.toFixed(2) + '% per minute). Log ' + (3 - vLogs.length) + ' more complete charge' + ((3 - vLogs.length) === 1 ? '' : 's') + ' to personalise it.';
 }
 
 function endChargeSession() {
@@ -2028,7 +2170,7 @@ function renderHistory() {
   if (grp !== lastGroup) { lastGroup = grp; const h = document.createElement('div'); h.className = 'ride-group'; h.innerHTML = '<span>' + vtVehIcon(ride.vehicle) + '</span>' + escHtml(grp); list.appendChild(h); }
   const div = document.createElement('div'); div.className = 'ride-item'; div.onclick = () => openDetail(ride.id);
   const distKm = ((ride.distanceM || 0) / 1000).toFixed(2), hasMedia = ride.media && ride.media.length;
-  const meta = [ride.weather ? ride.weather : '', hasMedia ? '\uD83D\uDCF7 ' + ride.media.length : '', ride.notes ? '\uD83D\uDCDD Notes' : ''].filter(Boolean);
+  const meta = [ride.weather ? ride.weather : '', ride.avgHr ? '♥ ' + ride.avgHr + ' bpm avg' : '', hasMedia ? '\uD83D\uDCF7 ' + ride.media.length : '', ride.notes ? '\uD83D\uDCDD Notes' : ''].filter(Boolean);
   div.innerHTML = `
   <div class="ride-item-top">
    <div class="ride-title-row">
@@ -2184,63 +2326,52 @@ async function supabaseSync() {
 }
 async function driveSaveRide(ride) { if (!syncEnabled || !supabaseClient) return; try { await supabaseSync(); } catch(e) {} }
 
-function initStrava() {
- const params = new URLSearchParams(window.location.search), code = params.get('code'), state = params.get('state');
- if (code && state === 'strava_auth') { exchangeStravaCode(code); window.history.replaceState({}, document.title, window.location.pathname); return; }
- const saved = getSetting('g3_strava_token');
- if (saved) {
- try {
- stravaToken = JSON.parse(saved);
- if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) refreshStravaToken();
- else { updateStravaStatus('connected', 'Connected as ' + (stravaToken.athlete_name || 'athlete')); document.getElementById('strava-connect-btn').style.display = 'none'; document.getElementById('strava-disconnect-btn').style.display = ''; showStravaAutopostRow(); }
- } catch(e) { stravaToken = null; }
- }
+function stravaSetConnected(name) {
+ stravaToken = { connected: true, athlete_name: name || 'athlete' };
+ updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name);
+ const cb = document.getElementById('strava-connect-btn'); if (cb) { cb.style.display = ''; cb.textContent = 'Reconnect Strava'; cb.style.opacity = '0.75'; }
+ const db_ = document.getElementById('strava-disconnect-btn'); if (db_) db_.style.display = 'none';
+ showStravaAutopostRow();
 }
-function stravaAuth() { window.location.href = 'https://www.strava.com/oauth/authorize?client_id=' + STRAVA_CLIENT_ID + '&redirect_uri=' + encodeURIComponent('https://stephenmmcgrath.github.io/g3tracker/G3RideTracker.html') + '&response_type=code&approval_prompt=auto&scope=activity:write&state=strava_auth'; }
-async function exchangeStravaCode(code) {
- updateStravaStatus('syncing', 'Connecting to Strava…');
- try {
- const resp = await stravaTokenCall({ action: 'exchange', code: code }), data = await resp.json();
- if (data.access_token) { stravaToken = { access_token: data.access_token, refresh_token: data.refresh_token, expires_at: data.expires_at, athlete_name: data.athlete ? data.athlete.firstname : 'athlete' }; setSetting('g3_strava_token', JSON.stringify(stravaToken)); updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name); document.getElementById('strava-connect-btn').style.display = 'none'; document.getElementById('strava-disconnect-btn').style.display = ''; showStravaAutopostRow(); showToast('✓ Strava connected!'); } else { updateStravaStatus('error', 'Connection failed — try again'); showToast('Strava connection failed'); }
- } catch(e) { updateStravaStatus('error', 'Connection failed'); }
+function stravaSetDisconnected(msg) {
+ stravaToken = null; stravaAutopost = false;
+ updateStravaStatus(msg ? 'error' : 'disconnected', msg || 'Not connected');
+ const cb = document.getElementById('strava-connect-btn'); if (cb) { cb.style.display = ''; cb.textContent = 'Connect Strava'; cb.style.opacity = '1'; }
+ const row = document.getElementById('strava-autopost-row'); if (row) row.style.display = 'none';
 }
-async function refreshStravaToken() {
- if (!stravaToken || !stravaToken.refresh_token) return;
+async function initStrava() {
+ removeSetting('g3_strava_token'); // the old in-browser login is replaced by the one held safely in Supabase
+ const h = window.location.hash || '';
+ if (h.indexOf('strava=connected') > -1) { window.history.replaceState(null, '', window.location.pathname + window.location.search); showToast('✓ Strava connected!'); }
+ else if (h.indexOf('strava=error') > -1) { window.history.replaceState(null, '', window.location.pathname + window.location.search); showToast('Strava connection was cancelled'); }
  try {
- const resp = await stravaTokenCall({ action: 'refresh', refresh_token: stravaToken.refresh_token }), data = await resp.json();
- if (data.access_token) { stravaToken.access_token = data.access_token; stravaToken.refresh_token = data.refresh_token; stravaToken.expires_at = data.expires_at; setSetting('g3_strava_token', JSON.stringify(stravaToken)); updateStravaStatus('connected', 'Connected as ' + stravaToken.athlete_name); document.getElementById('strava-connect-btn').style.display = 'none'; document.getElementById('strava-disconnect-btn').style.display = ''; }
- } catch(e) {}
+  const r = await fetch(STRAVA_FN + '/strava-connect?status=1'), j = await r.json();
+  if (j && j.connected) stravaSetConnected(j.athlete); else stravaSetDisconnected();
+ } catch(e) { stravaSetDisconnected('Cannot check Strava right now'); }
 }
-function stravaDisconnect() { if (!confirm('Disconnect Strava? You can reconnect any time.')) return; stravaToken = null; removeSetting('g3_strava_token'); updateStravaStatus('disconnected', 'Not connected'); document.getElementById('strava-connect-btn').style.display = ''; document.getElementById('strava-disconnect-btn').style.display = 'none'; document.getElementById('strava-autopost-row').style.display = 'none'; stravaAutopost = false; setSetting('g3_strava_autopost', '0'); showToast('Strava disconnected'); }
+function stravaAuth() { window.location.href = STRAVA_FN + '/strava-connect?return=' + encodeURIComponent(window.location.origin + window.location.pathname); }
+function stravaDisconnect() { showToast('To disconnect, remove Volt Trail in Strava under Settings > My Apps'); }
 function updateStravaStatus(state, msg) { const el = document.getElementById('strava-status-el'), txt = document.getElementById('strava-status-txt'); if (!el || !txt) return; el.className = 'drive-status ' + state; txt.textContent = msg; }
+async function vtStravaSend(ride) {
+ const body = { ride_id: String(ride.id), name: ride.title || 'Ride', description: ride.notes || 'Recorded with Volt Trail' };
+ if (ride.routePoints && ride.routePoints.length > 1) body.gpx = buildGPX(ride);
+ else body.manual = { start_date_local: new Date(ride.startTime).toISOString(), elapsed_time: ride.durationSecs, distance: ride.distanceM };
+ const r = await fetch(STRAVA_FN + '/strava-post', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY }, body: JSON.stringify(body) });
+ const j = await r.json().catch(() => ({}));
+ if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+ if (j.activity_id) ride.stravaId = Number(j.activity_id);
+ return j;
+}
 async function postToStrava() {
  if (!stravaToken) return showToast('Connect Strava first in Settings');
  const ride = rides.find(r => r.id === currentDetailId); if (!ride) return;
- if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) await refreshStravaToken();
+ const btn = document.getElementById('strava-post-btn');
  showToast('Posting to Strava…');
  try {
- let activityId = null, gpxData = (ride.routePoints && ride.routePoints.length > 1) ? buildGPX(ride) : null;
- if (gpxData) {
- const formData = new FormData(); formData.append('file', new Blob([gpxData], { type: 'application/gpx+xml' }), 'ride.gpx'); formData.append('data_type', 'gpx'); formData.append('name', ride.title || 'G3 Ride'); formData.append('description', ride.notes || 'Recorded with G3 Ride Tracker'); formData.append('sport_type', 'EBikeRide'); formData.append('commute', '0');
- const uploadResp = await fetch('https://www.strava.com/api/v3/uploads', { method: 'POST', headers: { Authorization: 'Bearer ' + stravaToken.access_token }, body: formData }), uploadData = await uploadResp.json();
- if (uploadData.error) throw new Error(uploadData.error);
- activityId = await pollStravaUpload(uploadData.id);
- } else {
- const resp = await fetch('https://www.strava.com/api/v3/activities', { method: 'POST', headers: { Authorization: 'Bearer ' + stravaToken.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: ride.title || 'G3 Ride', sport_type: 'EBikeRide', start_date_local: new Date(ride.startTime).toISOString(), elapsed_time: ride.durationSecs, description: ride.notes || 'Recorded with G3 Ride Tracker', distance: ride.distanceM, commute: false }) }), data = await resp.json(); activityId = data.id;
- }
- if (activityId) { ride.stravaId = activityId; dbPut(ride).catch(() => {}); if (syncEnabled && supabaseClient) driveSaveRide(ride); document.getElementById('strava-post-btn').textContent = '✓ Posted to Strava'; document.getElementById('strava-post-btn').style.opacity = '0.6'; showToast('✓ Posted to Strava!'); }
- } catch(e) { showToast('Failed to post to Strava — try again'); }
-}
-async function pollStravaUpload(uploadId) {
- for (let i = 0; i < 20; i++) {
- await new Promise(r => setTimeout(r, 2000));
- const resp = await fetch('https://www.strava.com/api/v3/uploads/' + uploadId, { headers: { Authorization: 'Bearer ' + stravaToken.access_token } }), data = await resp.json();
- if (data.activity_id) return data.activity_id; if (data.error) throw new Error(data.error);
- } throw new Error('Upload timed out');
-}
-function buildGPX(ride) {
- const pts = (window.vtPrivacyTrim ? vtPrivacyTrim(ride.routePoints) : ride.routePoints).map(p => ` <trkpt lat="${p.lat}" lon="${p.lng}"><ele>${(p.altitude || 0).toFixed(1)}</ele><time>${new Date(p.ts || ride.startTime).toISOString()}</time><extensions><gpxtpx:TrackPointExtension><gpxtpx:speed>${((p.speedKmh || 0) / 3.6).toFixed(2)}</gpxtpx:speed></gpxtpx:TrackPointExtension></extensions></trkpt>`).join('\n');
- return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Volt Trail" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">\n <trk>\n <name>${(ride.title || 'G3 Ride').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</name>\n <trkseg>\n${pts}\n </trkseg>\n </trk>\n</gpx>`;
+  const j = await vtStravaSend(ride);
+  if (ride.stravaId) { dbPut(ride).catch(() => {}); if (syncEnabled && supabaseClient) driveSaveRide(ride); btn.textContent = '✓ Posted to Strava'; btn.style.opacity = '0.6'; showToast(j.already ? '✓ Already on Strava' : '✓ Posted to Strava!'); }
+  else showToast('Sent to Strava, still processing. Check again shortly.');
+ } catch(e) { showToast('Strava: ' + String((e && e.message) || 'failed').slice(0, 90)); }
 }
 function showStravaAutopostRow() {
  const row = document.getElementById('strava-autopost-row');
@@ -2250,18 +2381,15 @@ function toggleStravaAutopost() {
  stravaAutopost = document.getElementById('strava-autopost-toggle').checked; setSetting('g3_strava_autopost', stravaAutopost ? '1' : '0'); const slider = document.getElementById('strava-autopost-slider'), knob = document.getElementById('strava-autopost-knob'); if (slider) slider.style.background = stravaAutopost ? 'var(--success)' : 'var(--text3)'; if (knob) knob.style.transform = stravaAutopost ? 'translateX(20px)' : 'translateX(0)'; showToast(stravaAutopost ? '✓ Auto-post enabled' : 'Auto-post disabled');
 }
 async function autoPostToStrava(ride) {
- if (!stravaToken || !ride) return; if (stravaToken.expires_at && Date.now() / 1000 > stravaToken.expires_at) await refreshStravaToken();
+ if (!stravaToken || !ride) return;
  try {
- let activityId = null;
- if (ride.routePoints && ride.routePoints.length > 1) {
- const formData = new FormData(); formData.append('file', new Blob([buildGPX(ride)], { type: 'application/gpx+xml' }), 'ride.gpx'); formData.append('data_type', 'gpx'); formData.append('name', ride.title || 'G3 Ride'); formData.append('description', ride.notes || 'Recorded with G3 Ride Tracker'); formData.append('sport_type', 'EBikeRide'); formData.append('commute', '0');
- const uploadResp = await fetch('https://www.strava.com/api/v3/uploads', { method: 'POST', headers: { Authorization: 'Bearer ' + stravaToken.access_token }, body: formData }), uploadData = await uploadResp.json();
- if (uploadData.error) throw new Error(uploadData.error); activityId = await pollStravaUpload(uploadData.id);
- } else {
- const resp = await fetch('https://www.strava.com/api/v3/activities', { method: 'POST', headers: { Authorization: 'Bearer ' + stravaToken.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: ride.title || 'G3 Ride', sport_type: 'EBikeRide', start_date_local: new Date(ride.startTime).toISOString(), elapsed_time: ride.durationSecs, description: ride.notes || 'Recorded with G3 Ride Tracker', distance: ride.distanceM, commute: false }) }), data = await resp.json(); activityId = data.id;
- }
- if (activityId) { ride.stravaId = activityId; dbPut(ride).catch(() => {}); showToast('🟠 Posted to Strava!'); }
+  await vtStravaSend(ride);
+  if (ride.stravaId) { dbPut(ride).catch(() => {}); showToast('🟠 Posted to Strava!'); }
  } catch(e) {}
+}
+function buildGPX(ride) {
+ const pts = (window.vtPrivacyTrim ? vtPrivacyTrim(ride.routePoints) : ride.routePoints).map(p => ` <trkpt lat="${p.lat}" lon="${p.lng}"><ele>${(p.altitude || 0).toFixed(1)}</ele><time>${new Date(p.ts || ride.startTime).toISOString()}</time><extensions><gpxtpx:TrackPointExtension>${p.hr > 0 ? '<gpxtpx:hr>' + Math.round(p.hr) + '</gpxtpx:hr>' : ''}<gpxtpx:speed>${((p.speedKmh || 0) / 3.6).toFixed(2)}</gpxtpx:speed></gpxtpx:TrackPointExtension></extensions></trkpt>`).join('\n');
+ return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Volt Trail" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">\n <trk>\n <name>${(ride.title || 'Ride').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</name>\n <trkseg>\n${pts}\n </trkseg>\n </trk>\n</gpx>`;
 }
 
 function startNoSleep() {
@@ -2331,8 +2459,10 @@ const $=id=>document.getElementById(id);
 const toast=m=>{try{showToast(m)}catch(e){}};
 
 /* 1. Speed warning: button in the vehicle bar cycles Off / 12 / 25 km/h */
-const LIMITS=[0,12,25];
-let swLimit=parseInt(getSetting('g3_speed_limit')||'25',10); if(!LIMITS.includes(swLimit)) swLimit=25;
+const SW_MIN=5, SW_MAX=60;
+let swLimit=parseInt(getSetting('g3_speed_limit')||'25',10); if(isNaN(swLimit)||(swLimit!==0&&(swLimit<SW_MIN||swLimit>SW_MAX))) swLimit=25;
+let swLast=parseInt(getSetting('g3_speed_limit_last')||'0',10); if(!(swLast>=SW_MIN&&swLast<=SW_MAX)) swLast=swLimit||25;
+let openSw=()=>{};
 let over=0,lastBuzz=0;
 const ban=document.createElement('div');
 ban.style.cssText='position:fixed;top:0;left:0;right:0;z-index:998;background:var(--danger);color:#fff;text-align:center;font-weight:700;font-size:15px;padding:10px;display:none';
@@ -2341,8 +2471,41 @@ const hideBanner=()=>{ban.style.display='none';over=0};
 const btn=document.createElement('button');
 btn.style.cssText='background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;font-size:12px;padding:7px 10px;white-space:nowrap';
 const lbl=()=>{btn.textContent=swLimit?'\u26A0 '+swLimit+' km/h':'\u26A0 Off'};
-btn.onclick=()=>{swLimit=LIMITS[(LIMITS.indexOf(swLimit)+1)%LIMITS.length];setSetting('g3_speed_limit',String(swLimit));lbl();hideBanner();toast(swLimit?'Speed alert at '+swLimit+' km/h':'Speed alert off')};
+btn.onclick=()=>openSw();
 lbl(); const vb=document.querySelector('.vehicle-bar'); if(vb) vb.appendChild(btn);
+const ov=document.createElement('div');
+ov.style.cssText='position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:20px';
+const rb='background:var(--bg4);color:var(--text);border:1px solid var(--border);border-radius:10px;width:44px;height:44px;font-size:22px;line-height:1';
+ov.innerHTML='<div style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:18px;width:100%;max-width:340px;color:var(--text)">'
+ +'<div style="font-size:15px;font-weight:700;margin-bottom:4px">Speed alert</div>'
+ +'<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:12px">Buzzes and shows a red banner while recording when you go over this speed.</div>'
+ +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px"><input type="checkbox" id="sw-on"> Alert on</label>'
+ +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:10px"><button type="button" id="sw-minus" style="'+rb+'">\u2212</button><div id="sw-val" style="font-size:30px;font-weight:700;color:var(--accent);min-width:120px;text-align:center"></div><button type="button" id="sw-plus" style="'+rb+'">+</button></div>'
+ +'<input type="range" id="sw-range" min="'+SW_MIN+'" max="'+SW_MAX+'" step="1" style="width:100%;margin-bottom:10px">'
+ +'<div id="sw-presets" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px"></div>'
+ +'<div style="font-size:10.5px;color:var(--text3);margin-bottom:12px">12 = Queensland footpath limit \u00b7 25 = e-scooter limit</div>'
+ +'<div style="display:flex;gap:8px"><button type="button" id="sw-test" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:13px">Test buzz</button><button type="button" id="sw-done" style="flex:1;background:var(--accent);color:#0a0a14;border-radius:10px;padding:11px;font-size:13px;font-weight:700">Done</button></div></div>';
+document.body.appendChild(ov);
+const q=id=>ov.querySelector('#'+id);
+const PRESETS=[12,15,20,25,30];
+const swSave=()=>{setSetting('g3_speed_limit',String(swLimit));setSetting('g3_speed_limit_last',String(swLast));};
+function swPaint(){
+ const on=swLimit>0, v=on?swLimit:swLast;
+ q('sw-on').checked=on; q('sw-val').textContent=v+' km/h'; q('sw-val').style.opacity=on?'1':'.4'; q('sw-range').value=v;
+ q('sw-presets').innerHTML=PRESETS.map(p=>'<button type="button" data-p="'+p+'" style="border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;border:1px solid '+(p===v?'var(--accent)':'var(--border)')+';background:'+(p===v?'var(--accent)':'var(--bg4)')+';color:'+(p===v?'#0a0a14':'var(--text)')+'">'+p+'</button>').join('');
+ lbl();
+}
+function swSet(v){ v=Math.max(SW_MIN,Math.min(SW_MAX,Math.round(v)||swLast)); swLast=v; if(swLimit>0) swLimit=v; swSave(); hideBanner(); swPaint(); }
+q('sw-minus').onclick=()=>swSet((swLimit||swLast)-1);
+q('sw-plus').onclick=()=>swSet((swLimit||swLast)+1);
+q('sw-range').oninput=e=>swSet(parseInt(e.target.value,10));
+q('sw-presets').onclick=e=>{const p=e.target.getAttribute&&e.target.getAttribute('data-p'); if(p) swSet(parseInt(p,10));};
+q('sw-on').onchange=e=>{ swLimit=e.target.checked?swLast:0; swSave(); hideBanner(); swPaint(); toast(swLimit?'Speed alert at '+swLimit+' km/h':'Speed alert off'); };
+q('sw-test').onclick=()=>{ if(navigator.vibrate) navigator.vibrate([250,120,250]); else toast('This browser cannot vibrate. You will still see the red banner.'); };
+q('sw-done').onclick=()=>{ov.style.display='none';};
+ov.onclick=e=>{ if(e.target===ov) ov.style.display='none'; };
+openSw=()=>{swPaint(); ov.style.display='flex';};
+
 const _op=onPosition;
 onPosition=function(pos){
  _op(pos);
@@ -2374,7 +2537,7 @@ setTimeout(()=>{try{renderKm(); const d=kd(), v=selectedVehicle; const due=RULES
 /* 5. Backup & export (Settings tab) */
 const dl=(name,text,type)=>{const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1000);};
 const stamp=()=>new Date().toISOString().slice(0,10);
-window.vtBackup=()=>{dl('volt-trail-backup-'+stamp()+'.json',JSON.stringify({app:'Volt Trail',version:1,exported:new Date().toISOString(),rides,vehicles,selectedVehicle,chargeLogs,maintenanceLogs,routineLogs,kmDone:kd()}),'application/json'); toast('Backup downloaded');};
+window.vtBackup=()=>{dl('volt-trail-backup-'+stamp()+'.json',JSON.stringify({app:'Volt Trail',version:1,exported:new Date().toISOString(),rides,vehicles,selectedVehicle,chargeLogs,maintenanceLogs,routineLogs,kmDone:kd(),tyreInfo:(()=>{try{return JSON.parse(getSetting('g3_tyre_info')||'{}')}catch(e){return {}}})()}),'application/json'); toast('Backup downloaded');};
 window.vtRestore=async ev=>{
  const f=ev.target.files[0]; ev.target.value=''; if(!f) return;
  try{
@@ -2386,14 +2549,15 @@ window.vtRestore=async ev=>{
   chargeLogs=merge(chargeLogs,b.chargeLogs); maintenanceLogs=merge(maintenanceLogs,b.maintenanceLogs); routineLogs=merge(routineLogs,b.routineLogs);
   if(Array.isArray(b.vehicles)) vehicles=[...new Set([...vehicles,...b.vehicles])];
   if(b.kmDone) setSetting('g3_km_done',JSON.stringify(Object.assign(kd(),b.kmDone)));
+  if(b.tyreInfo){ let cur={}; try{cur=JSON.parse(getSetting('g3_tyre_info')||'{}')}catch(e){} setSetting('g3_tyre_info',JSON.stringify(Object.assign(cur,b.tyreInfo))); }
   saveGarageDataLocally(); saveVehicles(); populateVehicleSelect(); renderVehicleMgmt(); renderHistory(); renderStats(); renderGarage();
   toast('Restored '+b.rides.length+' rides');
  }catch(e){toast('Could not read that backup file');}
 };
 window.vtCsv=()=>{
  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
- const hdr=['Date','Title','Vehicle','Distance km','Duration min','Moving min','Avg km/h','Max km/h','Max G','Elev max m','Elev min m','Weather','Notes'];
- const rows=rides.slice().sort((a,b)=>a.startTime-b.startTime).map(r=>[new Date(r.startTime).toLocaleString('en-AU'),r.title,r.vehicle,((r.distanceM||0)/1000).toFixed(2),((r.durationSecs||0)/60).toFixed(1),((r.movingTimeSecs||0)/60).toFixed(1),(r.avgSpeedKmh||0).toFixed(1),(r.maxSpeedKmh||0).toFixed(1),(r.maxGforce||0).toFixed(2),r.elevMax==null?'':r.elevMax,r.elevMin==null?'':r.elevMin,r.weather||'',r.notes||'']);
+ const hdr=['Date','Title','Vehicle','Distance km','Duration min','Moving min','Avg km/h','Max km/h','Max G','Elev max m','Elev min m','Avg HR','Max HR','Weather','Notes'];
+ const rows=rides.slice().sort((a,b)=>a.startTime-b.startTime).map(r=>[new Date(r.startTime).toLocaleString('en-AU'),r.title,r.vehicle,((r.distanceM||0)/1000).toFixed(2),((r.durationSecs||0)/60).toFixed(1),((r.movingTimeSecs||0)/60).toFixed(1),(r.avgSpeedKmh||0).toFixed(1),(r.maxSpeedKmh||0).toFixed(1),(r.maxGforce||0).toFixed(2),r.elevMax==null?'':r.elevMax,r.elevMin==null?'':r.elevMin,r.avgHr==null?'':r.avgHr,r.maxHr==null?'':r.maxHr,r.weather||'',r.notes||'']);
  dl('volt-trail-rides-'+stamp()+'.csv','\uFEFF'+[hdr].concat(rows).map(r=>r.map(q).join(',')).join('\n'),'text/csv');
 };
 const sp=$('page-settings');
@@ -2494,9 +2658,113 @@ function convert(p){
 }
 pg.querySelectorAll('.guide-content > p').forEach(convert);
 
-const icon={'guide-escooter':'\uD83D\uDEF4','guide-ebike':'\uD83D\uDEB2','guide-key':'\uD83D\uDD11','guide-brisbane':'\u2696\uFE0F'};
+const icon={'guide-escooter':'\uD83D\uDEF4','guide-ebike':'\uD83D\uDEB2','guide-pure':'\uD83E\uDDB6','guide-tyres':'\u26AB','guide-key':'\uD83D\uDD11','guide-legal':'\u2696\uFE0F'};
 pg.querySelectorAll('.settings-card').forEach(c=>{ if(icon[c.id]) c.insertAdjacentHTML('beforebegin','<div class="evo-sep"><i></i><span>'+icon[c.id]+'</span><i></i></div>'); });
 })();
 </script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+
+/* Heart rate on the ride detail (rides recorded on the watch carry it) */
+function hrChart(ride){
+ const pts=(ride.routePoints||[]).filter(p=>p.hr>0&&p.ts); if(pts.length<5) return '';
+ const step=Math.max(1,Math.floor(pts.length/120)), s=pts.filter((p,i)=>i%step===0);
+ const lo=Math.min(...s.map(p=>p.hr)), hi=Math.max(...s.map(p=>p.hr)), t0=s[0].ts, t1=s[s.length-1].ts||t0+1;
+ const x=p=>(8+(p.ts-t0)/Math.max(1,t1-t0)*284).toFixed(1), y=p=>(8+(1-(p.hr-lo)/Math.max(1,hi-lo))*44).toFixed(1);
+ return '<svg viewBox="0 0 300 62" style="width:100%;display:block" aria-label="Heart rate over the ride"><polyline fill="none" stroke="var(--danger)" stroke-width="2" stroke-linejoin="round" points="'+s.map(p=>x(p)+','+y(p)).join(' ')+'"/>'
+  +'<text x="8" y="60" font-size="9" fill="var(--text2)">low '+lo+'</text><text x="292" y="60" text-anchor="end" font-size="9" fill="var(--text2)">high '+hi+' bpm</text></svg>';
+}
+const _od=openDetail;
+openDetail=function(id){
+ _od.apply(this,arguments);
+ try{
+  const ride=rides.find(r=>r.id===id); const blk=$('d-hr-block'), ch=$('d-hr-chart'); if(!ride||!blk) return;
+  if(ride.avgHr){ $('d-hr').textContent='\u2665 '+ride.avgHr+(ride.maxHr?' / '+ride.maxHr:'')+' bpm'; blk.style.display=''; if(ch){ ch.innerHTML=hrChart(ride); ch.style.display=ch.innerHTML?'':'none'; } }
+  else { blk.style.display='none'; if(ch) ch.style.display='none'; }
+ }catch(e){}
+};
+
+/* Rides the watch posted to Strava: pick up their activity ids so the button shows Posted */
+async function pullStravaPosts(){
+ if(!syncEnabled||!supabaseClient) return;
+ const r=await supabaseClient.from('strava_posts').select('ride_id,activity_id'); const data=r&&r.data; if(!data) return;
+ for(const p of data){
+  if(!p.activity_id) continue;
+  const ride=rides.find(x=>String(x.id)===String(p.ride_id));
+  if(ride&&!ride.stravaId){ ride.stravaId=Number(p.activity_id); dbPut(ride).catch(()=>{}); }
+ }
+}
+const _ss=supabaseSync;
+supabaseSync=async function(){ const out=await _ss.apply(this,arguments); try{ await pullStravaPosts(); }catch(e){} return out; };
+})();
+</script>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id), toast=m=>{try{showToast(m)}catch(e){}};
+const KEY='g3_tyre_info';
+const TYPES=['Not set','Tube','Tubeless','Tubeless + jelly (self-sealing)','Solid / airless','Other'];
+const TREADS=['Urban / road','Mixed / semi-slick','Knobby / off-road'];
+const get=()=>{try{return JSON.parse(getSetting(KEY)||'{}')}catch(e){return {}}};
+const put=o=>setSetting(KEY,JSON.stringify(o));
+const rec=v=>{const o=get(); return o[v]||{factoryType:'',changes:[]};};
+const save=(v,r)=>{const o=get(); o[v]=r; put(o);};
+function guess(t){ t=(t||'').toLowerCase(); if(/jelly|self-?heal|self-?seal/.test(t)) return TYPES[3]; if(/solid|airless/.test(t)) return TYPES[4]; if(/tubeless/.test(t)) return TYPES[2]; if(/\btube\b/.test(t)) return TYPES[1]; return TYPES[0]; }
+const opts=(arr,sel)=>arr.map(x=>'<option'+(x===sel?' selected':'')+'>'+escHtml(x)+'</option>').join('');
+const kmSince=(v,ts)=>(rides||[]).filter(r=>r.vehicle===v&&r.startTime>ts).reduce((a,r)=>a+(r.distanceM||0),0)/1000;
+const inp='width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;padding:10px 12px;outline:none';
+
+const gp=$('page-garage'), inner=gp&&gp.querySelector('.settings-inner');
+if(inner){ const c=document.createElement('div'); c.className='settings-card'; c.id='vt-tyres'; inner.appendChild(c); }
+
+function render(){
+ const el=$('vt-tyres'); if(!el) return;
+ const v=selectedVehicle, spec=(VEHICLE_SPECS&&VEHICLE_SPECS[v])||{}, r=rec(v);
+ const factoryType=r.factoryType||guess(spec.tyre);
+ const ch=(r.changes||[]).slice().sort((a,b)=>b.date-a.date), last=ch[0];
+ let status;
+ if(last){
+  const days=Math.max(0,Math.floor((Date.now()-last.date)/86400000)), km=kmSince(v,last.date);
+  status='<strong style="color:var(--text)">Last changed:</strong> '+new Date(last.date).toLocaleDateString('en-AU')+' ('+days+' days ago, about '+km.toFixed(0)+' km ridden since)<br><strong style="color:var(--text)">Fitted now:</strong> '+escHtml(last.type)+', '+escHtml(last.tread)+(last.brand?', '+escHtml(last.brand):'');
+ } else status='<strong style="color:var(--text)">Last changed:</strong> never recorded. Still on the factory tyres, or log your last change below.<br><strong style="color:var(--text)">Fitted now:</strong> '+escHtml(factoryType)+' (factory)';
+ el.innerHTML='<h3>\uD83D\uDEDE Tyres: factory &amp; changes</h3>'
+  +'<p>Record what this model shipped with, what is fitted now and when you last changed tyres. Choose a replacement that matches your riding: see Tyres in the Guide.</p>'
+  +'<div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px"><strong style="color:var(--text)">Factory tyres for '+escHtml(v)+':</strong> '+escHtml(spec.tyre||'not listed (add it under Vehicle Specifications)')+'</div>'
+  +'<label class="specs-lbl">Factory tyre construction</label><select id="ty-factory" style="'+inp+';margin-bottom:12px">'+opts(TYPES,factoryType)+'</select>'
+  +'<div style="font-size:12px;color:var(--text2);line-height:1.7;padding:10px;background:var(--bg4);border-radius:10px;margin-bottom:12px">'+status+'</div>'
+  +'<div style="font-size:13px;font-weight:600;margin-bottom:6px">Log a tyre change</div>'
+  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+  +'<div><label class="specs-lbl">Date changed</label><input type="date" id="ty-date" style="'+inp+'" value="'+new Date().toISOString().slice(0,10)+'"></div>'
+  +'<div><label class="specs-lbl">Odometer (km, optional)</label><input type="number" id="ty-odo" style="'+inp+'" placeholder="e.g. 1250"></div>'
+  +'<div><label class="specs-lbl">Type fitted</label><select id="ty-type" style="'+inp+'">'+opts(TYPES.slice(1),factoryType===TYPES[0]?TYPES[2]:factoryType)+'</select></div>'
+  +'<div><label class="specs-lbl">Tread</label><select id="ty-tread" style="'+inp+'">'+opts(TREADS,TREADS[0])+'</select></div>'
+  +'<div style="grid-column:1/-1"><label class="specs-lbl">Brand / model (optional)</label><input type="text" id="ty-brand" style="'+inp+'" placeholder="e.g. Kenda 10x2.5 tubeless"></div></div>'
+  +'<button class="settings-btn" id="ty-add" style="width:100%">Log tyre change</button>'
+  +(ch.length?'<div style="font-size:13px;font-weight:600;margin:14px 0 6px">Tyre history</div>'+ch.map(c=>'<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border);font-size:12px;color:var(--text2)"><div style="flex:1"><div style="color:var(--text);font-size:13px">'+new Date(c.date).toLocaleDateString('en-AU')+' \u00b7 '+escHtml(c.type)+'</div>'+escHtml(c.tread)+(c.brand?' \u00b7 '+escHtml(c.brand):'')+(c.odo?' \u00b7 '+c.odo+' km':'')+'</div><button data-del="'+c.id+'" style="background:rgba(231,76,60,0.15);color:var(--danger);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600">Delete</button></div>').join(''):'');
+ $('ty-factory').onchange=e=>{const x=rec(v); x.factoryType=e.target.value===TYPES[0]?'':e.target.value; save(v,x); render(); toast('Factory tyre type saved');};
+ $('ty-add').onclick=()=>{
+  const d=$('ty-date').value; if(!d) return toast('Pick the date you changed the tyres');
+  const x=rec(v); x.changes=x.changes||[];
+  x.changes.push({id:Date.now(),date:new Date(d+'T00:00:00').getTime(),type:$('ty-type').value,tread:$('ty-tread').value,brand:$('ty-brand').value.trim(),odo:parseFloat($('ty-odo').value)||null});
+  save(v,x); render(); toast('Tyre change logged');
+ };
+ el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ if(!confirm('Delete this tyre entry?')) return; const x=rec(v); x.changes=(x.changes||[]).filter(c=>String(c.id)!==b.getAttribute('data-del')); save(v,x); render(); });
+}
+
+/* How much the app has learned from charge logs */
+function learnNote(){
+ const el=$('charge-learn-note'); if(!el) return;
+ const logs=(chargeLogs||[]).filter(l=>l.vehicle===selectedVehicle), withOdo=logs.filter(l=>typeof l.odoKm==='number'&&!isNaN(l.odoKm)).length, rate=logs.filter(l=>l.endPct>l.startPct).length;
+ const rng=withOdo>=2?'learning from '+withOdo+' logs with odometer':'needs '+(2-withOdo)+' more log'+(2-withOdo===1?'':'s')+' with odometer';
+ const eta=rate>=3?'personalised from your last '+Math.min(5,rate)+' charges':'needs '+(3-rate)+' more complete charge'+(3-rate===1?'':'s');
+ el.innerHTML='<strong style="color:var(--text)">'+logs.length+' charge'+(logs.length===1?'':'s')+' logged for this vehicle.</strong><br>Range &amp; battery health: '+rng+'.<br>Time to target: '+eta+'.';
+}
+
+['renderGarage'].forEach(n=>{const f=window[n]; if(typeof f==='function') window[n]=function(){const r=f.apply(this,arguments); try{render();learnNote();}catch(e){} return r;};});
+setTimeout(()=>{try{render();learnNote();}catch(e){}},500);
+})();
+</script>
+
 </body>
 </html>
